@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="分析 Earthquake Clusters 这个 demo，官网介绍是：  This example parses a KML file and renders the features as clusters on a vector layer. The styling in this example is quite involved. Single earthquake locations">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenLayers6实例分析：Earthquake Clusters（地震点聚合）">
+<meta property="og:url" content="https://linjingyi.cn/posts/7b5b0d8c.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="分析 Earthquake Clusters 这个 demo，官网介绍是：  This example parses a KML file and renders the features as clusters on a vector layer. The styling in this example is quite involved. Single earthquake locations">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/7b5b0d8c/earthquake.gif">
+<meta property="og:image" content="https://linjingyi.cn/posts/7b5b0d8c/star.jpg">
+<meta property="article:published_time" content="2020-02-08T12:12:51.000Z">
+<meta property="article:modified_time" content="2020-02-08T12:12:51.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="OpenLayers">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="地图">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/7b5b0d8c/earthquake.gif">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/7b5b0d8c.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>OpenLayers6实例分析：Earthquake Clusters（地震点聚合） | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/7b5b0d8c.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          OpenLayers6实例分析：Earthquake Clusters（地震点聚合）
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-08 20:12:51" itemprop="dateCreated datePublished" datetime="2020-02-08T20:12:51+08:00">2020-02-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9C%B0%E5%9B%BE/" itemprop="url" rel="index">
+                    <span itemprop="name">地图</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>分析 Earthquake Clusters 这个 demo，官网介绍是：</p>
+<blockquote>
+<p>This example parses a KML file and renders the features as clusters on a vector layer. The styling in this example is quite involved. Single earthquake locations (rendered as stars) have a size relative to their magnitude. Clusters have an opacity relative to the number of features in the cluster, and a size that represents the extent of the features that make up the cluster. When clicking or hovering on a cluster, the individual features that make up the cluster will be shown.</p>
+</blockquote>
+<blockquote>
+<p>To achieve this, we make heavy use of style functions.</p>
+</blockquote>
+<blockquote>
+<p>本示例将解析 KML 文件并在矢量图层上将要素渲染成聚合点。在这个示例中的样式非常复杂。单个的地震点(被渲染成了星状)的大小与震级相关。聚合点的透明度与聚合点内要素的数量相关，并且聚合点的大小也代表着聚合点内要素的四至。当在聚合点上点击或者悬浮时，组成聚合点的各个要素就会被展示。</p>
+</blockquote>
+<blockquote>
+<p>由于上述原因，我们大量使用了样式函数。</p>
+</blockquote>
+<ul>
+<li><p><a href="https://openlayers.org/en/latest/examples/earthquake-clusters.html" target="_blank" rel="external nofollow noopener noreferrer">官网实例</a>：Earthquake Clusters</p>
+</li>
+<li><p><a href="https://ke.qq.com/course/449937" target="_blank" rel="external nofollow noopener noreferrer">跟我学 OpenLayers——基础实例讲解</a>：6 要素 ol.feature 的使用 &gt; 实例 33.地震信息的要素聚合</p>
+<a id="more"></a>
+
+</li>
+</ul>
+<p><img src="/posts/7b5b0d8c/earthquake.gif" alt="Earthquake Clusters"></p>
+<h2 id="定义基本结构"><a href="#定义基本结构" class="headerlink" title="定义基本结构"></a>定义基本结构</h2><p>地图的基本结构如下所示，<code>raster</code> 图层使用的是普通的 <code>toner</code> 碳粉地图，不一样的地方是 <code>vector</code> 矢量图层的定义。在 <code>source</code> 中使用了<a href="https://openlayers.org/en/latest/apidoc/module-ol_source_Cluster-Cluster.html" target="_blank" rel="external nofollow noopener noreferrer">ol.source.Cluster</a>，这个就是 OpenLayers 官方的点聚合源，<code>distance</code> 属性判定两个聚合点之间最小像素距离。在<code>source</code> 中的 <code>source</code> 属性里，<a href="https://openlayers.org/en/latest/apidoc/module-ol_source_Vector.html" target="_blank" rel="external nofollow noopener noreferrer">ol.source.Vector</a>中 <code>url</code> 属性是数据源的链接，<code>format</code> 属性是根据数据源格式来设定。</p>
+<p>这里最关键的是 <code>vector</code> 中 <code>style</code> 属性，样式是从 <code>styleFunction</code> 函数中返回的，这是整个地震点聚合的核心。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span></span></span><br><span class="line"><span class="tag">      <span class="attr">rel</span>=<span class="string">"stylesheet"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">href</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">type</span>=<span class="string">"text/css"</span></span></span><br><span class="line"><span class="tag">    /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Earthquake Clusters(地震点聚合)<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body,</span><br><span class="line"><span class="css">      <span class="selector-class">.map</span> &#123;</span></span><br><span class="line">        height: 100%;</span><br><span class="line">        width: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">class</span>=<span class="string">"map"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 矢量图层</span></span></span><br><span class="line"><span class="actionscript">      vector = <span class="keyword">new</span> ol.layer.Vector(&#123;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 数据源使用的是ol.source.Cluster</span></span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.Cluster(&#123;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 两个聚合点之间的最小像素距离</span></span></span><br><span class="line">          distance: 40,</span><br><span class="line"><span class="actionscript">          source: <span class="keyword">new</span> ol.source.Vector(&#123;</span></span><br><span class="line">            url:</span><br><span class="line"><span class="actionscript">              <span class="string">"https://openlayers.org/en/latest/examples/data/kml/2012_Earthquakes_Mag5.kml"</span>,</span></span><br><span class="line"><span class="actionscript">            format: <span class="keyword">new</span> ol.format.KML(&#123;</span></span><br><span class="line"><span class="actionscript">              <span class="comment">// 不从KML文件中提取样式</span></span></span><br><span class="line"><span class="actionscript">              extractStyles: <span class="literal">false</span></span></span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;),</span><br><span class="line"><span class="actionscript">        <span class="comment">// 样式从样式函数中返回</span></span></span><br><span class="line">        style: styleFunction</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 普通的碳粉地图</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> raster = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.Stamen(&#123;</span></span><br><span class="line"><span class="actionscript">          layer: <span class="string">"toner"</span></span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">        layers: [raster, vector],</span><br><span class="line">        interactions: ol.interaction.defaults().extend([</span><br><span class="line"><span class="actionscript">          <span class="keyword">new</span> ol.interaction.Select(&#123;</span></span><br><span class="line"><span class="javascript">            condition: <span class="function"><span class="params">evt</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="actionscript">              <span class="keyword">return</span> evt.type == <span class="string">"pointermove"</span> || evt.type == <span class="string">"singleclick"</span>;</span></span><br><span class="line">            &#125;,</span><br><span class="line"><span class="actionscript">            <span class="comment">// 被选择到的要素的样式</span></span></span><br><span class="line">            style: selectStyleFunction</span><br><span class="line">          &#125;)</span><br><span class="line">        ]),</span><br><span class="line"><span class="actionscript">        target: <span class="string">"map"</span>,</span></span><br><span class="line"><span class="actionscript">        view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line">          center: [0, 0],</span><br><span class="line">          zoom: 2</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>地图中还有一个不一样的地方是，数据源使用 KML 格式。KML 格式属于 XML 规范，文件里面是各种标签，笼统地说，在解析的时候标签名就是键名，标签里面的内容就是键值，如下所示，<code>name</code> 标签中存放就是地震震级、时间、地理位置等信息，<code>Point</code> 下的 <code>coordinates</code> 存放的是经纬度信息。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">kml</span> <span class="attr">xmlns</span>=<span class="string">"http://earth.google.com/kml/2.0"</span> <span class="attr">xmlns:atom</span>=<span class="string">"http://www.w3.org/2005/Atom"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">Document</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>2012 Earthquakes, Magnitude 5<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">atom:author</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">atom:name</span>&gt;</span>U.S. Geological Survey<span class="tag">&lt;/<span class="name">atom:name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">atom:author</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">atom:link</span> <span class="attr">href</span>=<span class="string">"http://earthquake.usgs.gov"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Folder</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">name</span>&gt;</span>Magnitude 5<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">Placemark</span> <span class="attr">id</span>=<span class="string">"2012 Jan 15 13:40:16.40 UTC"</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>M 5.9 - 2012 Jan 15, SOUTH SHETLAND ISLANDS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">magnitude</span>&gt;</span>5.9<span class="tag">&lt;/<span class="name">magnitude</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">Point</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">coordinates</span>&gt;</span>-56.072,-60.975,0<span class="tag">&lt;/<span class="name">coordinates</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">Point</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">Placemark</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">Placemark</span> <span class="attr">id</span>=<span class="string">"2012 Jan 19 06:48:48.75 UTC"</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>M 5.9 - 2012 Jan 19, OFF W. COAST OF S. ISLAND, N.Z.<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">magnitude</span>&gt;</span>5.9<span class="tag">&lt;/<span class="name">magnitude</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">Point</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">coordinates</span>&gt;</span>165.778,-46.686,0<span class="tag">&lt;/<span class="name">coordinates</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">Point</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">Placemark</span>&gt;</span></span><br><span class="line">            ...以下省略</span><br><span class="line">        <span class="tag">&lt;/<span class="name">Folder</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">Document</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">kml</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="普通地震点样式"><a href="#普通地震点样式" class="headerlink" title="普通地震点样式"></a>普通地震点样式</h2><p>未聚合的普通地震点是一个五角星，五角星的尺寸与该点的地震震级大小正相关，如图所示。</p>
+<p><img src="/posts/7b5b0d8c/star.jpg" alt="star"></p>
+<p>具体实现时，是先创建好地震点的 <code>fill</code> 和 <code>stroke</code> 样式，再给每个点使用一个 <code>createEarthquakeStyle</code> 样式函数返回 <code>style</code>。通过裁剪字符串取到了地震震级后转换为 <code>radius</code>，震级越大，<code>radius</code> 越大。</p>
+<p>最后返回<a href="https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html" target="_blank" rel="external nofollow noopener noreferrer">ol.style.Style</a>的时候，<a href="https://openlayers.org/en/latest/apidoc/module-ol_geom_Geometry-Geometry.html" target="_blank" rel="external nofollow noopener noreferrer">geometry</a>中存放位置信息，<a href="https://openlayers.org/en/latest/apidoc/module-ol_style_Image-ImageStyle.html" target="_blank" rel="external nofollow noopener noreferrer">image</a>中存放一个<a href="https://openlayers.org/en/latest/apidoc/module-ol_style_RegularShape-RegularShape.html" target="_blank" rel="external nofollow noopener noreferrer">ol.style.RegularShape</a>对象。这个 <code>RegularShape</code> 对象是 OpenLayers 为了便于快速绘制规则图形而加入的，把 <code>radius</code>、<code>earthquakeFill</code>、<code>earthquakeStroke</code> 传进去后就能返回一个完备的五角星 <code>style</code> 对象。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 地震点fill样式</span></span><br><span class="line"><span class="keyword">let</span> earthquakeFill = <span class="keyword">new</span> ol.style.Fill(&#123;</span><br><span class="line">  color: <span class="string">"rgba(255, 153, 0, 0.8)"</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 地震点stroke样式</span></span><br><span class="line"><span class="keyword">let</span> earthquakeStroke = <span class="keyword">new</span> ol.style.Stroke(&#123;</span><br><span class="line">  color: <span class="string">"rgba(255, 204, 0, 0.2)"</span>,</span><br><span class="line">  width: <span class="number">1</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 创建地震点的样式</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Object&#125;</span> </span>feature 地震点的要素</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>: &#123;Object&#125; new ol.style.Style 地震点的样式</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> createEarthquakeStyle = <span class="function"><span class="params">feature</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// name标签中存放的内容如下：&lt;name&gt;M 5.9 - 2012 Jan 19, OFF W. COAST OF S. ISLAND, N.Z.&lt;/name&gt;</span></span><br><span class="line">  <span class="comment">// 所以name存放的字符串如下：M 5.9 - 2012 Jan 19, OFF W. COAST OF S. ISLAND, N.Z.</span></span><br><span class="line">  <span class="keyword">let</span> name = feature.get(<span class="string">"name"</span>);</span><br><span class="line">  <span class="comment">// magnitude被转换成浮点数如下：5.9</span></span><br><span class="line">  <span class="keyword">let</span> magnitude = <span class="built_in">parseFloat</span>(name.substr(<span class="number">2</span>));</span><br><span class="line">  <span class="keyword">let</span> radius = <span class="number">5</span> + <span class="number">20</span> * (magnitude - <span class="number">5</span>);</span><br><span class="line">  <span class="comment">// 该要素对应五角星的样式</span></span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> ol.style.Style(&#123;</span><br><span class="line">    geometry: feature.getGeometry(),</span><br><span class="line">    image: <span class="keyword">new</span> ol.style.RegularShape(&#123;</span><br><span class="line">      <span class="comment">// 内半径</span></span><br><span class="line">      radius1: radius,</span><br><span class="line">      <span class="comment">// 外半径</span></span><br><span class="line">      radius2: <span class="number">3</span>,</span><br><span class="line">      <span class="comment">// 5角形</span></span><br><span class="line">      points: <span class="number">5</span>,</span><br><span class="line">      <span class="comment">// 旋转角度</span></span><br><span class="line">      angle: <span class="built_in">Math</span>.PI,</span><br><span class="line">      <span class="comment">// fill和stroke样式</span></span><br><span class="line">      fill: earthquakeFill,</span><br><span class="line">      stroke: earthquakeStroke</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="计算地震点聚合信息"><a href="#计算地震点聚合信息" class="headerlink" title="计算地震点聚合信息"></a>计算地震点聚合信息</h2><p>先声明一个 <code>maxFeatureCount</code> 存放最多的聚合 <code>cluster</code> 中聚合地震点的数目，主要目的是用后后面计算聚合圆圈的透明度。获取到图层的的聚合点要素数组以后，迭代并在每个聚合点要素中获取原始的要素信息。</p>
+<p>原始的要素信息主要有两个作用，一个是计算最大的聚合点中的原始要素数目，这个数目跟聚合点的透明度有关系，第二个是计算每个聚合点的<a href="https://openlayers.org/en/latest/apidoc/module-ol_extent.html" target="_blank" rel="external nofollow noopener noreferrer">四至</a>，利用这个四至和 <code>resolution</code>（每个像素代表多少米），就能计算聚合点的半径大小。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 最多的聚合数，便于计算聚合圆圈的透明度</span></span><br><span class="line"><span class="keyword">let</span> maxFeatureCount;</span><br><span class="line"><span class="comment">// 矢量图层</span></span><br><span class="line"><span class="keyword">let</span> vector = <span class="literal">null</span>;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 计算聚合后的信息</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;type&#125;</span> </span>resolution 分辨率,一个像素代表多少米</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>: null</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> calculateClusterInfo = <span class="function"><span class="params">resolution</span> =&gt;</span> &#123;</span><br><span class="line">  maxFeatureCount = <span class="number">0</span>;</span><br><span class="line">  <span class="comment">// 获取图层中所有要素</span></span><br><span class="line">  <span class="keyword">let</span> features = vector.getSource().getFeatures();</span><br><span class="line">  <span class="keyword">let</span> feature, radius;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = features.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; --i) &#123;</span><br><span class="line">    feature = features[i];</span><br><span class="line">    <span class="comment">// 获取第i个要素中的所有features</span></span><br><span class="line">    <span class="keyword">let</span> originalFeatures = feature.get(<span class="string">"features"</span>);</span><br><span class="line">    <span class="comment">// 创建一个空的地图范围，四至，其实是一个数组</span></span><br><span class="line">    <span class="keyword">let</span> extent = ol.extent.createEmpty();</span><br><span class="line">    <span class="comment">// void 0 返回undefined</span></span><br><span class="line">    <span class="keyword">let</span> j = <span class="keyword">void</span> <span class="number">0</span>,</span><br><span class="line">      jj = <span class="keyword">void</span> <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">console</span>.log(j, jj);</span><br><span class="line">    <span class="keyword">for</span> (j = <span class="number">0</span>, jj = originalFeatures.length; j &lt; jj; ++j) &#123;</span><br><span class="line">      <span class="comment">// 不断地循环让四至变大</span></span><br><span class="line">      ol.extent.extend(extent, originalFeatures[j].getGeometry().getExtent());</span><br><span class="line">    &#125;</span><br><span class="line">    maxFeatureCount = <span class="built_in">Math</span>.max(maxFeatureCount, jj);</span><br><span class="line">    <span class="comment">// 半径是根据四至来算出来的</span></span><br><span class="line">    radius =</span><br><span class="line">      (<span class="number">0.25</span> * (ol.extent.getWidth(extent) + ol.extent.getHeight(extent))) /</span><br><span class="line">      resolution;</span><br><span class="line">    feature.set(<span class="string">"radius"</span>, radius);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="四至"><a href="#四至" class="headerlink" title="四至"></a>四至</h3><p>四至是地理学的名词，笼统说就是包含一个要素的最小矩形范围，可以用一个数组来表示<code>[minx, miny, maxx, maxy]</code>。</p>
+<p>在迭代计算聚合点的四至时，是先<a href="https://openlayers.org/en/latest/apidoc/module-ol_extent.html#.createEmpty" target="_blank" rel="external nofollow noopener noreferrer">ol.extent.createEmpty()</a>创建了一个空的四至，再使用<a href="https://openlayers.org/en/latest/apidoc/module-ol_extent.html#.extend" target="_blank" rel="external nofollow noopener noreferrer">ol.extent.extend()</a>使范围不断扩大，最终使 <code>extent</code> 中包含整个聚合点所有原始要素的四至。最后在计算半径的时候，获取 <code>extent</code> 的长度和宽度，除以 <code>resolution</code> 就能转变为像素数，就可以计算出像素半径。</p>
+<h2 id="styleFunction-与-selectStyleFunction"><a href="#styleFunction-与-selectStyleFunction" class="headerlink" title="styleFunction 与 selectStyleFunction"></a>styleFunction 与 selectStyleFunction</h2><h3 id="styleFunction"><a href="#styleFunction" class="headerlink" title="styleFunction"></a>styleFunction</h3><p>做好了前文的各项准备之后，就能构造矢量图层的样式返回函数 <code>styleFunction</code>，这个函数可以获取到两个入参 <code>feature</code> 和 <code>resolution</code>。</p>
+<p>resolution 使用的时候首先判断和之前保存的 <code>currentResolution</code> 是否一致，也就是判断有没有缩小或者放大地图。如果不一致需要调用 <code>calculateClusterInfo</code> 函数。重新来计算聚合点的原始要素数目和四至，也就是聚合点的透明度和半径大小。</p>
+<p>feature 使用的时候首先要判断聚合点要素的原始要素数目。如果等于 1 就代表只有一个原始要素，就正常返回 <code>createEarthquakeStyle(originalFeature)</code>，也就是在地图上直接绘制一个五角星。</p>
+<p>如果大于 1，就需要返回聚合点要素的样式，看代码可以发现，聚合点样式是使用<code>image</code> 和 <code>text</code> 来构造。<code>image</code> 构造出了一个圆圈，半径直接取 <code>calculateClusterInfo</code> 函数设置给要素的 <code>radius</code>，<code>rgba</code> 颜色中的透明度是使用 <code>maxFeatureCount</code> 计算得出。<code>text</code> 是圆圈上的文字，文字内容是每个聚合点要素的原始要素数目。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 文本fill样式</span></span><br><span class="line"><span class="keyword">let</span> textFill = <span class="keyword">new</span> ol.style.Fill(&#123;</span><br><span class="line">  color: <span class="string">"#fff"</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 文本stroke样式</span></span><br><span class="line"><span class="keyword">let</span> textStroke = <span class="keyword">new</span> ol.style.Stroke(&#123;</span><br><span class="line">  color: <span class="string">"rgba(0, 0, 0, 0.6)"</span>,</span><br><span class="line">  width: <span class="number">3</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 保存上次调用时的resolution</span></span><br><span class="line"><span class="keyword">let</span> currentResolution;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 普通样式的返回函数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;type&#125;</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>:</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> styleFunction = <span class="function">(<span class="params">feature, resolution</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (resolution != currentResolution) &#123;</span><br><span class="line">    calculateClusterInfo(resolution);</span><br><span class="line">    currentResolution = resolution;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">let</span> style;</span><br><span class="line">  <span class="comment">// 这里的fill颜色的透明度通过当前要素的features数目size与maxFeatureCount的比值计算得到，越少越透明</span></span><br><span class="line">  <span class="keyword">let</span> size = feature.get(<span class="string">"features"</span>).length;</span><br><span class="line">  <span class="keyword">if</span> (size &gt; <span class="number">1</span>) &#123;</span><br><span class="line">    style = <span class="keyword">new</span> ol.style.Style(&#123;</span><br><span class="line">      image: <span class="keyword">new</span> ol.style.Circle(&#123;</span><br><span class="line">        radius: feature.get(<span class="string">"radius"</span>),</span><br><span class="line">        fill: <span class="keyword">new</span> ol.style.Fill(&#123;</span><br><span class="line">          color: [<span class="number">255</span>, <span class="number">153</span>, <span class="number">0</span>, <span class="built_in">Math</span>.min(<span class="number">0.8</span>, <span class="number">0.4</span> + size / maxFeatureCount)]</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;),</span><br><span class="line">      <span class="comment">// 文本样式</span></span><br><span class="line">      text: <span class="keyword">new</span> ol.style.Text(&#123;</span><br><span class="line">        text: size.toString(),</span><br><span class="line">        fill: textFill,</span><br><span class="line">        stroke: textStroke</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 如果只有一个要素,就返回普通地震点的样式</span></span><br><span class="line">    <span class="keyword">let</span> originalFeature = feature.get(<span class="string">"features"</span>)[<span class="number">0</span>];</span><br><span class="line">    style = createEarthquakeStyle(originalFeature);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> style;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="selectStyleFunction"><a href="#selectStyleFunction" class="headerlink" title="selectStyleFunction"></a>selectStyleFunction</h3><p>这个 <code>selectStyleFunction</code> 样式函数中返回的是当鼠标悬浮或者单击聚合点时的样式。在 <code>invisibleFill</code> 能够发现其实是把聚合点圆圈和文本的透明度设置成了 <code>0.01</code>，接近透明。</p>
+<p>聚合点中原始要素的显示，是迭代每一个原始要素，使用 <code>createEarthquakeStyle</code> 函数 <code>push</code> 出一个 <code>style</code> 数组并返回，就能把聚合点中包含的所有五角星全都显示出来。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 隐藏状态时的fill样式</span></span><br><span class="line"><span class="keyword">let</span> invisibleFill = <span class="keyword">new</span> ol.style.Fill(&#123;</span><br><span class="line">  color: <span class="string">"rgba(255, 255, 255, 0.01)"</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 地震聚合点被选中时的样式</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Object&#125;</span> </span>feature 要素</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>: styles 被选中后的样式数组</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> selectStyleFunction = <span class="function"><span class="params">feature</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// fill填充为透明</span></span><br><span class="line">  <span class="keyword">let</span> styles = [</span><br><span class="line">    <span class="keyword">new</span> ol.style.Style(&#123;</span><br><span class="line">      image: <span class="keyword">new</span> ol.style.Circle(&#123;</span><br><span class="line">        radius: feature.get(<span class="string">"radius"</span>),</span><br><span class="line">        fill: invisibleFill</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">  ];</span><br><span class="line">  <span class="keyword">let</span> originalFeatures = feature.get(<span class="string">"features"</span>);</span><br><span class="line">  <span class="keyword">let</span> originalFeature;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = originalFeatures.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; --i) &#123;</span><br><span class="line">    originalFeature = originalFeatures[i];</span><br><span class="line">    <span class="comment">// 把每个feature点的样式push给数组</span></span><br><span class="line">    styles.push(createEarthquakeStyle(originalFeature));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> styles;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="全部代码"><a href="#全部代码" class="headerlink" title="全部代码"></a>全部代码</h2><p>最后贴存出全部代码：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span></span></span><br><span class="line"><span class="tag">      <span class="attr">rel</span>=<span class="string">"stylesheet"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">href</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">type</span>=<span class="string">"text/css"</span></span></span><br><span class="line"><span class="tag">    /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Earthquake Clusters(地震点聚合)<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body,</span><br><span class="line"><span class="css">      <span class="selector-class">.map</span> &#123;</span></span><br><span class="line">        height: 100%;</span><br><span class="line">        width: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">class</span>=<span class="string">"map"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 地震点fill样式</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> earthquakeFill = <span class="keyword">new</span> ol.style.Fill(&#123;</span></span><br><span class="line"><span class="actionscript">        color: <span class="string">"rgba(255, 153, 0, 0.8)"</span></span></span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 地震点stroke样式</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> earthquakeStroke = <span class="keyword">new</span> ol.style.Stroke(&#123;</span></span><br><span class="line"><span class="actionscript">        color: <span class="string">"rgba(255, 204, 0, 0.2)"</span>,</span></span><br><span class="line">        width: 1</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 文本fill样式</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> textFill = <span class="keyword">new</span> ol.style.Fill(&#123;</span></span><br><span class="line"><span class="actionscript">        color: <span class="string">"#fff"</span></span></span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 文本stroke样式</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> textStroke = <span class="keyword">new</span> ol.style.Stroke(&#123;</span></span><br><span class="line"><span class="actionscript">        color: <span class="string">"rgba(0, 0, 0, 0.6)"</span>,</span></span><br><span class="line">        width: 3</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 隐藏状态时的fill样式</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> invisibleFill = <span class="keyword">new</span> ol.style.Fill(&#123;</span></span><br><span class="line"><span class="actionscript">        color: <span class="string">"rgba(255, 255, 255, 0.01)"</span></span></span><br><span class="line">      &#125;);</span><br><span class="line">      /**</span><br><span class="line">       * @description: 创建地震点的样式</span><br><span class="line"><span class="javascript">       * @param &#123;<span class="built_in">Object</span>&#125; feature 地震点的要素</span></span><br><span class="line"><span class="javascript">       * @<span class="keyword">return</span>: &#123;<span class="built_in">Object</span>&#125; <span class="keyword">new</span> ol.style.Style 地震点的样式</span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">const</span> createEarthquakeStyle = <span class="function"><span class="params">feature</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="handlebars"><span class="xml">        // name标签中存放的内容如下：<span class="tag">&lt;<span class="name">name</span>&gt;</span>M 5.9 - 2012 Jan 19, OFF W. COAST OF S. ISLAND, N.Z.<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 所以name存放的字符串如下：M 5.9 - 2012 Jan 19, OFF W. COAST OF S. ISLAND, N.Z.</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> name = feature.get(<span class="string">"name"</span>);</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// magnitude被转换成浮点数如下：5.9</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> magnitude = <span class="built_in">parseFloat</span>(name.substr(<span class="number">2</span>));</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> radius = <span class="number">5</span> + <span class="number">20</span> * (magnitude - <span class="number">5</span>);</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 该要素对应五角星的样式</span></span></span><br><span class="line"><span class="actionscript">        <span class="keyword">return</span> <span class="keyword">new</span> ol.style.Style(&#123;</span></span><br><span class="line">          geometry: feature.getGeometry(),</span><br><span class="line"><span class="actionscript">          image: <span class="keyword">new</span> ol.style.RegularShape(&#123;</span></span><br><span class="line">            radius1: radius,</span><br><span class="line">            radius2: 3,</span><br><span class="line">            points: 5,</span><br><span class="line"><span class="javascript">            angle: <span class="built_in">Math</span>.PI,</span></span><br><span class="line">            fill: earthquakeFill,</span><br><span class="line">            stroke: earthquakeStroke</span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;;</span><br><span class="line"><span class="actionscript">      <span class="comment">// 最多的聚合数，便于计算聚合圆圈的透明度</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> maxFeatureCount;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 矢量图层</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> vector = <span class="literal">null</span>;</span></span><br><span class="line">      /**</span><br><span class="line">       * @description: 计算聚合后的信息</span><br><span class="line">       * @param &#123;type&#125; resolution 分辨率,一个像素代表多少米</span><br><span class="line"><span class="actionscript">       * @<span class="keyword">return</span>: <span class="literal">null</span></span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">const</span> calculateClusterInfo = <span class="function"><span class="params">resolution</span> =&gt;</span> &#123;</span></span><br><span class="line">        maxFeatureCount = 0;</span><br><span class="line"><span class="actionscript">        <span class="comment">// 获取图层中所有要素</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> features = vector.getSource().getFeatures();</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> feature, radius;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">for</span> (<span class="keyword">let</span> i = features.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; --i) &#123;</span></span><br><span class="line">          feature = features[i];</span><br><span class="line"><span class="actionscript">          <span class="comment">// 获取第i个要素中的所有features</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> originalFeatures = feature.get(<span class="string">"features"</span>);</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 创建一个空的地图范围，四至，其实是一个数组</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> extent = ol.extent.createEmpty();</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// void 0 返回undefined</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> j = <span class="keyword">void</span> <span class="number">0</span>,</span></span><br><span class="line"><span class="actionscript">            jj = <span class="keyword">void</span> <span class="number">0</span>;</span></span><br><span class="line"><span class="javascript">          <span class="built_in">console</span>.log(j, jj);</span></span><br><span class="line">          for (j = 0, jj = originalFeatures.length; j &lt; jj; ++j) &#123;</span><br><span class="line"><span class="actionscript">            <span class="comment">// 不断地循环让四至变大</span></span></span><br><span class="line">            ol.extent.extend(</span><br><span class="line">              extent,</span><br><span class="line">              originalFeatures[j].getGeometry().getExtent()</span><br><span class="line">            );</span><br><span class="line">          &#125;</span><br><span class="line"><span class="actionscript">          <span class="comment">// 取</span></span></span><br><span class="line"><span class="javascript">          maxFeatureCount = <span class="built_in">Math</span>.max(maxFeatureCount, jj);</span></span><br><span class="line"><span class="javascript">          <span class="built_in">console</span>.log(resolution);</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 半径是根据四至来算出来的</span></span></span><br><span class="line">          radius =</span><br><span class="line">            (0.25 *</span><br><span class="line">              (ol.extent.getWidth(extent) + ol.extent.getHeight(extent))) /</span><br><span class="line">            resolution;</span><br><span class="line"><span class="actionscript">          feature.set(<span class="string">"radius"</span>, radius);</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line"><span class="actionscript">      <span class="comment">// 保存上次调用时的resolution</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> currentResolution;</span></span><br><span class="line">      /**</span><br><span class="line">       * @description: 普通样式的返回函数</span><br><span class="line">       * @param &#123;type&#125;</span><br><span class="line"><span class="actionscript">       * @<span class="keyword">return</span>:</span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">const</span> styleFunction = <span class="function">(<span class="params">feature, resolution</span>) =&gt;</span> &#123;</span></span><br><span class="line">        if (resolution != currentResolution) &#123;</span><br><span class="line">          calculateClusterInfo(resolution);</span><br><span class="line">          currentResolution = resolution;</span><br><span class="line">        &#125;</span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> style;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 这里的fill颜色的透明度通过当前要素的features数目size与maxFeatureCount的比值计算得到，越少越透明</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> size = feature.get(<span class="string">"features"</span>).length;</span></span><br><span class="line">        if (size &gt; 1) &#123;</span><br><span class="line"><span class="actionscript">          style = <span class="keyword">new</span> ol.style.Style(&#123;</span></span><br><span class="line"><span class="actionscript">            image: <span class="keyword">new</span> ol.style.Circle(&#123;</span></span><br><span class="line"><span class="actionscript">              radius: feature.get(<span class="string">"radius"</span>),</span></span><br><span class="line"><span class="actionscript">              fill: <span class="keyword">new</span> ol.style.Fill(&#123;</span></span><br><span class="line">                color: [</span><br><span class="line">                  255,</span><br><span class="line">                  153,</span><br><span class="line">                  0,</span><br><span class="line"><span class="javascript">                  <span class="built_in">Math</span>.min(<span class="number">0.8</span>, <span class="number">0.4</span> + size / maxFeatureCount)</span></span><br><span class="line">                ]</span><br><span class="line">              &#125;)</span><br><span class="line">            &#125;),</span><br><span class="line"><span class="actionscript">            <span class="comment">// 文本样式</span></span></span><br><span class="line"><span class="actionscript">            text: <span class="keyword">new</span> ol.style.Text(&#123;</span></span><br><span class="line">              text: size.toString(),</span><br><span class="line">              fill: textFill,</span><br><span class="line">              stroke: textStroke</span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;);</span><br><span class="line"><span class="actionscript">        &#125; <span class="keyword">else</span> &#123;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 如果只有一个要素,就返回普通地震点的样式</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> originalFeature = feature.get(<span class="string">"features"</span>)[<span class="number">0</span>];</span></span><br><span class="line">          style = createEarthquakeStyle(originalFeature);</span><br><span class="line">        &#125;</span><br><span class="line"><span class="actionscript">        <span class="keyword">return</span> style;</span></span><br><span class="line">      &#125;;</span><br><span class="line">      /**</span><br><span class="line">       * @description: 地震聚合点被选中时的样式</span><br><span class="line"><span class="javascript">       * @param &#123;<span class="built_in">Object</span>&#125; feature 要素</span></span><br><span class="line"><span class="actionscript">       * @<span class="keyword">return</span>: styles 被选中后的样式数组</span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">const</span> selectStyleFunction = <span class="function"><span class="params">feature</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// fill填充为透明</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> styles = [</span></span><br><span class="line"><span class="actionscript">          <span class="keyword">new</span> ol.style.Style(&#123;</span></span><br><span class="line"><span class="actionscript">            image: <span class="keyword">new</span> ol.style.Circle(&#123;</span></span><br><span class="line"><span class="actionscript">              radius: feature.get(<span class="string">"radius"</span>),</span></span><br><span class="line">              fill: invisibleFill</span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;)</span><br><span class="line">        ];</span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> originalFeatures = feature.get(<span class="string">"features"</span>);</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> originalFeature;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">for</span> (<span class="keyword">let</span> i = originalFeatures.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; --i) &#123;</span></span><br><span class="line">          originalFeature = originalFeatures[i];</span><br><span class="line"><span class="actionscript">          <span class="comment">// 把每个feature点的样式push给数组</span></span></span><br><span class="line">          styles.push(createEarthquakeStyle(originalFeature));</span><br><span class="line">        &#125;</span><br><span class="line"><span class="actionscript">        <span class="keyword">return</span> styles;</span></span><br><span class="line">      &#125;;</span><br><span class="line"><span class="actionscript">      <span class="comment">// 矢量图层</span></span></span><br><span class="line"><span class="actionscript">      vector = <span class="keyword">new</span> ol.layer.Vector(&#123;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 数据源使用的是ol.source.Cluster</span></span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.Cluster(&#123;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 两个聚合点之间的最小像素距离</span></span></span><br><span class="line">          distance: 40,</span><br><span class="line"><span class="actionscript">          source: <span class="keyword">new</span> ol.source.Vector(&#123;</span></span><br><span class="line">            url:</span><br><span class="line"><span class="actionscript">              <span class="string">"https://openlayers.org/en/latest/examples/data/kml/2012_Earthquakes_Mag5.kml"</span>,</span></span><br><span class="line"><span class="actionscript">            format: <span class="keyword">new</span> ol.format.KML(&#123;</span></span><br><span class="line"><span class="actionscript">              <span class="comment">// 不从KML文件中提取样式</span></span></span><br><span class="line"><span class="actionscript">              extractStyles: <span class="literal">false</span></span></span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;),</span><br><span class="line"><span class="actionscript">        <span class="comment">// 样式从样式函数中返回</span></span></span><br><span class="line">        style: styleFunction</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 普通的碳粉地图</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> raster = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.Stamen(&#123;</span></span><br><span class="line"><span class="actionscript">          layer: <span class="string">"toner"</span></span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">        layers: [raster, vector],</span><br><span class="line">        interactions: ol.interaction.defaults().extend([</span><br><span class="line"><span class="actionscript">          <span class="keyword">new</span> ol.interaction.Select(&#123;</span></span><br><span class="line"><span class="javascript">            condition: <span class="function"><span class="params">evt</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="actionscript">              <span class="keyword">return</span> evt.type == <span class="string">"pointermove"</span> || evt.type == <span class="string">"singleclick"</span>;</span></span><br><span class="line">            &#125;,</span><br><span class="line"><span class="actionscript">            <span class="comment">// 被选择到的要素的样式</span></span></span><br><span class="line">            style: selectStyleFunction</span><br><span class="line">          &#125;)</span><br><span class="line">        ]),</span><br><span class="line"><span class="actionscript">        target: <span class="string">"map"</span>,</span></span><br><span class="line"><span class="actionscript">        view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line">          center: [0, 0],</span><br><span class="line">          zoom: 2</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenLayers/" rel="tag"># OpenLayers</a>
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/%E5%9C%B0%E5%9B%BE/" rel="tag"># 地图</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/560a199f.html" rel="prev" title="OpenLayers6实例分析：Magnify（放大镜）">
+      <i class="fa fa-chevron-left"></i> OpenLayers6实例分析：Magnify（放大镜）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/ba114d01.html" rel="next" title="OpenLayers6实例分析：Earthquakes Heatmap（地震热力图）">
+      OpenLayers6实例分析：Earthquakes Heatmap（地震热力图） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#定义基本结构"><span class="nav-number">1.</span> <span class="nav-text">定义基本结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#普通地震点样式"><span class="nav-number">2.</span> <span class="nav-text">普通地震点样式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#计算地震点聚合信息"><span class="nav-number">3.</span> <span class="nav-text">计算地震点聚合信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#四至"><span class="nav-number">3.1.</span> <span class="nav-text">四至</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#styleFunction-与-selectStyleFunction"><span class="nav-number">4.</span> <span class="nav-text">styleFunction 与 selectStyleFunction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#styleFunction"><span class="nav-number">4.1.</span> <span class="nav-text">styleFunction</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#selectStyleFunction"><span class="nav-number">4.2.</span> <span class="nav-text">selectStyleFunction</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全部代码"><span class="nav-number">5.</span> <span class="nav-text">全部代码</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: 'd1a68c4c47b07c5114330cfac60e4d4c',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

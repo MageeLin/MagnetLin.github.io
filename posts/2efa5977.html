@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="径向条形图（Radial Bar Chart），就是把普通笛卡尔二维坐标系中的条形图转为极坐标系下展示，使用弧度来表示数值大小。 如下图所示，在本文中解析一个 ECharts Gallery 中的径向条形图实例，顺带学习 ECharts 中极坐标系、颜色渐变和自定义系列的用法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ECharts径向条形图（玉玦图）实例分析">
+<meta property="og:url" content="https://linjingyi.cn/posts/2efa5977.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="径向条形图（Radial Bar Chart），就是把普通笛卡尔二维坐标系中的条形图转为极坐标系下展示，使用弧度来表示数值大小。 如下图所示，在本文中解析一个 ECharts Gallery 中的径向条形图实例，顺带学习 ECharts 中极坐标系、颜色渐变和自定义系列的用法。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/2efa5977/%E7%8E%89%E7%8E%A6%E5%9B%BE%E5%AE%9E%E4%BE%8B.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/2efa5977/%E7%8E%89%E7%8E%A6.jpg">
+<meta property="article:published_time" content="2020-03-05T23:14:08.000Z">
+<meta property="article:modified_time" content="2020-03-05T23:14:08.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="ECharts">
+<meta property="article:tag" content="玉玦图">
+<meta property="article:tag" content="径向条形图">
+<meta property="article:tag" content="Radial Bar Chart">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/2efa5977/%E7%8E%89%E7%8E%A6%E5%9B%BE%E5%AE%9E%E4%BE%8B.png">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/2efa5977.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>ECharts径向条形图（玉玦图）实例分析 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/2efa5977.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          ECharts径向条形图（玉玦图）实例分析
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-06 07:14:08" itemprop="dateCreated datePublished" datetime="2020-03-06T07:14:08+08:00">2020-03-06</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/ECharts/" itemprop="url" rel="index">
+                    <span itemprop="name">ECharts</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>径向条形图（Radial Bar Chart），就是把普通笛卡尔二维坐标系中的条形图转为极坐标系下展示，使用弧度来表示数值大小。</p>
+<p>如下图所示，在本文中解析一个 <a href="https://gallery.echartsjs.com/explore.html#components=polar~sort=rank~timeframe=all~author=all" target="_blank" rel="external nofollow noopener noreferrer">ECharts Gallery</a> 中的<a href="https://gallery.echartsjs.com/editor.html?c=xH1tdGk2L7" target="_blank" rel="external nofollow noopener noreferrer">径向条形图实例</a>，顺带学习 ECharts 中极坐标系、颜色渐变和自定义系列的用法。</p>
+<a id="more"></a>
+
+<p><img src="/posts/2efa5977/%E7%8E%89%E7%8E%A6%E5%9B%BE%E5%AE%9E%E4%BE%8B.png" alt></p>
+<p>附带说一下，有时候也把径向条形图叫做玉玦图。古人曾经云过：“满者为环，缺者玦”，玉环都知道是什么样子，缺一块的玉环叫玉玦，用玉玦来称呼径向条形图真的是挺形象。</p>
+<p><img src="/posts/2efa5977/%E7%8E%89%E7%8E%A6.jpg" alt></p>
+<h2 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h2><p>首先把基本结构如下，给 ECharts 准备一个 DOM 容器用来初始化实例，自定义一组数据 <code>data</code> 和配置项 <code>option</code>，最后给实例 <code>chart</code> 设置 <code>option</code>。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/npm/echarts@4.6.0/dist/echarts.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>ECharts径向条形图（Radial Bar Chart）<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body &#123;</span><br><span class="line">        width: 100%;</span><br><span class="line">        height: 100%;</span><br><span class="line">        margin: 0;</span><br><span class="line">        padding: 0;</span><br><span class="line">      &#125;</span><br><span class="line"><span class="css">      <span class="selector-tag">div</span><span class="selector-id">#container</span> &#123;</span></span><br><span class="line">        width: 100%;</span><br><span class="line">        height: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"container"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 基于准备好的dom，初始化echarts实例</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> chart = echarts.init(<span class="built_in">document</span>.getElementById(<span class="string">'container'</span>));</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 指定图表的配置项和数据</span></span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 把数据按照从大到小的顺序排列</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> data = [</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'张三'</span>, value: <span class="number">88</span> &#125;,</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'李四'</span>, value: <span class="number">250</span> &#125;,</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'王五'</span>, value: <span class="number">5438</span> &#125;,</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'赵六'</span>, value: <span class="number">8848</span> &#125;,</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'陈七'</span>, value: <span class="number">9527</span> &#125;,</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'朱八'</span>, value: <span class="number">10086</span> &#125;</span></span><br><span class="line"><span class="javascript">      ].sort(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a.value &gt; b.value);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> option = &#123;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// ......</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// ......</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// ......</span></span></span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line"><span class="actionscript">      <span class="comment">// 使用刚指定的配置项和数据显示图表。</span></span></span><br><span class="line">      chart.setOption(option);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>数据 <code>data</code> 提前进行了排序，排列出来的径向条形图更美观。</p>
+<h2 id="坐标系配置"><a href="#坐标系配置" class="headerlink" title="坐标系配置"></a>坐标系配置</h2><p>这个实例中由于使用的是<code>极坐标系</code>，所以需要专门配置，本节中需要用的配置项如下：</p>
+<ul>
+<li><a href="https://echarts.apache.org/zh/option.html#polar" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#polar</a></li>
+<li><a href="https://echarts.apache.org/zh/option.html#angleAxis" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#angleAxis</a></li>
+<li><a href="https://echarts.apache.org/zh/option.html#radiusAxis" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#radiusAxis</a></li>
+<li><a href="https://echarts.apache.org/zh/option.html#radiusAxis.axisLabel" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#radiusAxis.axisLabel</a></li>
+<li><a href="https://echarts.apache.org/zh/option.html#radiusAxis.axisLine" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#radiusAxis.axisLine</a></li>
+<li><a href="https://echarts.apache.org/zh/option.html#radiusAxis.axisTick" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#radiusAxis.axisTick</a></li>
+<li><a href="https://echarts.apache.org/zh/option.html#radiusAxis.splitLine" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#radiusAxis.splitLine</a></li>
+<li><a href="https://echarts.apache.org/zh/option.html#radiusAxis.data" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#radiusAxis.data</a></li>
+</ul>
+<p>代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> option = &#123;</span><br><span class="line">  backgroundColor: <span class="string">'#000'</span>,</span><br><span class="line">  tooltip: &#123;&#125;,</span><br><span class="line">  polar: &#123;</span><br><span class="line">    radius: [<span class="string">'10%'</span>, <span class="string">'80%'</span>]</span><br><span class="line">  &#125;,</span><br><span class="line">  angleAxis: &#123;</span><br><span class="line">    show: <span class="literal">false</span>,</span><br><span class="line">    <span class="comment">// 最小值是0°处的数值，最大值是360°处的数值，避免出现弧度为0和2PI的数据</span></span><br><span class="line">    min: <span class="function"><span class="params">value</span> =&gt;</span> (value.min &gt;= <span class="number">1</span> ? value.min - value.max / <span class="number">3</span> : <span class="number">0</span>),</span><br><span class="line">    max: <span class="function"><span class="params">value</span> =&gt;</span> (value.max * <span class="number">4</span>) / <span class="number">3</span></span><br><span class="line">  &#125;,</span><br><span class="line">  radiusAxis: &#123;</span><br><span class="line">    type: <span class="string">'category'</span>,</span><br><span class="line">    axisLabel: &#123;</span><br><span class="line">      interval: <span class="number">0</span>,</span><br><span class="line">      color: <span class="string">'#2df'</span>,</span><br><span class="line">      fontSize: <span class="number">16</span></span><br><span class="line">    &#125;,</span><br><span class="line">    axisLine: &#123;</span><br><span class="line">      show: <span class="literal">false</span></span><br><span class="line">    &#125;,</span><br><span class="line">    axisTick: &#123;</span><br><span class="line">      show: <span class="literal">false</span>,</span><br><span class="line">      alignWithLabel: <span class="literal">true</span></span><br><span class="line">    &#125;,</span><br><span class="line">    splitLine: &#123;</span><br><span class="line">      show: <span class="literal">true</span>,</span><br><span class="line">      lineStyle: &#123;</span><br><span class="line">        color: <span class="string">'rgba(17, 51, 68, 0.8)'</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    data: data.map(<span class="function"><span class="params">item</span> =&gt;</span> item.name)</span><br><span class="line">  &#125;,</span><br><span class="line">  series: [</span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">  ]</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>大部分的配置都是一些细节样式上的调整，最关键的三项是 <code>polor</code>、<code>angleAxis</code> 和 <code>data</code>。设置 <code>polor</code> 属性后自动变为径向坐标系，并加了一个最小半径 <code>10%</code>和最大半径 <code>80%</code>。<br><code>angleAxis</code> 是角度轴的设置，<code>min</code> 和 <code>max</code> 指的是的是 <code>0°</code> 和 <code>360°</code> 代表的数值。在这里为了避免数值过小的数据显示不明显，同时不让数值过大的数据把圆环填满，故意把 <code>min</code> 和 <code>max</code> 从数据的<code>大小极限</code>向外拓展了一段，形成一个比较美观的玉玦效果。<br><code>radiusAxis</code> 是径向轴的设置，<code>radiusAxis.data</code> 属性返回的是数据中的每一项的 <code>name</code>，目的是显示张三李四这一系列的数据名。</p>
+<h2 id="条形图配置"><a href="#条形图配置" class="headerlink" title="条形图配置"></a>条形图配置</h2><p>系列中 bar 条形图配置的部分比较普通，本节中需要用的配置项如下：</p>
+<ul>
+<li><a href="https://echarts.apache.org/zh/option.html#series-bar" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#series-bar</a></li>
+<li><a href="https://echarts.apache.org/zh/option.html#series-bar.itemStyle" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#series-bar.itemStyle</a></li>
+<li><a href="https://echarts.apache.org/zh/option.html#series-bar.emphasis" target="_blank" rel="external nofollow noopener noreferrer">https://echarts.apache.org/zh/option.html#series-bar.emphasis</a></li>
+</ul>
+<p>关于条形图部分的配置代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> option = &#123;</span><br><span class="line">  <span class="comment">// ......</span></span><br><span class="line">  <span class="comment">// ......</span></span><br><span class="line">  <span class="comment">// ......</span></span><br><span class="line">  series: [</span><br><span class="line">    &#123;</span><br><span class="line">      type: <span class="string">'bar'</span>,</span><br><span class="line">      coordinateSystem: <span class="string">'polar'</span>,</span><br><span class="line">      barWidth: <span class="number">15</span>,</span><br><span class="line">      itemStyle: &#123;</span><br><span class="line">        <span class="comment">// // 线性渐变，前四个参数分别是 x0, y0, x2, y2, 范围从 0 - 1，相当于在图形包围盒中的百分比，如果 globalCoord 为 `true`，则该四个值是绝对的像素位置</span></span><br><span class="line">        color: &#123;</span><br><span class="line">          type: <span class="string">'linear'</span>,</span><br><span class="line">          x: <span class="number">1</span>,</span><br><span class="line">          y: <span class="number">0</span>,</span><br><span class="line">          x2: <span class="number">0</span>,</span><br><span class="line">          y2: <span class="number">0.5</span>,</span><br><span class="line">          colorStops: [</span><br><span class="line">            &#123; <span class="attr">offset</span>: <span class="number">0</span>, <span class="attr">color</span>: <span class="string">'rgba(50, 120, 150, 0.5)'</span> &#125;,</span><br><span class="line">            &#123; <span class="attr">offset</span>: <span class="number">0.5</span>, <span class="attr">color</span>: <span class="string">'rgba(80, 190, 210, 0.7)'</span> &#125;,</span><br><span class="line">            &#123; <span class="attr">offset</span>: <span class="number">1</span>, <span class="attr">color</span>: <span class="string">'rgba(255, 255, 255, 0.9)'</span> &#125;</span><br><span class="line">          ]</span><br><span class="line">        &#125;,</span><br><span class="line">        barBorderRadius: <span class="number">10</span>,</span><br><span class="line">        shadowBlur: <span class="number">20</span>,</span><br><span class="line">        shadowColor: <span class="string">'rgba(255, 255, 255, 0.8)'</span></span><br><span class="line">      &#125;,</span><br><span class="line">      emphasis: &#123;</span><br><span class="line">        itemStyle: &#123;</span><br><span class="line">          shadowColor: <span class="string">'rgba(255, 255, 255, 1)'</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      data: data</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">    <span class="comment">// ......</span></span><br><span class="line">    <span class="comment">// .....</span></span><br><span class="line">  ]</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="颜色渐变"><a href="#颜色渐变" class="headerlink" title="颜色渐变"></a>颜色渐变</h3><p>条形图的配置比较普通，但是上述代码中明显不普通的地方是 <code>itemStyle.color</code>，这里的颜色使用的是<code>渐变</code>。虽然在 ECharts 文档中并没有对这里的颜色能渐变进行说明，但是在<a href="https://echarts.apache.org/zh/option.html#tooltip.axisPointer.lineStyle.color" target="_blank" rel="external nofollow noopener noreferrer">其他的配置</a>中找到了对渐变的描述：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 线性渐变，前四个参数分别是 x0, y0, x2, y2, 范围从 0 - 1，相当于在图形包围盒中的百分比。</span></span><br><span class="line"><span class="comment">// 如果 globalCoord 为 `true`，则该四个值是绝对的像素位置</span></span><br><span class="line">color: &#123;</span><br><span class="line">    type: <span class="string">'linear'</span>,</span><br><span class="line">    x: <span class="number">0</span>,</span><br><span class="line">    y: <span class="number">0</span>,</span><br><span class="line">    x2: <span class="number">0</span>,</span><br><span class="line">    y2: <span class="number">1</span>,</span><br><span class="line">    colorStops: [&#123;</span><br><span class="line">        offset: <span class="number">0</span>, <span class="attr">color</span>: <span class="string">'red'</span> <span class="comment">// 0% 处的颜色</span></span><br><span class="line">    &#125;, &#123;</span><br><span class="line">        offset: <span class="number">1</span>, <span class="attr">color</span>: <span class="string">'blue'</span> <span class="comment">// 100% 处的颜色</span></span><br><span class="line">    &#125;],</span><br><span class="line">    global: <span class="literal">false</span> <span class="comment">// 缺省为 false</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 径向渐变，前三个参数分别是圆心 x, y 和半径，取值同线性渐变</span></span><br><span class="line">color: &#123;</span><br><span class="line">    type: <span class="string">'radial'</span>,</span><br><span class="line">    x: <span class="number">0.5</span>,</span><br><span class="line">    y: <span class="number">0.5</span>,</span><br><span class="line">    r: <span class="number">0.5</span>,</span><br><span class="line">    colorStops: [&#123;</span><br><span class="line">        offset: <span class="number">0</span>, <span class="attr">color</span>: <span class="string">'red'</span> <span class="comment">// 0% 处的颜色</span></span><br><span class="line">    &#125;, &#123;</span><br><span class="line">        offset: <span class="number">1</span>, <span class="attr">color</span>: <span class="string">'blue'</span> <span class="comment">// 100% 处的颜色</span></span><br><span class="line">    &#125;],</span><br><span class="line">    global: <span class="literal">false</span> <span class="comment">// 缺省为 false</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 纹理填充</span></span><br><span class="line">color: &#123;</span><br><span class="line">    image: imageDom, <span class="comment">// 支持为 HTMLImageElement, HTMLCanvasElement，不支持路径字符串</span></span><br><span class="line">    repeat: <span class="string">'repeat'</span> <span class="comment">// 是否平铺, 可以是 'repeat-x', 'repeat-y', 'no-repeat'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以在玉玦图的代码中渐变的意思就是从<code>[100%, 0%]</code>的右上角到<code>[0%, 50%]</code>的左中位置的线性渐变，并在中间加了<code>颜色停顿点</code>。</p>
+<p>需要说明的是，ECharts 还有另一种渐变方式，大家用的非常多但是至今没有文档说明：<code>echarts.graphic.LinearGradient</code>，使用方式如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    type: <span class="string">'bar'</span>,</span><br><span class="line">    itemStyle: &#123;</span><br><span class="line">        normal: &#123;</span><br><span class="line">            color: <span class="keyword">new</span> echarts.graphic.LinearGradient(</span><br><span class="line">                <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>,</span><br><span class="line">                [</span><br><span class="line">                    &#123;<span class="attr">offset</span>: <span class="number">0</span>, <span class="attr">color</span>: <span class="string">'#000'</span>&#125;,</span><br><span class="line">                    &#123;<span class="attr">offset</span>: <span class="number">0.5</span>, <span class="attr">color</span>: <span class="string">'#888'</span>&#125;,</span><br><span class="line">                    &#123;<span class="attr">offset</span>: <span class="number">1</span>, <span class="attr">color</span>: <span class="string">'#ddd'</span>&#125;</span><br><span class="line">                ]</span><br><span class="line">            )</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中前四个参数依次对应右、下、左、上四个方位，比如 <code>0,0,0,1</code> 代表从正上方往正下方渐变，<code>0,1,1,0</code> 代表从左下方往右上方渐变，颜色停止点的理解与上述配置式的颜色停止点相同。</p>
+<h2 id="自定义系列"><a href="#自定义系列" class="headerlink" title="自定义系列"></a>自定义系列</h2><p>在玉玦图中，还有一个非常重要需要理解的地方就是每条 bar 后面都跟着一个数字 <code>value</code>，这里使用<code>自定义系列</code>加上去的。<a href="https://www.echartsjs.com/zh/option.html#series-custom" target="_blank" rel="external nofollow noopener noreferrer">自定义序列</a>是 ECharts 为了方便开发者能够跳出固定配置项，按照自己的想法自由渲染图表而推出的一个配置。</p>
+<p>本节中需要查看的配置项如下：</p>
+<ul>
+<li><a href="https://www.echartsjs.com/zh/option.html#series-custom" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-custom</a></li>
+<li><a href="https://www.echartsjs.com/zh/option.html#series-custom.renderItem.arguments.params" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-custom.renderItem.arguments.params</a></li>
+<li><a href="https://www.echartsjs.com/zh/option.html#series-custom.renderItem.arguments.api" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-custom.renderItem.arguments.api</a></li>
+<li><a href="https://www.echartsjs.com/zh/option.html#series-custom.renderItem.arguments.api.value" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-custom.renderItem.arguments.api.value</a></li>
+<li><a href="https://www.echartsjs.com/zh/option.html#series-custom.renderItem.arguments.api.coord" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-custom.renderItem.arguments.api.coord</a></li>
+</ul>
+<p>代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">series: [</span><br><span class="line">  <span class="comment">// ......</span></span><br><span class="line">  <span class="comment">// ......</span></span><br><span class="line">  <span class="comment">// ......</span></span><br><span class="line">  &#123;</span><br><span class="line">    type: <span class="string">'custom'</span>,</span><br><span class="line">    coordinateSystem: <span class="string">'polar'</span>,</span><br><span class="line">    renderItem: <span class="function">(<span class="params">params, api</span>) =&gt;</span> &#123;</span><br><span class="line">      <span class="comment">// 给定维度上的值</span></span><br><span class="line">      <span class="keyword">let</span> values = [api.value(<span class="number">0</span>), api.value(<span class="number">1</span>)];</span><br><span class="line">      <span class="comment">// 对于polar坐标系，还会包含其他信息：polar: [x, y, radius, angle]</span></span><br><span class="line">      <span class="keyword">let</span> coord = api.coord(values);</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        type: <span class="string">'text'</span>,</span><br><span class="line">        position: [<span class="number">3</span> * <span class="built_in">Math</span>.sin(coord[<span class="number">3</span>]), <span class="number">3</span> * <span class="built_in">Math</span>.cos(coord[<span class="number">3</span>])],</span><br><span class="line">        rotation: coord[<span class="number">3</span>] + <span class="built_in">Math</span>.PI / <span class="number">2</span>,</span><br><span class="line">        origin: [coord[<span class="number">0</span>], coord[<span class="number">1</span>]],</span><br><span class="line">        style: &#123;</span><br><span class="line">          text: api.value(<span class="number">1</span>),</span><br><span class="line">          fill: <span class="string">'#ac6'</span>,</span><br><span class="line">          fontSize: <span class="number">16</span>,</span><br><span class="line">          textAlign: <span class="string">'right'</span>,</span><br><span class="line">          textVerticalAlign: <span class="string">'middle'</span>,</span><br><span class="line">          x: coord[<span class="number">0</span>],</span><br><span class="line">          y: coord[<span class="number">1</span>]</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;,</span><br><span class="line">    data: data</span><br><span class="line">  &#125;</span><br><span class="line">];</span><br></pre></td></tr></table></figure>
+
+<p>自定义序列的 <code>type</code> 是 <code>custom</code>，又给赋予了一个 <code>polar</code> 极坐标系和数据 <code>data</code>，最关键的地方是 <code>renderItem</code>（<code>自定义渲染逻辑</code>）。</p>
+<p><code>renderItem</code> 函数有两个参数 <code>params</code> 和 <code>api</code>，第一个 <code>params</code> 主要包含以下内容，基本上全是坐标系和数据的值。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    context: <span class="comment">// &#123;Object&#125; 一个可供开发者暂存东西的对象。生命周期只为：当前次的渲染。</span></span><br><span class="line">    seriesId: <span class="comment">// &#123;string&#125; 本系列 id。</span></span><br><span class="line">    seriesName: <span class="comment">// &#123;string&#125; 本系列 name。</span></span><br><span class="line">    seriesIndex: <span class="comment">// &#123;number&#125; 本系列 index。</span></span><br><span class="line">    dataIndex: <span class="comment">// &#123;number&#125; 数据项的 index。</span></span><br><span class="line">    dataIndexInside: <span class="comment">// &#123;number&#125; 数据项在当前坐标系中可见的数据的 index（即 dataZoom 当前窗口中的数据的 index）。</span></span><br><span class="line">    dataInsideLength: <span class="comment">// &#123;number&#125; 当前坐标系中可见的数据长度（即 dataZoom 当前窗口中的数据数量）。</span></span><br><span class="line">    actionType: <span class="comment">// &#123;string&#125; 触发此次重绘的 action 的 type。</span></span><br><span class="line">    coordSys: <span class="comment">// 不同的坐标系中，coordSys 里的信息不一样，含有如下这些可能：</span></span><br><span class="line">    coordSys: &#123;</span><br><span class="line">        type: <span class="string">'cartesian2d'</span>,</span><br><span class="line">        x: <span class="comment">// &#123;number&#125; grid rect 的 x</span></span><br><span class="line">        y: <span class="comment">// &#123;number&#125; grid rect 的 y</span></span><br><span class="line">        width: <span class="comment">// &#123;number&#125; grid rect 的 width</span></span><br><span class="line">        height: <span class="comment">// &#123;number&#125; grid rect 的 height</span></span><br><span class="line">    &#125;,</span><br><span class="line">    coordSys: &#123;</span><br><span class="line">        type: <span class="string">'calendar'</span>,</span><br><span class="line">        x: <span class="comment">// &#123;number&#125; calendar rect 的 x</span></span><br><span class="line">        y: <span class="comment">// &#123;number&#125; calendar rect 的 y</span></span><br><span class="line">        width: <span class="comment">// &#123;number&#125; calendar rect 的 width</span></span><br><span class="line">        height: <span class="comment">// &#123;number&#125; calendar rect 的 height</span></span><br><span class="line">        cellWidth: <span class="comment">// &#123;number&#125; calendar cellWidth</span></span><br><span class="line">        cellHeight: <span class="comment">// &#123;number&#125; calendar cellHeight</span></span><br><span class="line">        rangeInfo: &#123;</span><br><span class="line">            start: <span class="comment">// calendar 日期开端</span></span><br><span class="line">            end: <span class="comment">// calendar 日期结尾</span></span><br><span class="line">            weeks: <span class="comment">// calendar 周数</span></span><br><span class="line">            dayCount: <span class="comment">// calendar 日数</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    coordSys: &#123;</span><br><span class="line">        type: <span class="string">'geo'</span>,</span><br><span class="line">        x: <span class="comment">// &#123;number&#125; geo rect 的 x</span></span><br><span class="line">        y: <span class="comment">// &#123;number&#125; geo rect 的 y</span></span><br><span class="line">        width: <span class="comment">// &#123;number&#125; geo rect 的 width</span></span><br><span class="line">        height: <span class="comment">// &#123;number&#125; geo rect 的 height</span></span><br><span class="line">        zoom: <span class="comment">// &#123;number&#125; 缩放的比率。如果没有缩放，则值为 1。例如 0.5 表示缩小了一半。</span></span><br><span class="line">    &#125;,</span><br><span class="line">    coordSys: &#123;</span><br><span class="line">        type: <span class="string">'polar'</span>,</span><br><span class="line">        cx: <span class="comment">// &#123;number&#125; polar 的中心坐标</span></span><br><span class="line">        cy: <span class="comment">// &#123;number&#125; polar 的中心坐标</span></span><br><span class="line">        r: <span class="comment">// &#123;number&#125; polar 的外半径</span></span><br><span class="line">        r0: <span class="comment">// &#123;number&#125; polar 的内半径</span></span><br><span class="line">    &#125;,</span><br><span class="line">    coordSys: &#123;</span><br><span class="line">        type: <span class="string">'singleAxis'</span>,</span><br><span class="line">        x: <span class="comment">// &#123;number&#125; singleAxis rect 的 x</span></span><br><span class="line">        y: <span class="comment">// &#123;number&#125; singleAxis rect 的 y</span></span><br><span class="line">        width: <span class="comment">// &#123;number&#125; singleAxis rect 的 width</span></span><br><span class="line">        height: <span class="comment">// &#123;number&#125; singleAxis rect 的 height</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第二个参数 <code>api</code>，返回一些方法，这里只用到的两个：<code>value</code> 和 <code>coord</code>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// value得到给定维度的数据值:</span></span><br><span class="line">@param &#123;number&#125; dimension 指定的维度（维度从 <span class="number">0</span> 开始计数）。</span><br><span class="line">@param &#123;number&#125; [dataIndexInside] 一般不用传，默认就是当前数据项的 dataIndexInside。</span><br><span class="line">@<span class="keyword">return</span> &#123;number&#125; 给定维度上的值。</span><br><span class="line"></span><br><span class="line"><span class="comment">// coord将数据值映射到坐标系上:</span></span><br><span class="line">@param &#123;<span class="built_in">Array</span>.&lt;number&gt;&#125; data 数据值。</span><br><span class="line">@<span class="keyword">return</span> &#123;<span class="built_in">Array</span>.&lt;number&gt;&#125; 画布上的点的坐标，至少包含：[x, y]</span><br><span class="line">        对于polar坐标系，还会包含其他信息：</span><br><span class="line">        polar: [x, y, radius, angle]</span><br></pre></td></tr></table></figure>
+
+<p>所以在代码中，先用 <code>value()</code>获取了当前 item 的数据值，再传给 <code>coord()</code>计算得到了该点在极坐标系中的位置<code>[x, y, radius, angle]</code>。</p>
+<p>接下来在 <code>return</code> 时，返回了一个 <code>text</code> 类型。<code>text</code> 类型中的 <code>origin</code> 指定旋转、缩放和平移的基准点，在这个实例中中就是 <code>x</code> 和<code>y</code>；<code>position</code> 指定平移多少距离，在这里使用 <code>sin(angle)</code>和 <code>cos(angle)</code>计算当前点的切线方向，将文字平移了 <code>3px</code>；<code>rotation</code> 使用 <code>angle</code> 加上了 <code>90°</code>，将文字延切线摆放。<code>returns.style</code> 中给文字设定了<code>文本值</code>、<code>xy 坐标</code>和其他的一些样式，完成了文本类型的返回。</p>
+<h2 id="全部代码"><a href="#全部代码" class="headerlink" title="全部代码"></a>全部代码</h2><p>全部代码如下所示：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/npm/echarts@4.6.0/dist/echarts.min.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>ECharts径向条形图（Radial Bar Chart）<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body &#123;</span><br><span class="line">        width: 100%;</span><br><span class="line">        height: 100%;</span><br><span class="line">        margin: 0;</span><br><span class="line">        padding: 0;</span><br><span class="line">      &#125;</span><br><span class="line"><span class="css">      <span class="selector-tag">div</span><span class="selector-id">#container</span> &#123;</span></span><br><span class="line">        width: 100%;</span><br><span class="line">        height: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"container"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 基于准备好的dom，初始化echarts实例</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> chart = echarts.init(<span class="built_in">document</span>.getElementById(<span class="string">'container'</span>));</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 指定图表的配置项和数据</span></span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 把数据按照从大到小的顺序排列</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> data = [</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'张三'</span>, value: <span class="number">88</span> &#125;,</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'李四'</span>, value: <span class="number">250</span> &#125;,</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'王五'</span>, value: <span class="number">5438</span> &#125;,</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'赵六'</span>, value: <span class="number">8848</span> &#125;,</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'陈七'</span>, value: <span class="number">9527</span> &#125;,</span></span><br><span class="line"><span class="actionscript">        &#123; name: <span class="string">'朱八'</span>, value: <span class="number">10086</span> &#125;</span></span><br><span class="line"><span class="javascript">      ].sort(<span class="function">(<span class="params">a, b</span>) =&gt;</span> a.value &gt; b.value);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> option = &#123;</span></span><br><span class="line"><span class="actionscript">        backgroundColor: <span class="string">'#000'</span>,</span></span><br><span class="line">        tooltip: &#123;&#125;,</span><br><span class="line">        polar: &#123;</span><br><span class="line"><span class="actionscript">          radius: [<span class="string">'10%'</span>, <span class="string">'80%'</span>]</span></span><br><span class="line">        &#125;,</span><br><span class="line">        angleAxis: &#123;</span><br><span class="line"><span class="actionscript">          show: <span class="literal">false</span>,</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 最小值是0°处的数值，最大值是360°处的数值，避免出现弧度为0和2PI的数据</span></span></span><br><span class="line"><span class="javascript">          min: <span class="function"><span class="params">value</span> =&gt;</span> (value.min &gt;= <span class="number">1</span> ? value.min - value.max / <span class="number">3</span> : <span class="number">0</span>),</span></span><br><span class="line"><span class="javascript">          max: <span class="function"><span class="params">value</span> =&gt;</span> (value.max * <span class="number">4</span>) / <span class="number">3</span></span></span><br><span class="line">        &#125;,</span><br><span class="line">        radiusAxis: &#123;</span><br><span class="line"><span class="actionscript">          type: <span class="string">'category'</span>,</span></span><br><span class="line">          axisLabel: &#123;</span><br><span class="line">            interval: 0,</span><br><span class="line"><span class="actionscript">            color: <span class="string">'#2df'</span>,</span></span><br><span class="line">            fontSize: 16</span><br><span class="line">          &#125;,</span><br><span class="line">          axisLine: &#123;</span><br><span class="line"><span class="actionscript">            show: <span class="literal">false</span></span></span><br><span class="line">          &#125;,</span><br><span class="line">          axisTick: &#123;</span><br><span class="line"><span class="actionscript">            show: <span class="literal">false</span>,</span></span><br><span class="line"><span class="actionscript">            alignWithLabel: <span class="literal">true</span></span></span><br><span class="line">          &#125;,</span><br><span class="line">          splitLine: &#123;</span><br><span class="line"><span class="actionscript">            show: <span class="literal">true</span>,</span></span><br><span class="line">            lineStyle: &#123;</span><br><span class="line"><span class="actionscript">              color: <span class="string">'rgba(17, 51, 68, 0.8)'</span></span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;,</span><br><span class="line"><span class="javascript">          data: data.map(<span class="function"><span class="params">item</span> =&gt;</span> item.name)</span></span><br><span class="line">        &#125;,</span><br><span class="line">        series: [</span><br><span class="line">          &#123;</span><br><span class="line"><span class="actionscript">            type: <span class="string">'bar'</span>,</span></span><br><span class="line"><span class="actionscript">            coordinateSystem: <span class="string">'polar'</span>,</span></span><br><span class="line">            barWidth: 15,</span><br><span class="line">            itemStyle: &#123;</span><br><span class="line"><span class="actionscript">              <span class="comment">// // 线性渐变，前四个参数分别是 x0, y0, x2, y2, 范围从 0 - 1，相当于在图形包围盒中的百分比，如果 globalCoord 为 `true`，则该四个值是绝对的像素位置</span></span></span><br><span class="line">              color: &#123;</span><br><span class="line"><span class="actionscript">                type: <span class="string">'linear'</span>,</span></span><br><span class="line">                x: 1,</span><br><span class="line">                y: 0,</span><br><span class="line">                x2: 0,</span><br><span class="line">                y2: 0.5,</span><br><span class="line">                colorStops: [</span><br><span class="line"><span class="actionscript">                  &#123; offset: <span class="number">0</span>, color: <span class="string">'rgba(50, 120, 150, 0.5)'</span> &#125;,</span></span><br><span class="line"><span class="actionscript">                  &#123; offset: <span class="number">0.5</span>, color: <span class="string">'rgba(80, 190, 210, 0.7)'</span> &#125;,</span></span><br><span class="line"><span class="actionscript">                  &#123; offset: <span class="number">1</span>, color: <span class="string">'rgba(255, 255, 255, 0.9)'</span> &#125;</span></span><br><span class="line">                ]</span><br><span class="line">              &#125;,</span><br><span class="line">              barBorderRadius: 10,</span><br><span class="line">              shadowBlur: 20,</span><br><span class="line"><span class="actionscript">              shadowColor: <span class="string">'rgba(255, 255, 255, 0.8)'</span></span></span><br><span class="line">            &#125;,</span><br><span class="line">            emphasis: &#123;</span><br><span class="line">              itemStyle: &#123;</span><br><span class="line"><span class="actionscript">                shadowColor: <span class="string">'rgba(255, 255, 255, 1)'</span></span></span><br><span class="line">              &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            data: data</span><br><span class="line">          &#125;,</span><br><span class="line"></span><br><span class="line">          &#123;</span><br><span class="line"><span class="actionscript">            type: <span class="string">'custom'</span>,</span></span><br><span class="line"><span class="actionscript">            coordinateSystem: <span class="string">'polar'</span>,</span></span><br><span class="line"><span class="javascript">            renderItem: <span class="function">(<span class="params">params, api</span>) =&gt;</span> &#123;</span></span><br><span class="line"><span class="actionscript">              <span class="comment">// 给定维度上的值。</span></span></span><br><span class="line"><span class="javascript">              <span class="keyword">let</span> values = [api.value(<span class="number">0</span>), api.value(<span class="number">1</span>)];</span></span><br><span class="line"><span class="actionscript">              <span class="comment">// 对于polar坐标系，还会包含其他信息：polar: [x, y, radius, angle]</span></span></span><br><span class="line"><span class="javascript">              <span class="keyword">let</span> coord = api.coord(values);</span></span><br><span class="line"><span class="actionscript">              <span class="keyword">return</span> &#123;</span></span><br><span class="line"><span class="actionscript">                type: <span class="string">'text'</span>,</span></span><br><span class="line"><span class="javascript">                position: [<span class="number">3</span> * <span class="built_in">Math</span>.sin(coord[<span class="number">3</span>]), <span class="number">3</span> * <span class="built_in">Math</span>.cos(coord[<span class="number">3</span>])],</span></span><br><span class="line"><span class="javascript">                rotation: coord[<span class="number">3</span>] + <span class="built_in">Math</span>.PI / <span class="number">2</span>,</span></span><br><span class="line">                origin: [coord[0], coord[1]],</span><br><span class="line">                style: &#123;</span><br><span class="line">                  text: api.value(1),</span><br><span class="line"><span class="actionscript">                  fill: <span class="string">'#ac6'</span>,</span></span><br><span class="line">                  fontSize: 16,</span><br><span class="line"><span class="actionscript">                  textAlign: <span class="string">'right'</span>,</span></span><br><span class="line"><span class="actionscript">                  textVerticalAlign: <span class="string">'middle'</span>,</span></span><br><span class="line">                  x: coord[0],</span><br><span class="line">                  y: coord[1]</span><br><span class="line">                &#125;</span><br><span class="line">              &#125;;</span><br><span class="line">            &#125;,</span><br><span class="line">            data: data</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;;</span><br><span class="line"><span class="actionscript">      <span class="comment">// 使用刚指定的配置项和数据显示图表。</span></span></span><br><span class="line">      chart.setOption(option);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag"># 前端</a>
+              <a href="/tags/ECharts/" rel="tag"># ECharts</a>
+              <a href="/tags/%E7%8E%89%E7%8E%A6%E5%9B%BE/" rel="tag"># 玉玦图</a>
+              <a href="/tags/%E5%BE%84%E5%90%91%E6%9D%A1%E5%BD%A2%E5%9B%BE/" rel="tag"># 径向条形图</a>
+              <a href="/tags/Radial-Bar-Chart/" rel="tag"># Radial Bar Chart</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/56b66aa5.html" rel="prev" title="CSS3中border-image的草案翻译和应用">
+      <i class="fa fa-chevron-left"></i> CSS3中border-image的草案翻译和应用
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/3c176ac8.html" rel="next" title="OpenLayers6中对feature的点击事件">
+      OpenLayers6中对feature的点击事件 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本结构"><span class="nav-number">1.</span> <span class="nav-text">基本结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#坐标系配置"><span class="nav-number">2.</span> <span class="nav-text">坐标系配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#条形图配置"><span class="nav-number">3.</span> <span class="nav-text">条形图配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#颜色渐变"><span class="nav-number">3.1.</span> <span class="nav-text">颜色渐变</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义系列"><span class="nav-number">4.</span> <span class="nav-text">自定义系列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全部代码"><span class="nav-number">5.</span> <span class="nav-text">全部代码</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '9d067760fb2bbb3bfa814e48445bf7cc',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

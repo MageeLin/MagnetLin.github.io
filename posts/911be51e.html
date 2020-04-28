@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="分析 Custom Animation 这个 demo，官网介绍是：  This example shows how to use postrender and vectorContext to animate features. Here we choose to do a flash animation each time a feature is added to the layer.此示例">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenLayers6实例分析：Custom Animation（水波扩散）">
+<meta property="og:url" content="https://linjingyi.cn/posts/911be51e.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="分析 Custom Animation 这个 demo，官网介绍是：  This example shows how to use postrender and vectorContext to animate features. Here we choose to do a flash animation each time a feature is added to the layer.此示例">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/911be51e/custom.gif">
+<meta property="og:image" content="https://linjingyi.cn/posts/911be51e/vectorsource.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/911be51e/easing.png">
+<meta property="article:published_time" content="2020-01-19T23:50:02.000Z">
+<meta property="article:modified_time" content="2020-01-19T23:50:02.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="OpenLayers">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="地图">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/911be51e/custom.gif">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/911be51e.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>OpenLayers6实例分析：Custom Animation（水波扩散） | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/911be51e.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          OpenLayers6实例分析：Custom Animation（水波扩散）
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-20 07:50:02" itemprop="dateCreated datePublished" datetime="2020-01-20T07:50:02+08:00">2020-01-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9C%B0%E5%9B%BE/" itemprop="url" rel="index">
+                    <span itemprop="name">地图</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>分析 Custom Animation 这个 demo，官网介绍是：</p>
+<blockquote>
+<p>This example shows how to use postrender and vectorContext to animate features. Here we choose to do a flash animation each time a feature is added to the layer.<br>此示例演示如何使用 postrender 和 vectorContext 对要素进行动画处理。 做法是当一个要素被添加到图层时给它添加闪烁效果。</p>
+</blockquote>
+<ul>
+<li><p><a href="https://openlayers.org/en/latest/examples/feature-animation.html" target="_blank" rel="external nofollow noopener noreferrer">官网实例</a>：Custom Animation</p>
+</li>
+<li><p><a href="https://ke.qq.com/course/449937" target="_blank" rel="external nofollow noopener noreferrer">跟我学 OpenLayers——基础实例讲解</a>：12 渲染器机制的使用 &gt; 实例 82.水纹效果</p>
+<a id="more"></a>
+
+</li>
+</ul>
+<p><img src="/posts/911be51e/custom.gif" alt="custom"></p>
+<h2 id="定义基本结构"><a href="#定义基本结构" class="headerlink" title="定义基本结构"></a>定义基本结构</h2><p>先展示地图基本结构：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span></span></span><br><span class="line"><span class="tag">      <span class="attr">rel</span>=<span class="string">"stylesheet"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">href</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">type</span>=<span class="string">"text/css"</span></span></span><br><span class="line"><span class="tag">    /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Custom Animation(自定义动画)<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body,</span><br><span class="line"><span class="css">      <span class="selector-class">.map</span> &#123;</span></span><br><span class="line">        height: 100%;</span><br><span class="line">        width: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">class</span>=<span class="string">"map"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 定义一个瓦片图层</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> tileLayer = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.OSM(&#123;</span></span><br><span class="line"><span class="actionscript">          wrapX: <span class="literal">false</span> <span class="comment">// 是否水平循环</span></span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 定义一个地图</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">        layers: [tileLayer],</span><br><span class="line"><span class="actionscript">        target: <span class="string">"map"</span>,</span></span><br><span class="line"><span class="actionscript">        view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line">          center: [0, 0],</span><br><span class="line">          zoom: 1,</span><br><span class="line"><span class="actionscript">          multiWorld: <span class="literal">true</span> <span class="comment">// 视图是否只能看到一个世界</span></span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> source = <span class="keyword">new</span> ol.source.Vector(&#123;</span></span><br><span class="line"><span class="actionscript">        wrapX: <span class="literal">false</span></span></span><br><span class="line">      &#125;);</span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> vector = <span class="keyword">new</span> ol.layer.Vector(&#123;</span></span><br><span class="line">        source: source</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 给map添加一个图层vector</span></span></span><br><span class="line">      map.addLayer(vector);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在地图定义这里跟前一篇的区别主要是<code>map.addLayer(vector)</code>，这里的图层是通过<code>addLayer</code>方法加入到<code>map</code>中的，github 中的<a href="https://github.com/openlayers/openlayers/blob/v6.1.1/src/ol/PluggableMap.js#L490" target="_blank" rel="external nofollow noopener noreferrer">源码</a>如下，看注释可以看出，新加的图层显示在最上层：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Adds the given layer to the top of this map. If you want to add a layer</span></span><br><span class="line"><span class="comment"> * elsewhere in the stack, use `getLayers()` and the methods available on</span></span><br><span class="line"><span class="comment"> * &#123;<span class="doctag">@link </span>module:ol/Collection~Collection&#125;.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;import("./layer/Base.js").default&#125;</span> </span>layer Layer.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@api</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">addLayer(layer) &#123;</span><br><span class="line">  <span class="keyword">const</span> layers = <span class="keyword">this</span>.getLayerGroup().getLayers();</span><br><span class="line">  layers.push(layer);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="生成随机要素"><a href="#生成随机要素" class="headerlink" title="生成随机要素"></a>生成随机要素</h2><p>做动画之前，首先添加需要展示动画的要素，代码如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 给source添加随机位置的要素</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;null&#125;</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>: null</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> addRandomFeature = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> x = <span class="built_in">Math</span>.random() * <span class="number">360</span> - <span class="number">180</span>; <span class="comment">// 随机区间[-180, 180]</span></span><br><span class="line">  <span class="keyword">let</span> y = <span class="built_in">Math</span>.random() * <span class="number">180</span> - <span class="number">90</span>; <span class="comment">// 随机区间[-90, 90]</span></span><br><span class="line">  <span class="comment">// ol.proj.fromLonLat(coordinate,[projection：默认3857])，转化经纬度为投影下坐标</span></span><br><span class="line">  <span class="comment">// new ol.geom.Point(coordinates, opt_layout) 生成一个点对象</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="keyword">let</span> geom = <span class="keyword">new</span> ol.geom.Point(ol.proj.fromLonLat([x, y]));</span><br><span class="line">  <span class="comment">// new ol.Feature(opt_geometryOrProperties) 生成一个要素</span></span><br><span class="line">  <span class="keyword">let</span> feature = <span class="keyword">new</span> ol.Feature(geom);</span><br><span class="line">  source.addFeature(feature); <span class="comment">// 把要素添加给vectorSource</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 省略</span></span><br><span class="line"><span class="comment">// 省略</span></span><br><span class="line"><span class="comment">// 每1000ms执行一次addRandomFeature，添加一个随机要素</span></span><br><span class="line"><span class="built_in">window</span>.setInterval(addRandomFeature, <span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="addRandomFeature"><a href="#addRandomFeature" class="headerlink" title="addRandomFeature"></a>addRandomFeature</h3><p>该方法是用来创建随机位置的要素，并添加到<code>source</code>中。首先用随机数模拟了地球上的随机经度[-180, 180]和随机纬度[-90, 90]。然后使用<code>ol.proj.fromLonLat</code>方法将经纬度转化为 3857 坐标系下的坐标，<a href="https://openlayers.org/en/latest/apidoc/module-ol_proj.html#.fromLonLat" target="_blank" rel="external nofollow noopener noreferrer">fromLonLat</a>方法的<a href="https://github.com/openlayers/openlayers/blob/v6.1.1/src/ol/proj.js#L365" target="_blank" rel="external nofollow noopener noreferrer">源码</a>如下，输入一个经纬度，转化为指定坐标系下的坐标（默认 EPSG:3857）。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Transforms a coordinate from longitude/latitude to a different projection.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;import("./coordinate.js").Coordinate&#125;</span> </span>coordinate Coordinate as longitude and latitude, i.e.</span></span><br><span class="line"><span class="comment"> *     an array with longitude as 1st and latitude as 2nd element.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;ProjectionLike=&#125;</span> </span>opt_projection Target projection. The</span></span><br><span class="line"><span class="comment"> *     default is Web Mercator, i.e. 'EPSG:3857'.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return <span class="type">&#123;import("./coordinate.js").Coordinate&#125;</span> </span>Coordinate projected to the target projection.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@api</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">fromLonLat</span>(<span class="params">coordinate, opt_projection</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> transform(</span><br><span class="line">    coordinate,</span><br><span class="line">    <span class="string">"EPSG:4326"</span>,</span><br><span class="line">    opt_projection !== <span class="literal">undefined</span> ? opt_projection : <span class="string">"EPSG:3857"</span></span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="什么是EPSG-3857坐标系？"><a href="#什么是EPSG-3857坐标系？" class="headerlink" title="什么是EPSG:3857坐标系？"></a>什么是<a href="https://github.com/penouc/blog/issues/1" target="_blank" rel="external nofollow noopener noreferrer">EPSG:3857</a>坐标系？</h4><h5 id="EPSG-4326-WGS84"><a href="#EPSG-4326-WGS84" class="headerlink" title="EPSG:4326 (WGS84)"></a>EPSG:4326 (WGS84)</h5><blockquote>
+<p>世界大地测量系统 1984 （World Geodetic System of 1984) 是 GPS 用来描述地球上位置的地理学坐标系统（三维）。WGS84 通常使用 GeoJSON 作为坐标系统的单位，GeoJSON 中使用数字作为经度和纬度的单位。大部分时候，当你描述一个经纬度坐标的时候，它就是基于 EPSG:4326 坐标系统的。</p>
+</blockquote>
+<h5 id="EPSG-3857-Pseudo-Mercator"><a href="#EPSG-3857-Pseudo-Mercator" class="headerlink" title="EPSG: 3857 (Pseudo-Mercator)"></a>EPSG: 3857 (Pseudo-Mercator)</h5><blockquote>
+<p>Pseudo-Mercator 投影系统将 WGS84 坐标系统投影在平面上（这个投影规则也被称之为球面墨卡托或者 web 墨卡托）。但是这个投影系统并不是包含地球上所有的位置，北纬和南纬的 85.06 度以上的地区不会展示。这个投影首次是被使用在 Google 地图上，加上几乎所有的 Web 地图，但是有趣的一点是，这些投影（EPSG:3857）内部都是使用的 WGS84 坐标系统 – 即使用的 WGS84 椭球体构建，但是将它们（EPSG:3857）的坐标是投射在一个球面上。</p>
+</blockquote>
+<p>得到了 3857 坐标系下的坐标以后，需要用<a href="https://openlayers.org/en/latest/apidoc/module-ol_geom_Point-Point.html" target="_blank" rel="external nofollow noopener noreferrer">ol.geom.Point</a>来生成一个点集合体对象，保存着几何体的形状。再用<a href="https://openlayers.org/en/latest/apidoc/module-ol_Feature-Feature.html" target="_blank" rel="external nofollow noopener noreferrer">ol.Feature</a>来生成一个要素，最后把要素添加给<code>source</code>，完成了添加一个点的操作。同时，在代码的最后，设置了一个<code>setInterval</code>，每一秒执行一次<code>addRandomFeature</code>添加一个随机位置点。</p>
+<h3 id="addfeature-事件"><a href="#addfeature-事件" class="headerlink" title="addfeature 事件"></a>addfeature 事件</h3><p>下面的代码就是为在添加要素的时候能够触发动画，<code>duration</code>是提前设置好的每个动画的持续时间。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> duration = <span class="number">3000</span>; <span class="comment">// 每个点动画持续时间 ms</span></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 当添加要素时，对该要素执行的回调函数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;feature&#125;</span> </span>要素</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>: null</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> flash = <span class="function"><span class="params">feature</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 省略</span></span><br><span class="line">  <span class="comment">// 省略</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 每当触发添加要素的事件时，执行flash()</span></span><br><span class="line">source.on(<span class="string">"addfeature"</span>, e =&gt; &#123;</span><br><span class="line">  flash(e.feature);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>ol.source.Vector</code>的<a href="https://openlayers.org/en/latest/apidoc/module-ol_source_Vector.VectorSourceEvent.html#event:addfeature" target="_blank" rel="external nofollow noopener noreferrer">事件</a>如下图所示，<code>addfeature</code>事件是当给<code>source</code>添加<code>feature</code>时触发，然后把<code>event.feature</code>传给用来处理动画的 flash 函数。</p>
+<hr>
+<p><img src="/posts/911be51e/vectorsource.jpg" alt></p>
+<hr>
+<h2 id="水纹动画实现"><a href="#水纹动画实现" class="headerlink" title="水纹动画实现"></a>水纹动画实现</h2><p>水波扩散的效果使用<code>postrender</code>事件实现。如代码所示，在<code>flash</code>函数中又定义了一个新的回调函数<code>animate</code>，代码最后的时候把<code>animate</code>绑定给<code>postrender</code>事件，并且保存了一个<code>key</code>，便于在动画结束后及时解除绑定。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> flash = <span class="function"><span class="params">feature</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@description</span>: 当postrender事件发生时执行的回调函数</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param <span class="type">&#123;event&#125;</span> </span>: 事件对象</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span>: null</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">const</span> animate = <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">let</span> vectorContext = ol.render.getVectorContext(event);</span><br><span class="line">    <span class="keyword">let</span> frameState = event.frameState;</span><br><span class="line">    <span class="keyword">let</span> flashGeom = feature.getGeometry().clone(); <span class="comment">//拿到几何体对象</span></span><br><span class="line">    <span class="keyword">let</span> elapsed = frameState.time - start; <span class="comment">// 计算出当前帧所经历的时间</span></span><br><span class="line">    <span class="keyword">let</span> elapsedRatio = elapsed / duration;</span><br><span class="line">    <span class="comment">// 半径从5开始。到30结束</span></span><br><span class="line">    <span class="keyword">let</span> radius = ol.easing.easeOut(elapsedRatio) * <span class="number">25</span> + <span class="number">5</span>;</span><br><span class="line">    <span class="comment">// 透明度时从有到无</span></span><br><span class="line">    <span class="keyword">let</span> opacity = ol.easing.easeOut(<span class="number">1</span> - elapsedRatio);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> style = <span class="keyword">new</span> ol.style.Style(&#123;</span><br><span class="line">      image: <span class="keyword">new</span> ol.style.Circle(&#123;</span><br><span class="line">        radius: radius,</span><br><span class="line">        stroke: <span class="keyword">new</span> ol.style.Stroke(&#123;</span><br><span class="line">          color: <span class="string">"rgba(255, 0, 0, "</span> + opacity + <span class="string">")"</span>, <span class="comment">// 逐渐变得透明</span></span><br><span class="line">          width: <span class="number">0.25</span> + opacity <span class="comment">// 边框变细</span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    vectorContext.setStyle(style);</span><br><span class="line">    vectorContext.drawGeometry(flashGeom);</span><br><span class="line">    <span class="comment">// 当持续时间超过了duration后，取消绑定的postrender事件</span></span><br><span class="line">    <span class="keyword">if</span> (elapsed &gt; duration) &#123;</span><br><span class="line">      ol.Observable.unByKey(listenerKey);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    map.render();</span><br><span class="line">  &#125;;</span><br><span class="line">  <span class="keyword">let</span> start = <span class="keyword">new</span> <span class="built_in">Date</span>().getTime();</span><br><span class="line">  <span class="comment">// 保存住postrender事件绑定的key，方便以后解除</span></span><br><span class="line">  <span class="keyword">let</span> listenerKey = tileLayer.on(<span class="string">"postrender"</span>, animate);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="缓动函数"><a href="#缓动函数" class="headerlink" title="缓动函数"></a>缓动函数</h3><p>动画实现在逻辑上最核心的部分如下所示，首先计算出当前已经历的时间与设定的动画时间长度的比例<code>elapsedRatio</code>，这个比例一定是小于 1 的。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> elapsed = frameState.time - start; <span class="comment">// 计算出当前帧所经历的时间</span></span><br><span class="line"><span class="keyword">let</span> elapsedRatio = elapsed / duration; <span class="comment">// 计算已经历时间与设定时间长度的比例</span></span><br><span class="line"><span class="comment">// 半径从5开始。到30结束</span></span><br><span class="line"><span class="keyword">let</span> radius = ol.easing.easeOut(elapsedRatio) * <span class="number">25</span> + <span class="number">5</span>;</span><br><span class="line"><span class="comment">// 透明度时从有到无</span></span><br><span class="line"><span class="keyword">let</span> opacity = ol.easing.easeOut(<span class="number">1</span> - elapsedRatio);</span><br></pre></td></tr></table></figure>
+
+<p>计算出<code>elapsedRatio</code>这个比例是有原因的，用过 jQuery 的同学应该更熟悉这里的<code>easing</code>，也就是缓动函数。缓动函数本质上就是传入一个 0-1 之间的值，传出另一个 0-1 之间的值。不同的缓动函数传出的值是不同的，如下图所示，<code>x</code>轴是传入的值，<code>y</code>轴是传出的值。</p>
+<p><img src="/posts/911be51e/easing.png" alt></p>
+<p>在 OpenLayers 中，没有这么多的预置缓动函数类型，主要是下面<a href="https://github.com/openlayers/openlayers/blob/v6.1.1/src/ol/easing.js#L12" target="_blank" rel="external nofollow noopener noreferrer">几种</a>，当然也可以自定义缓动函数：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@module </span>ol/easing</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Start slow and speed up.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>t Input between 0 and 1.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return <span class="type">&#123;number&#125;</span> </span>Output between 0 and 1.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@api</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">easeIn</span>(<span class="params">t</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Math</span>.pow(t, <span class="number">3</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Start fast and slow down.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>t Input between 0 and 1.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return <span class="type">&#123;number&#125;</span> </span>Output between 0 and 1.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@api</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">easeOut</span>(<span class="params">t</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">1</span> - easeIn(<span class="number">1</span> - t);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Start slow, speed up, and then slow down again.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>t Input between 0 and 1.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return <span class="type">&#123;number&#125;</span> </span>Output between 0 and 1.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@api</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">inAndOut</span>(<span class="params">t</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">3</span> * t * t - <span class="number">2</span> * t * t * t;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Maintain a constant speed over time.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>t Input between 0 and 1.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return <span class="type">&#123;number&#125;</span> </span>Output between 0 and 1.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@api</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">linear</span>(<span class="params">t</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> t;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Start slow, speed up, and at the very end slow down again.  This has the</span></span><br><span class="line"><span class="comment"> * same general behavior as &#123;<span class="doctag">@link </span>module:ol/easing~inAndOut&#125;, but the final</span></span><br><span class="line"><span class="comment"> * slowdown is delayed.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>t Input between 0 and 1.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return <span class="type">&#123;number&#125;</span> </span>Output between 0 and 1.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@api</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">upAndDown</span>(<span class="params">t</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (t &lt; <span class="number">0.5</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> inAndOut(<span class="number">2</span> * t);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span> - inAndOut(<span class="number">2</span> * (t - <span class="number">0.5</span>));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>相信看完源码，就很轻松的理解缓动函数的实现了，在这个 demo 中，主要是利用<code>easeOut</code>这个缓动函数，实现越扩散越慢的一种波纹视觉效果，本质实际上是随着时间的增长，让半径逐渐变大同时越来越透明。</p>
+<h3 id="解除事件绑定"><a href="#解除事件绑定" class="headerlink" title="解除事件绑定"></a>解除事件绑定</h3><p>之前 demo 中没有见到的 API 还有<code>ol.Observable.unByKey</code>，这个 API 很奇怪，不知道为什么在官网查询 API 的时候查不到，但是在<a href="https://github.com/openlayers/openlayers/blob/v6.1.1/src/ol/Observable.js#L101" target="_blank" rel="external nofollow noopener noreferrer">源码</a>中却能看到。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Removes an event listener using the key returned by `on()` or `once()`.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;import("./events.js").EventsKey|Array&lt;import("./events.js").EventsKey&gt;&#125;</span> </span>key The key returned by `on()`</span></span><br><span class="line"><span class="comment"> *     or `once()` (or an array of keys).</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@api</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">unByKey</span>(<span class="params">key</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="built_in">Array</span>.isArray(key)) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>, ii = key.length; i &lt; ii; ++i) &#123;</span><br><span class="line">      unlistenByKey(key[i]);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    unlistenByKey(<span class="comment">/** @type &#123;import("./events.js").EventsKey&#125; */</span> (key));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实就是利用<code>key</code>来解除事件绑定。当动画经历的时间已经大于设定的<code>duration</code>了以后，就把这个<code>postrender</code>事件取消掉，这样一次完整的动画就完成了。每添加一个<code>feature</code>时触发一次<code>addfeature</code>，回调函数里都会新加一个<code>postrender</code>的动画事件，最后实现了 demo 中所示的不断有波纹产生的效果。</p>
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><p>最后贴出完整代码：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span></span></span><br><span class="line"><span class="tag">      <span class="attr">rel</span>=<span class="string">"stylesheet"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">href</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">type</span>=<span class="string">"text/css"</span></span></span><br><span class="line"><span class="tag">    /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Custom Animation(自定义动画)<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body,</span><br><span class="line"><span class="css">      <span class="selector-class">.map</span> &#123;</span></span><br><span class="line">        height: 100%;</span><br><span class="line">        width: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">class</span>=<span class="string">"map"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 定义一个瓦片图层</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> tileLayer = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.OSM(&#123;</span></span><br><span class="line"><span class="actionscript">          wrapX: <span class="literal">false</span> <span class="comment">// 是否水平循环</span></span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 定义一个地图</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">        layers: [tileLayer],</span><br><span class="line"><span class="actionscript">        target: <span class="string">"map"</span>,</span></span><br><span class="line"><span class="actionscript">        view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line">          center: [0, 0],</span><br><span class="line">          zoom: 1,</span><br><span class="line"><span class="actionscript">          multiWorld: <span class="literal">true</span> <span class="comment">// 视图是否只能看到一个世界</span></span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line"></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> source = <span class="keyword">new</span> ol.source.Vector(&#123;</span></span><br><span class="line"><span class="actionscript">        wrapX: <span class="literal">false</span></span></span><br><span class="line">      &#125;);</span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> vector = <span class="keyword">new</span> ol.layer.Vector(&#123;</span></span><br><span class="line">        source: source</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 给map添加一个图层vector</span></span></span><br><span class="line">      map.addLayer(vector);</span><br><span class="line">      /**</span><br><span class="line">       * @description: 给source添加随机位置的要素</span><br><span class="line"><span class="actionscript">       * @param &#123;<span class="literal">null</span>&#125;</span></span><br><span class="line"><span class="actionscript">       * @<span class="keyword">return</span>: <span class="literal">null</span></span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">const</span> addRandomFeature = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> x = <span class="built_in">Math</span>.random() * <span class="number">360</span> - <span class="number">180</span>; <span class="comment">// 随机区间[-180, 180]</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> y = <span class="built_in">Math</span>.random() * <span class="number">180</span> - <span class="number">90</span>; <span class="comment">// 随机区间[-90, 90]</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// ol.proj.fromLonLat(coordinate,[projection：默认3857])，转化经纬度为投影下坐标</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// new ol.geom.Point(coordinates, opt_layout) 生成一个点对象</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> geom = <span class="keyword">new</span> ol.geom.Point(ol.proj.fromLonLat([x, y]));</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// new ol.Feature(opt_geometryOrProperties) 生成一个要素</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> feature = <span class="keyword">new</span> ol.Feature(geom);</span></span><br><span class="line"><span class="actionscript">        source.addFeature(feature); <span class="comment">// 把要素添加给vectorSource</span></span></span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line"><span class="actionscript">      <span class="keyword">const</span> duration = <span class="number">3000</span>; <span class="comment">// 每个点动画持续时间 ms</span></span></span><br><span class="line">      /**</span><br><span class="line">       * @description: 当添加要素时，对该要素执行的回调函数</span><br><span class="line">       * @param &#123;feature&#125; 要素</span><br><span class="line"><span class="actionscript">       * @<span class="keyword">return</span>: <span class="literal">null</span></span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">const</span> flash = <span class="function"><span class="params">feature</span> =&gt;</span> &#123;</span></span><br><span class="line">        /**</span><br><span class="line">         * @description: 当postrender事件发生时执行的回调函数</span><br><span class="line">         * @param &#123;event&#125; : 事件对象</span><br><span class="line"><span class="actionscript">         * @<span class="keyword">return</span>: <span class="literal">null</span></span></span><br><span class="line">         */</span><br><span class="line"><span class="javascript">        <span class="keyword">const</span> animate = <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> vectorContext = ol.render.getVectorContext(event);</span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> frameState = event.frameState;</span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> flashGeom = feature.getGeometry().clone();</span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> elapsed = frameState.time - start;</span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> elapsedRatio = elapsed / duration;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 半径从5开始,到30结束</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> radius = ol.easing.easeOut(elapsedRatio) * <span class="number">25</span> + <span class="number">5</span>;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 透明度时从有到无</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> opacity = ol.easing.easeOut(<span class="number">1</span> - elapsedRatio);</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> style = <span class="keyword">new</span> ol.style.Style(&#123;</span></span><br><span class="line"><span class="actionscript">            image: <span class="keyword">new</span> ol.style.Circle(&#123;</span></span><br><span class="line">              radius: radius,</span><br><span class="line"><span class="actionscript">              stroke: <span class="keyword">new</span> ol.style.Stroke(&#123;</span></span><br><span class="line"><span class="actionscript">                color: <span class="string">"rgba(255, 0, 0, "</span> + opacity + <span class="string">")"</span>, <span class="comment">// 逐渐变得透明</span></span></span><br><span class="line"><span class="actionscript">                width: <span class="number">0.25</span> + opacity <span class="comment">// 边框变细</span></span></span><br><span class="line">              &#125;)</span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;);</span><br><span class="line"></span><br><span class="line">          vectorContext.setStyle(style);</span><br><span class="line">          vectorContext.drawGeometry(flashGeom);</span><br><span class="line"><span class="actionscript">          <span class="comment">// 当持续时间超过了duration后，取消绑定的postrender事件</span></span></span><br><span class="line">          if (elapsed &gt; duration) &#123;</span><br><span class="line">            ol.Observable.unByKey(listenerKey);</span><br><span class="line"><span class="actionscript">            <span class="keyword">return</span>;</span></span><br><span class="line">          &#125;</span><br><span class="line"><span class="actionscript">          <span class="comment">// tell OpenLayers to continue postrender animation</span></span></span><br><span class="line">          map.render();</span><br><span class="line">        &#125;;</span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> start = <span class="keyword">new</span> <span class="built_in">Date</span>().getTime();</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 保存住postrender事件绑定的key，方便以后解除</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> listenerKey = tileLayer.on(<span class="string">"postrender"</span>, animate);</span></span><br><span class="line">      &#125;;</span><br><span class="line"><span class="actionscript">      <span class="comment">// 每当触发添加要素的事件时，执行flash()</span></span></span><br><span class="line"><span class="actionscript">      source.on(<span class="string">"addfeature"</span>, e =&gt; &#123;</span></span><br><span class="line">        flash(e.feature);</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 每1000ms执行一次addRandomFeature，添加一个随机要素</span></span></span><br><span class="line"><span class="javascript">      <span class="built_in">window</span>.setInterval(addRandomFeature, <span class="number">1000</span>);</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenLayers/" rel="tag"># OpenLayers</a>
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/%E5%9C%B0%E5%9B%BE/" rel="tag"># 地图</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/ce282862.html" rel="prev" title="OpenLayers6实例分析：Dynamic Data（动态数据）">
+      <i class="fa fa-chevron-left"></i> OpenLayers6实例分析：Dynamic Data（动态数据）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/c5398f0a.html" rel="next" title="OpenLayers6实例分析：Flight Animation（动态航线）">
+      OpenLayers6实例分析：Flight Animation（动态航线） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#定义基本结构"><span class="nav-number">1.</span> <span class="nav-text">定义基本结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生成随机要素"><span class="nav-number">2.</span> <span class="nav-text">生成随机要素</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#addRandomFeature"><span class="nav-number">2.1.</span> <span class="nav-text">addRandomFeature</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#什么是EPSG-3857坐标系？"><span class="nav-number">2.1.1.</span> <span class="nav-text">什么是EPSG:3857坐标系？</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#EPSG-4326-WGS84"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">EPSG:4326 (WGS84)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#EPSG-3857-Pseudo-Mercator"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">EPSG: 3857 (Pseudo-Mercator)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#addfeature-事件"><span class="nav-number">2.2.</span> <span class="nav-text">addfeature 事件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#水纹动画实现"><span class="nav-number">3.</span> <span class="nav-text">水纹动画实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#缓动函数"><span class="nav-number">3.1.</span> <span class="nav-text">缓动函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解除事件绑定"><span class="nav-number">3.2.</span> <span class="nav-text">解除事件绑定</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#源码"><span class="nav-number">4.</span> <span class="nav-text">源码</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '1ee90ab38e3be0ca7f3ca03c23540066',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

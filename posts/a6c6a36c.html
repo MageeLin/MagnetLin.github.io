@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="分析 Marker Animation 这个 demo，官网介绍是：  This example shows how to use postrender events and a vector context to animate a marker feature along a line. In this example an encoded polyline is being used.此示例">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenLayers6实例分析：Marker Animation（标记动画）">
+<meta property="og:url" content="https://linjingyi.cn/posts/a6c6a36c.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="分析 Marker Animation 这个 demo，官网介绍是：  This example shows how to use postrender events and a vector context to animate a marker feature along a line. In this example an encoded polyline is being used.此示例">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/a6c6a36c/marker.gif">
+<meta property="article:published_time" content="2020-01-29T23:45:29.000Z">
+<meta property="article:modified_time" content="2020-01-29T23:45:29.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="OpenLayers">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="地图">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/a6c6a36c/marker.gif">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/a6c6a36c.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>OpenLayers6实例分析：Marker Animation（标记动画） | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/a6c6a36c.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          OpenLayers6实例分析：Marker Animation（标记动画）
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-30 07:45:29" itemprop="dateCreated datePublished" datetime="2020-01-30T07:45:29+08:00">2020-01-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9C%B0%E5%9B%BE/" itemprop="url" rel="index">
+                    <span itemprop="name">地图</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>分析 Marker Animation 这个 demo，官网介绍是：</p>
+<blockquote>
+<p>This example shows how to use postrender events and a vector context to animate a marker feature along a line. In this example an encoded polyline is being used.<br>此示例展示了如何使用 postrender 事件和矢量上下文使一个标记要素沿着线移动。在这个实例中使用了一个经过编码的折线。</p>
+</blockquote>
+<ul>
+<li><p><a href="https://openlayers.org/en/latest/examples/feature-move-animation.html" target="_blank" rel="external nofollow noopener noreferrer">官网实例</a>：Marker Animation</p>
+</li>
+<li><p><a href="https://ke.qq.com/course/449937" target="_blank" rel="external nofollow noopener noreferrer">跟我学 OpenLayers——基础实例讲解</a>：12 渲染器机制的使用 &gt; 实例 85.路径回放</p>
+<a id="more"></a>
+
+</li>
+</ul>
+<p><img src="/posts/a6c6a36c/marker.gif" alt="Marker Animation"></p>
+<h2 id="定义基本结构"><a href="#定义基本结构" class="headerlink" title="定义基本结构"></a>定义基本结构</h2><p>先展示地图基本结构，地图的样式使用的是<code>AerialWithLabelsOnDemand</code>（按需加载的带标签的航拍图）。在这里的 <code>vectorLayer</code>是动画显示的图层，要素和动画逻辑都在此层上执行。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span></span></span><br><span class="line"><span class="tag">      <span class="attr">rel</span>=<span class="string">"stylesheet"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">href</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">type</span>=<span class="string">"text/css"</span></span></span><br><span class="line"><span class="tag">    /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Marker Animation(标记动画)<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body,</span><br><span class="line"><span class="css">      <span class="selector-class">.map</span> &#123;</span></span><br><span class="line">        height: 100%;</span><br><span class="line">        width: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">class</span>=<span class="string">"map"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">label</span> <span class="attr">for</span>=<span class="string">"speed"</span>&gt;</span></span><br><span class="line">      速度:<span class="symbol">&amp;nbsp;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"speed"</span> <span class="attr">type</span>=<span class="string">"range"</span> <span class="attr">min</span>=<span class="string">"10"</span> <span class="attr">max</span>=<span class="string">"999"</span> <span class="attr">step</span>=<span class="string">"10"</span> <span class="attr">value</span>=<span class="string">"60"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> <span class="attr">id</span>=<span class="string">"start-animation"</span>&gt;</span>开始动画<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 基本地图设置</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> center = [<span class="number">-5639523.95</span>, <span class="number">-3501274.52</span>];</span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line"><span class="javascript">        target: <span class="built_in">document</span>.getElementById(<span class="string">"map"</span>),</span></span><br><span class="line"><span class="actionscript">        view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line">          center: center,</span><br><span class="line">          zoom: 10,</span><br><span class="line">          minZoom: 2,</span><br><span class="line">          maxZoom: 19</span><br><span class="line">        &#125;),</span><br><span class="line">        layers: [</span><br><span class="line"><span class="actionscript">          <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">            source: <span class="keyword">new</span> ol.source.BingMaps(&#123;</span></span><br><span class="line"><span class="actionscript">              imagerySet: <span class="string">"AerialWithLabelsOnDemand"</span>,</span></span><br><span class="line"><span class="actionscript">              <span class="comment">// 需要填写必应地图的开发者key，申请网址http://www.bingmapsportal.com/</span></span></span><br><span class="line"><span class="actionscript">              key: <span class="string">"Your Bing Maps Key from http://www.bingmapsportal.com/ here"</span></span></span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;),</span><br><span class="line">          vectorLayer</span><br><span class="line">        ]</span><br><span class="line">      &#125;);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="设置-vectorLayer"><a href="#设置-vectorLayer" class="headerlink" title="设置 vectorLayer"></a>设置 vectorLayer</h2><h3 id="加载数据并生成要素"><a href="#加载数据并生成要素" class="headerlink" title="加载数据并生成要素"></a>加载数据并生成要素</h3><p>猜测这个 demo 可能是 OpenLayers 官方摘自<a href="https://jsfiddle.net/" target="_blank" rel="external nofollow noopener noreferrer">jsFiddle</a>，jsFiddle 加载外部数据时有限制，所以使用字符串数组 join 一下合并成长字符串当数据源。</p>
+<p>使用<a href="https://openlayers.org/en/latest/apidoc/module-ol_format_Polyline-Polyline.html" target="_blank" rel="external nofollow noopener noreferrer">ol.format.Polyline</a>新建一个 openlayers 折线<code>polyline</code>，使用<code>readGeometry</code>方法读取<code>polyline</code>，并把投影从 4326 转到 3857 的 web 标准格式，返回了一个几何体对象。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 通常使用AJAX方式加载数据，但由于jsFiddle的限制，所以这里使用长字符串来替代</span></span><br><span class="line"><span class="keyword">const</span> polyline = [</span><br><span class="line">  <span class="string">"hldhx@lnau`BCG_EaC??cFjAwDjF??uBlKMd@&#125;@z@??aC^yk@z_@se@b[wFdE??wFfE&#125;N"</span>,</span><br><span class="line">  <span class="string">"fIoGxB_I\\gG&#125;@eHoCyTmPqGaBaHOoD\\??yVrGotA|N??o[N_STiwAtEmHGeHcAkiA&#125;^"</span>,</span><br><span class="line">  <span class="string">"aMyBiHOkFNoI`CcVvM??gG^gF_@iJwC??eCcA]OoL&#125;DwFyCaCgCcCwDcGwHsSoX??wI_E"</span>,</span><br><span class="line">  <span class="string">"kUFmq@hBiOqBgTwS??iYse@gYq\\cp@ce@&#123;vA&#125;s@csJqaE&#125;&#123;@iRaqE&#123;lBeRoIwd@_T&#123;]_"</span>,</span><br><span class="line">  <span class="string">"Ngn@&#123;PmhEwaA&#123;SeF_u@kQuyAw]wQeEgtAsZ&#125;LiCarAkVwI&#125;D??_&#125;RcjEinPspDwSqCgs@"</span>,</span><br><span class="line">  <span class="string">"sPua@_OkXaMeT_Nwk@ob@gV&#125;TiYs[uTwXoNmT&#123;Uyb@wNg]&#123;Nqa@oDgNeJu_@_G&#125;YsFw]k"</span>,</span><br><span class="line">  <span class="string">"DuZyDmm@i_@uyIJe~@jCg|@nGiv@zUi_BfNqaAvIow@dEed@dCcf@r@qz@Egs@&#123;Acu@mC"</span>,</span><br><span class="line">  <span class="string">"um@yIey@gGig@cK_m@aSku@qRil@we@&#123;mAeTej@&#125;Tkz@cLgr@aHko@qOmcEaJw~C&#123;w@ka"</span>,</span><br><span class="line">  <span class="string">"i@qBchBq@kmBS&#123;kDnBscBnFu_Dbc@_~QHeU`IuyDrC_&#125;@bByp@fCyoA?qMbD&#125;&#123;AIkeAgB"</span>,</span><br><span class="line">  <span class="string">"k_A_A&#123;UsDke@gFej@qH&#123;o@qGgb@qH&#123;`@mMgm@uQus@kL&#123;_@yOmd@ymBgwE&#125;x@ouBwtA__"</span>,</span><br><span class="line">  <span class="string">"DuhEgaKuWct@gp@cnBii@mlBa_@&#125;|Asj@qrCg^eaC&#125;L&#123;dAaJ_aAiOyjByH&#123;nAuYu`GsAw"</span>,</span><br><span class="line">  <span class="string">"Xyn@ywMyOyqD&#123;_@cfIcDe&#125;@y@aeBJmwA`CkiAbFkhBlTgdDdPyiB`W&#125;xDnSa&#125;DbJyhCrX"</span>,</span><br><span class="line">  <span class="string">"itAhT&#125;x@bE&#125;Z_@qW_Kwv@qKaaAiBgXvIm&#125;A~JovAxCqW~WanB`XewBbK&#123;_A`K&#125;fBvAmi@"</span>,</span><br><span class="line">  <span class="string">"xBycBeCauBoF&#125;&#125;@qJioAww@gjHaPopA_NurAyJku@uGmi@cDs[eRaiBkQstAsQkcByNma"</span>,</span><br><span class="line">  <span class="string">"CsK_uBcJgbEw@gkB_@ypEqDoqSm@eZcDwjBoGw`BoMegBaU_`Ce_@_uBqb@ytBwkFqiT_"</span>,</span><br><span class="line">  <span class="string">"fAqfEwe@mfCka@_eC_UmlB&#125;MmaBeWkkDeHwqAoX&#125;~DcBsZmLcxBqOwqE_DkyAuJmrJ\\o"</span>,</span><br><span class="line">  <span class="string">"~CfIewG|YibQxBssB?es@qGciA&#125;RorAoVajA_nAodD&#123;[y`AgPqp@mKwr@ms@umEaW&#123;dAm"</span>,</span><br><span class="line">  <span class="string">"b@umAw|@ojBwzDaaJsmBwbEgdCsrFqhAihDquAi`Fux@&#125;_Dui@_eB_u@guCuyAuiHukA_"</span>,</span><br><span class="line">  <span class="string">"lKszAu|OmaA&#123;wKm&#125;@clHs_A_rEahCssKo\\sgBsSglAqk@yvDcS_wAyTwpBmPc|BwZknF"</span>,</span><br><span class="line">  <span class="string">"oFscB_GsaDiZmyMyLgtHgQonHqT&#123;hKaPg&#125;Dqq@m~Hym@c`EuiBudIabB&#123;hF&#123;pWifx@snA"</span>,</span><br><span class="line">  <span class="string">"w`GkFyVqf@y~BkoAi&#125;Lel@wtc@&#125;`@oaXi_C&#125;pZsi@eqGsSuqJ|Lqeb@e]kgPcaAu&#125;SkDw"</span>,</span><br><span class="line">  <span class="string">"zGhn@gjYh\\qlNZovJieBqja@ed@siO&#123;[ol\\kCmjMe\\isHorCmec@uLebB&#125;EqiBaCg&#125;"</span>,</span><br><span class="line">  <span class="string">"@m@qwHrT_vFps@kkI`uAszIrpHuzYxx@e&#123;Crw@kpDhN&#123;wBtQarDy@knFgP_yCu\\wyCwy"</span>,</span><br><span class="line">  <span class="string">"A&#123;kHo~@omEoYmoDaEcPiuAosDagD&#125;rO&#123;&#123;AsyEihCayFilLaiUqm@_bAumFo&#125;DgqA_uByi"</span>,</span><br><span class="line">  <span class="string">"@swC~AkzDlhA&#125;xEvcBa&#125;Cxk@ql@`rAo|@~bBq&#123;@``Bye@djDww@z_C_cAtn@ye@nfC_eC"</span>,</span><br><span class="line">  <span class="string">"|gGahH~s@w&#125;@``Fi~FpnAooC|u@wlEaEedRlYkrPvKerBfYs&#125;Arg@m&#125;AtrCkzElw@gjBb"</span>,</span><br><span class="line">  <span class="string">"h@woBhR&#123;gCwGkgCc[wtCuOapAcFoh@uBy[yBgr@c@iq@o@wvEv@sp@`FajBfCaq@fIipA"</span>,</span><br><span class="line">  <span class="string">"dy@ewJlUc`ExGuaBdEmbBpBssArAuqBBg&#125;@s@g&#123;AkB&#123;bBif@_bYmC&#125;r@kDgm@sPq_BuJ_"</span>,</span><br><span class="line">  <span class="string">"s@&#123;X_&#123;AsK_d@eM&#123;d@wVgx@oWcu@??aDmOkNia@wFoSmDyMyCkPiBePwAob@XcQ|@oNdCo"</span>,</span><br><span class="line">  <span class="string">"SfFwXhEmOnLi\\lbAulB`X_d@|k@au@bc@oc@bqC&#125;&#123;BhwDgcD`l@ed@??bL&#123;G|a@eTje@"</span>,</span><br><span class="line">  <span class="string">"oS~]cLr~Bgh@|b@&#125;Jv&#125;EieAlv@sPluD&#123;z@nzA_]`|KchCtd@sPvb@wSb&#123;@ko@f`RooQ~e"</span>,</span><br><span class="line">  <span class="string">"[upZbuIolI|gFafFzu@iq@nMmJ|OeJn^&#123;Qjh@yQhc@uJ~j@iGdd@kAp~BkBxO&#123;@|QsAfY"</span>,</span><br><span class="line">  <span class="string">"gEtYiGd]&#125;Jpd@wRhVoNzNeK`j@ce@vgK&#125;cJnSoSzQkVvUm^rSgc@`Uql@xIq\\vIgg@~k"</span>,</span><br><span class="line">  <span class="string">"Dyq[nIir@jNoq@xNwc@fYik@tk@su@neB&#125;uBhqEesFjoGeyHtCoD|D&#125;Ed|@ctAbIuOzqB"</span>,</span><br><span class="line">  <span class="string">"_&#125;D~NgY`\\um@v[gm@v&#123;Cw`G`w@o&#123;AdjAwzBh&#123;C&#125;`Gpp@ypAxn@&#125;mAfz@&#123;bBbNia@??jI"</span>,</span><br><span class="line">  <span class="string">"ab@`CuOlC&#125;YnAcV`@_^m@aeB&#125;@yk@YuTuBg^uCkZiGk\\yGeY&#125;Lu_@oOsZiTe[uWi[sl@"</span>,</span><br><span class="line">  <span class="string">"mo@soAauAsrBgzBqgAglAyd@ig@asAcyAklA&#125;qAwHkGi&#123;@s~@goAmsAyDeEirB_&#123;B&#125;IsJ"</span>,</span><br><span class="line">  <span class="string">"uEeFymAssAkdAmhAyTcVkFeEoKiH&#125;l@kp@wg@sj@ku@ey@uh@kj@&#125;EsFmG&#125;Jk^_r@_f@m"</span>,</span><br><span class="line">  <span class="string">"~@ym@yjA??a@cFd@kBrCgDbAUnAcBhAyAdk@et@??kF&#125;D??OL"</span></span><br><span class="line">].join(<span class="string">""</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> route = <span class="keyword">new</span> ol.format.Polyline(&#123;</span><br><span class="line">  factor: <span class="number">1e6</span></span><br><span class="line">  <span class="comment">// 返回一个geometry</span></span><br><span class="line">&#125;).readGeometry(polyline, &#123;</span><br><span class="line">  <span class="comment">// 数据源的投影格式和生成要素的投影格式</span></span><br><span class="line">  dataProjection: <span class="string">"EPSG:4326"</span>,</span><br><span class="line">  featureProjection: <span class="string">"EPSG:3857"</span></span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 获取路线的坐标</span></span><br><span class="line"><span class="keyword">let</span> routeCoords = route.getCoordinates();</span><br><span class="line"><span class="keyword">let</span> routeLength = routeCoords.length;</span><br><span class="line"><span class="comment">// 每个要素分别设置一个type,用于设置样式</span></span><br><span class="line"><span class="comment">// 路线的要素</span></span><br><span class="line"><span class="keyword">let</span> routeFeature = <span class="keyword">new</span> ol.Feature(&#123;</span><br><span class="line">  type: <span class="string">"route"</span>,</span><br><span class="line">  geometry: route</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 运动点的要素</span></span><br><span class="line"><span class="keyword">let</span> geoMarker = <span class="keyword">new</span> ol.Feature(&#123;</span><br><span class="line">  type: <span class="string">"geoMarker"</span>,</span><br><span class="line">  geometry: <span class="keyword">new</span> ol.geom.Point(routeCoords[<span class="number">0</span>])</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 开始点标志的要素</span></span><br><span class="line"><span class="keyword">let</span> startMarker = <span class="keyword">new</span> ol.Feature(&#123;</span><br><span class="line">  type: <span class="string">"icon"</span>,</span><br><span class="line">  geometry: <span class="keyword">new</span> ol.geom.Point(routeCoords[<span class="number">0</span>])</span><br><span class="line">&#125;);</span><br><span class="line"><span class="comment">// 结束点标志的要素</span></span><br><span class="line"><span class="keyword">let</span> endMarker = <span class="keyword">new</span> ol.Feature(&#123;</span><br><span class="line">  type: <span class="string">"icon"</span>,</span><br><span class="line">  geometry: <span class="keyword">new</span> ol.geom.Point(routeCoords[routeLength - <span class="number">1</span>])</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>获取到了路线的<code>geometry</code>以后，新建一个<a href="https://openlayers.org/en/latest/apidoc/module-ol_Feature-Feature.html" target="_blank" rel="external nofollow noopener noreferrer">ol.Feature</a>对象，对象中定义一个属性<code>type</code>为<code>route</code>，最后返回一个路线的要素<code>routeFeature</code>。同样的方式生成运动点的要素（<code>type</code>为<code>geoMarker</code>）、开始点标志的要素<code>startMarker</code>（<code>type</code>为<code>icon</code>）、结束点标志的要素<code>endMarker</code>（<code>type</code>为<code>icon</code>），此处的<code>type</code>主要是为应用不同的<code>style</code>做的准备。</p>
+<h3 id="生成样式和图层"><a href="#生成样式和图层" class="headerlink" title="生成样式和图层"></a>生成样式和图层</h3><p>定义一个<code>styles</code>对象，键名为<code>route</code>的时路线的样式，键名为<code>icon</code>的起始点和终止点的图标样式，键名为<code>geoMarker</code>为运动点的样式。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对应各type的样式</span></span><br><span class="line"><span class="keyword">let</span> styles = &#123;</span><br><span class="line">  route: <span class="keyword">new</span> ol.style.Style(&#123;</span><br><span class="line">    stroke: <span class="keyword">new</span> ol.style.Stroke(&#123;</span><br><span class="line">      width: <span class="number">6</span>,</span><br><span class="line">      color: [<span class="number">237</span>, <span class="number">212</span>, <span class="number">0</span>, <span class="number">0.8</span>]</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;),</span><br><span class="line">  icon: <span class="keyword">new</span> ol.style.Style(&#123;</span><br><span class="line">    image: <span class="keyword">new</span> ol.style.Icon(&#123;</span><br><span class="line">      anchor: [<span class="number">0.5</span>, <span class="number">1</span>],</span><br><span class="line">      src: <span class="string">"../data/icon.png"</span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;),</span><br><span class="line">  geoMarker: <span class="keyword">new</span> ol.style.Style(&#123;</span><br><span class="line">    image: <span class="keyword">new</span> ol.style.Circle(&#123;</span><br><span class="line">      radius: <span class="number">7</span>,</span><br><span class="line">      fill: <span class="keyword">new</span> ol.style.Fill(&#123; <span class="attr">color</span>: <span class="string">"black"</span> &#125;),</span><br><span class="line">      stroke: <span class="keyword">new</span> ol.style.Stroke(&#123;</span><br><span class="line">        color: <span class="string">"white"</span>,</span><br><span class="line">        width: <span class="number">2</span></span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 是否处于运动状态的标志</span></span><br><span class="line"><span class="keyword">let</span> animating = <span class="literal">false</span>;</span><br><span class="line"><span class="comment">// 移动速度,当前时间戳</span></span><br><span class="line"><span class="keyword">let</span> speed, now;</span><br><span class="line"><span class="comment">// 速度输入框和开始按钮</span></span><br><span class="line"><span class="keyword">let</span> speedInput = <span class="built_in">document</span>.getElementById(<span class="string">"speed"</span>);</span><br><span class="line"><span class="keyword">let</span> startButton = <span class="built_in">document</span>.getElementById(<span class="string">"start-animation"</span>);</span><br><span class="line"><span class="comment">// 添加这些要素的图层</span></span><br><span class="line"><span class="keyword">let</span> vectorLayer = <span class="keyword">new</span> ol.layer.Vector(&#123;</span><br><span class="line">  source: <span class="keyword">new</span> ol.source.Vector(&#123;</span><br><span class="line">    features: [routeFeature, geoMarker, startMarker, endMarker]</span><br><span class="line">  &#125;),</span><br><span class="line">  style: <span class="function"><span class="params">feature</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 当正在运动时隐藏初始位置标志点</span></span><br><span class="line">    <span class="keyword">if</span> (animating &amp;&amp; feature.get(<span class="string">"type"</span>) === <span class="string">"geoMarker"</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 根据类型返回样式</span></span><br><span class="line">    <span class="keyword">return</span> styles[feature.get(<span class="string">"type"</span>)];</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>接着设置一个运动状态的标志<code>animating</code>为<code>false</code>，然后在添加<code>vectorLayer</code>图层的时候，把<code>routeFeature</code>、<code>geoMarker</code>、 <code>startMarker</code>、 <code>endMarker</code>添加到<code>features</code>中。</p>
+<p>有一个关键的地方就是在设置<code>style</code>的时候使用了函数返回，对应不同的<code>type</code>使用之前预定义好的不同的样式。如果<code>animating</code>为<code>true</code>（正在运动）并且<code>type</code>为<code>geoMarker</code>（初始位置标志点），就返回<code>null</code>（隐藏初始位置标志点）。</p>
+<h2 id="按钮点击的回调函数"><a href="#按钮点击的回调函数" class="headerlink" title="按钮点击的回调函数"></a>按钮点击的回调函数</h2><h3 id="startAnimation"><a href="#startAnimation" class="headerlink" title="startAnimation"></a>startAnimation</h3><p>button 按钮上绑定的是<code>startAnimation</code>回调函数，这个函数名义上叫<code>start</code>，但实际上这个同时控制开始和取消动画。该函数执行时，如果<code>animating</code>是<code>true</code>，就去执行停止动画的函数<code>stopAnimation</code>。</p>
+<p>如果<code>animating</code>为<code>false</code>，就去执行<code>else</code>中的代码，最关键的地方是给<code>vectorLayer</code>添加了<code>postrender</code>回调，执行<code>moveFeature</code>，形成动画。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 按钮点击的回调函数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;type&#125;</span> <span class="variable">null</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>: null</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">let</span> startAnimation = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (animating) &#123;</span><br><span class="line">    <span class="comment">// 如果animating为true就执行停止动画的函数</span></span><br><span class="line">    stopAnimation(<span class="literal">false</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 把animating改为true，设置时间戳，取到初始速度，把按钮文字设为取消动画</span></span><br><span class="line">    animating = <span class="literal">true</span>;</span><br><span class="line">    now = <span class="keyword">new</span> <span class="built_in">Date</span>().getTime();</span><br><span class="line">    speed = speedInput.value;</span><br><span class="line">    startButton.textContent = <span class="string">"取消动画"</span>;</span><br><span class="line">    <span class="comment">// 隐藏标记</span></span><br><span class="line">    geoMarker.setStyle(<span class="literal">null</span>);</span><br><span class="line">    <span class="comment">// 防止平移了地图，重新设置地图中心</span></span><br><span class="line">    map.getView().setCenter(center);</span><br><span class="line">    <span class="comment">// 添加postrender回调</span></span><br><span class="line">    vectorLayer.on(<span class="string">"postrender"</span>, moveFeature);</span><br><span class="line">    <span class="comment">// 渲染地图</span></span><br><span class="line">    map.render();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 给按钮绑定点击事件</span></span><br><span class="line">startButton.addEventListener(<span class="string">"click"</span>, startAnimation, <span class="literal">false</span>);</span><br></pre></td></tr></table></figure>
+
+<p>最后给按钮绑定<code>click</code>事件，回调函数为<code>startAnimation</code>。</p>
+<h3 id="stopAnimation"><a href="#stopAnimation" class="headerlink" title="stopAnimation"></a>stopAnimation</h3><p>停止动画的回调函数<code>stopAnimation</code>接收一个<code>ended</code>参数，这个函数的关键就是对<code>ended</code>的判断。如果<code>ended</code>为<code>ture</code>的时候，也就是动画正常运行完，这时就把运动点放到最后一点；反之，就是动画并没有运行完而是被中途取消，就把运动点重置在起点处。</p>
+<p>最后，解绑<code>vectorLayers</code>的<code>postrender</code>回调，取消动画。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 停止动画</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Boolean&#125;</span> </span>ended 为true的时候也就是正常结束，所以标记在最后；为false的时候是主动取消，所以标记在最前。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>: null</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">let</span> stopAnimation = <span class="function"><span class="params">ended</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 把aniamting设为false，把按钮文字改为开始动画</span></span><br><span class="line">  animating = <span class="literal">false</span>;</span><br><span class="line">  startButton.textContent = <span class="string">"开始动画"</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果点击取消动画，在开始的地方设置标记</span></span><br><span class="line">  <span class="comment">// 如果ended为true，就把点放到最后一个；如果ended为false，就把点放第一个。</span></span><br><span class="line">  <span class="keyword">let</span> coord = ended ? routeCoords[routeLength - <span class="number">1</span>] : routeCoords[<span class="number">0</span>];</span><br><span class="line">  <span class="comment">// 给geoMaker设为coords</span></span><br><span class="line">  <span class="keyword">let</span> geometry = geoMarker.getGeometry();</span><br><span class="line">  geometry.setCoordinates(coord);</span><br><span class="line">  <span class="comment">// 解绑postrender事件监听</span></span><br><span class="line">  vectorLayer.un(<span class="string">"postrender"</span>, moveFeature);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="移动要素的回调函数"><a href="#移动要素的回调函数" class="headerlink" title="移动要素的回调函数"></a>移动要素的回调函数</h2><p>最核心的移动要素的函数<code>moveFeature</code>如下，获取矢量上下文和当前帧以后，判断只有在<code>animating</code>为<code>true</code>的时候，才执行运动的代码。控制速度是利用动画运行时间<code>elapsedTime</code>和速度<code>speed</code>计算得到每次运动该跳过的索引数，同时，最近的一个点拿出来使用<code>drawFeature</code>函数绘制在地图上，这样在不断<code>render</code>的过程中就形成了动画。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 移动要素的回调函数</span></span><br><span class="line"><span class="keyword">let</span> moveFeature = <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> vectorContext = ol.render.getVectorContext(event);</span><br><span class="line">  <span class="keyword">let</span> frameState = event.frameState;</span><br><span class="line">  <span class="comment">// 当animating为true的时候才执行</span></span><br><span class="line">  <span class="keyword">if</span> (animating) &#123;</span><br><span class="line">    <span class="keyword">let</span> elapsedTime = frameState.time - now;</span><br><span class="line">    <span class="comment">// 这里提升速度的技巧时在lineString的坐标上跳过几个索引</span></span><br><span class="line">    <span class="keyword">let</span> index = <span class="built_in">Math</span>.round((speed * elapsedTime) / <span class="number">1000</span>);</span><br><span class="line">    <span class="comment">// 当索引大过总数的时候就结束</span></span><br><span class="line">    <span class="keyword">if</span> (index &gt;= routeLength) &#123;</span><br><span class="line">      stopAnimation(<span class="literal">true</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 把最近的一个点拿出来做成要素，形成动画效果</span></span><br><span class="line">    <span class="keyword">let</span> currentPoint = <span class="keyword">new</span> ol.geom.Point(routeCoords[index]);</span><br><span class="line">    <span class="keyword">let</span> feature = <span class="keyword">new</span> ol.Feature(currentPoint);</span><br><span class="line">    vectorContext.drawFeature(feature, styles.geoMarker);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 继续渲染动画</span></span><br><span class="line">  map.render();</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="全部代码"><a href="#全部代码" class="headerlink" title="全部代码"></a>全部代码</h2><p>全部代码如下所示：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span></span></span><br><span class="line"><span class="tag">      <span class="attr">rel</span>=<span class="string">"stylesheet"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">href</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">type</span>=<span class="string">"text/css"</span></span></span><br><span class="line"><span class="tag">    /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Marker Animation(标记动画)<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body,</span><br><span class="line"><span class="css">      <span class="selector-class">.map</span> &#123;</span></span><br><span class="line">        height: 100%;</span><br><span class="line">        width: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">class</span>=<span class="string">"map"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">label</span> <span class="attr">for</span>=<span class="string">"speed"</span>&gt;</span></span><br><span class="line">      速度:<span class="symbol">&amp;nbsp;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"speed"</span> <span class="attr">type</span>=<span class="string">"range"</span> <span class="attr">min</span>=<span class="string">"10"</span> <span class="attr">max</span>=<span class="string">"999"</span> <span class="attr">step</span>=<span class="string">"10"</span> <span class="attr">value</span>=<span class="string">"60"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">button</span> <span class="attr">id</span>=<span class="string">"start-animation"</span>&gt;</span>开始动画<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 通常使用AJAX方式加载数据，但由于jsFiddle的限制，所以这里使用长字符串来替代</span></span></span><br><span class="line"><span class="actionscript">      <span class="keyword">const</span> polyline = [</span></span><br><span class="line"><span class="actionscript">        <span class="string">"hldhx@lnau`BCG_EaC??cFjAwDjF??uBlKMd@&#125;@z@??aC^yk@z_@se@b[wFdE??wFfE&#125;N"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"fIoGxB_I\\gG&#125;@eHoCyTmPqGaBaHOoD\\??yVrGotA|N??o[N_STiwAtEmHGeHcAkiA&#125;^"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"aMyBiHOkFNoI`CcVvM??gG^gF_@iJwC??eCcA]OoL&#125;DwFyCaCgCcCwDcGwHsSoX??wI_E"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"kUFmq@hBiOqBgTwS??iYse@gYq\\cp@ce@&#123;vA&#125;s@csJqaE&#125;&#123;@iRaqE&#123;lBeRoIwd@_T&#123;]_"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"Ngn@&#123;PmhEwaA&#123;SeF_u@kQuyAw]wQeEgtAsZ&#125;LiCarAkVwI&#125;D??_&#125;RcjEinPspDwSqCgs@"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"sPua@_OkXaMeT_Nwk@ob@gV&#125;TiYs[uTwXoNmT&#123;Uyb@wNg]&#123;Nqa@oDgNeJu_@_G&#125;YsFw]k"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"DuZyDmm@i_@uyIJe~@jCg|@nGiv@zUi_BfNqaAvIow@dEed@dCcf@r@qz@Egs@&#123;Acu@mC"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"um@yIey@gGig@cK_m@aSku@qRil@we@&#123;mAeTej@&#125;Tkz@cLgr@aHko@qOmcEaJw~C&#123;w@ka"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"i@qBchBq@kmBS&#123;kDnBscBnFu_Dbc@_~QHeU`IuyDrC_&#125;@bByp@fCyoA?qMbD&#125;&#123;AIkeAgB"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"k_A_A&#123;UsDke@gFej@qH&#123;o@qGgb@qH&#123;`@mMgm@uQus@kL&#123;_@yOmd@ymBgwE&#125;x@ouBwtA__"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"DuhEgaKuWct@gp@cnBii@mlBa_@&#125;|Asj@qrCg^eaC&#125;L&#123;dAaJ_aAiOyjByH&#123;nAuYu`GsAw"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"Xyn@ywMyOyqD&#123;_@cfIcDe&#125;@y@aeBJmwA`CkiAbFkhBlTgdDdPyiB`W&#125;xDnSa&#125;DbJyhCrX"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"itAhT&#125;x@bE&#125;Z_@qW_Kwv@qKaaAiBgXvIm&#125;A~JovAxCqW~WanB`XewBbK&#123;_A`K&#125;fBvAmi@"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"xBycBeCauBoF&#125;&#125;@qJioAww@gjHaPopA_NurAyJku@uGmi@cDs[eRaiBkQstAsQkcByNma"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"CsK_uBcJgbEw@gkB_@ypEqDoqSm@eZcDwjBoGw`BoMegBaU_`Ce_@_uBqb@ytBwkFqiT_"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"fAqfEwe@mfCka@_eC_UmlB&#125;MmaBeWkkDeHwqAoX&#125;~DcBsZmLcxBqOwqE_DkyAuJmrJ\\o"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"~CfIewG|YibQxBssB?es@qGciA&#125;RorAoVajA_nAodD&#123;[y`AgPqp@mKwr@ms@umEaW&#123;dAm"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"b@umAw|@ojBwzDaaJsmBwbEgdCsrFqhAihDquAi`Fux@&#125;_Dui@_eB_u@guCuyAuiHukA_"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"lKszAu|OmaA&#123;wKm&#125;@clHs_A_rEahCssKo\\sgBsSglAqk@yvDcS_wAyTwpBmPc|BwZknF"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"oFscB_GsaDiZmyMyLgtHgQonHqT&#123;hKaPg&#125;Dqq@m~Hym@c`EuiBudIabB&#123;hF&#123;pWifx@snA"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"w`GkFyVqf@y~BkoAi&#125;Lel@wtc@&#125;`@oaXi_C&#125;pZsi@eqGsSuqJ|Lqeb@e]kgPcaAu&#125;SkDw"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"zGhn@gjYh\\qlNZovJieBqja@ed@siO&#123;[ol\\kCmjMe\\isHorCmec@uLebB&#125;EqiBaCg&#125;"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"@m@qwHrT_vFps@kkI`uAszIrpHuzYxx@e&#123;Crw@kpDhN&#123;wBtQarDy@knFgP_yCu\\wyCwy"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"A&#123;kHo~@omEoYmoDaEcPiuAosDagD&#125;rO&#123;&#123;AsyEihCayFilLaiUqm@_bAumFo&#125;DgqA_uByi"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"@swC~AkzDlhA&#125;xEvcBa&#125;Cxk@ql@`rAo|@~bBq&#123;@``Bye@djDww@z_C_cAtn@ye@nfC_eC"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"|gGahH~s@w&#125;@``Fi~FpnAooC|u@wlEaEedRlYkrPvKerBfYs&#125;Arg@m&#125;AtrCkzElw@gjBb"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"h@woBhR&#123;gCwGkgCc[wtCuOapAcFoh@uBy[yBgr@c@iq@o@wvEv@sp@`FajBfCaq@fIipA"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"dy@ewJlUc`ExGuaBdEmbBpBssArAuqBBg&#125;@s@g&#123;AkB&#123;bBif@_bYmC&#125;r@kDgm@sPq_BuJ_"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"s@&#123;X_&#123;AsK_d@eM&#123;d@wVgx@oWcu@??aDmOkNia@wFoSmDyMyCkPiBePwAob@XcQ|@oNdCo"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"SfFwXhEmOnLi\\lbAulB`X_d@|k@au@bc@oc@bqC&#125;&#123;BhwDgcD`l@ed@??bL&#123;G|a@eTje@"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"oS~]cLr~Bgh@|b@&#125;Jv&#125;EieAlv@sPluD&#123;z@nzA_]`|KchCtd@sPvb@wSb&#123;@ko@f`RooQ~e"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"[upZbuIolI|gFafFzu@iq@nMmJ|OeJn^&#123;Qjh@yQhc@uJ~j@iGdd@kAp~BkBxO&#123;@|QsAfY"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"gEtYiGd]&#125;Jpd@wRhVoNzNeK`j@ce@vgK&#125;cJnSoSzQkVvUm^rSgc@`Uql@xIq\\vIgg@~k"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"Dyq[nIir@jNoq@xNwc@fYik@tk@su@neB&#125;uBhqEesFjoGeyHtCoD|D&#125;Ed|@ctAbIuOzqB"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"_&#125;D~NgY`\\um@v[gm@v&#123;Cw`G`w@o&#123;AdjAwzBh&#123;C&#125;`Gpp@ypAxn@&#125;mAfz@&#123;bBbNia@??jI"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"ab@`CuOlC&#125;YnAcV`@_^m@aeB&#125;@yk@YuTuBg^uCkZiGk\\yGeY&#125;Lu_@oOsZiTe[uWi[sl@"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"mo@soAauAsrBgzBqgAglAyd@ig@asAcyAklA&#125;qAwHkGi&#123;@s~@goAmsAyDeEirB_&#123;B&#125;IsJ"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"uEeFymAssAkdAmhAyTcVkFeEoKiH&#125;l@kp@wg@sj@ku@ey@uh@kj@&#125;EsFmG&#125;Jk^_r@_f@m"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"~@ym@yjA??a@cFd@kBrCgDbAUnAcBhAyAdk@et@??kF&#125;D??OL"</span></span></span><br><span class="line"><span class="actionscript">      ].join(<span class="string">""</span>);</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// https://openlayers.org/en/latest/apidoc/module-ol_format_Polyline-Polyline.html</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> route = <span class="keyword">new</span> ol.format.Polyline(&#123;</span></span><br><span class="line">        factor: 1e6</span><br><span class="line"><span class="actionscript">        <span class="comment">// 返回一个geometry</span></span></span><br><span class="line">      &#125;).readGeometry(polyline, &#123;</span><br><span class="line"><span class="actionscript">        <span class="comment">// 数据源的投影格式和生成要素的投影格式</span></span></span><br><span class="line"><span class="actionscript">        dataProjection: <span class="string">"EPSG:4326"</span>,</span></span><br><span class="line"><span class="actionscript">        featureProjection: <span class="string">"EPSG:3857"</span></span></span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 获取路线的坐标</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> routeCoords = route.getCoordinates();</span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> routeLength = routeCoords.length;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 每个要素分别设置一个type,用于设置样式</span></span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 路线的要素</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> routeFeature = <span class="keyword">new</span> ol.Feature(&#123;</span></span><br><span class="line"><span class="actionscript">        type: <span class="string">"route"</span>,</span></span><br><span class="line">        geometry: route</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 运动点的要素</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> geoMarker = <span class="keyword">new</span> ol.Feature(&#123;</span></span><br><span class="line"><span class="actionscript">        type: <span class="string">"geoMarker"</span>,</span></span><br><span class="line"><span class="actionscript">        geometry: <span class="keyword">new</span> ol.geom.Point(routeCoords[<span class="number">0</span>])</span></span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 开始点标志的要素</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> startMarker = <span class="keyword">new</span> ol.Feature(&#123;</span></span><br><span class="line"><span class="actionscript">        type: <span class="string">"icon"</span>,</span></span><br><span class="line"><span class="actionscript">        geometry: <span class="keyword">new</span> ol.geom.Point(routeCoords[<span class="number">0</span>])</span></span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 结束点标志的要素</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> endMarker = <span class="keyword">new</span> ol.Feature(&#123;</span></span><br><span class="line"><span class="actionscript">        type: <span class="string">"icon"</span>,</span></span><br><span class="line"><span class="actionscript">        geometry: <span class="keyword">new</span> ol.geom.Point(routeCoords[routeLength - <span class="number">1</span>])</span></span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 对应各type的样式</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> styles = &#123;</span></span><br><span class="line"><span class="actionscript">        route: <span class="keyword">new</span> ol.style.Style(&#123;</span></span><br><span class="line"><span class="actionscript">          stroke: <span class="keyword">new</span> ol.style.Stroke(&#123;</span></span><br><span class="line">            width: 6,</span><br><span class="line">            color: [237, 212, 0, 0.8]</span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;),</span><br><span class="line"><span class="actionscript">        icon: <span class="keyword">new</span> ol.style.Style(&#123;</span></span><br><span class="line"><span class="actionscript">          image: <span class="keyword">new</span> ol.style.Icon(&#123;</span></span><br><span class="line">            anchor: [0.5, 1],</span><br><span class="line"><span class="actionscript">            src: <span class="string">"../data/icon.png"</span></span></span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;),</span><br><span class="line"><span class="actionscript">        geoMarker: <span class="keyword">new</span> ol.style.Style(&#123;</span></span><br><span class="line"><span class="actionscript">          image: <span class="keyword">new</span> ol.style.Circle(&#123;</span></span><br><span class="line">            radius: 7,</span><br><span class="line"><span class="actionscript">            fill: <span class="keyword">new</span> ol.style.Fill(&#123; color: <span class="string">"black"</span> &#125;),</span></span><br><span class="line"><span class="actionscript">            stroke: <span class="keyword">new</span> ol.style.Stroke(&#123;</span></span><br><span class="line"><span class="actionscript">              color: <span class="string">"white"</span>,</span></span><br><span class="line">              width: 2</span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;;</span><br><span class="line"><span class="actionscript">      <span class="comment">// 是否出于运动状态的标志</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> animating = <span class="literal">false</span>;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 移动速度,当前时间戳</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> speed, now;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 速度输入框和开始按钮</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> speedInput = <span class="built_in">document</span>.getElementById(<span class="string">"speed"</span>);</span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> startButton = <span class="built_in">document</span>.getElementById(<span class="string">"start-animation"</span>);</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 添加这些要素的图层</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> vectorLayer = <span class="keyword">new</span> ol.layer.Vector(&#123;</span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.Vector(&#123;</span></span><br><span class="line">          features: [routeFeature, geoMarker, startMarker, endMarker]</span><br><span class="line">        &#125;),</span><br><span class="line"><span class="javascript">        style: <span class="function"><span class="params">feature</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 当正在运动时隐藏初始位置标志点</span></span></span><br><span class="line"><span class="actionscript">          <span class="keyword">if</span> (animating &amp;&amp; feature.get(<span class="string">"type"</span>) === <span class="string">"geoMarker"</span>) &#123;</span></span><br><span class="line"><span class="actionscript">            <span class="keyword">return</span> <span class="literal">null</span>;</span></span><br><span class="line">          &#125;</span><br><span class="line"><span class="actionscript">          <span class="comment">// 根据类型返回样式</span></span></span><br><span class="line"><span class="actionscript">          <span class="keyword">return</span> styles[feature.get(<span class="string">"type"</span>)];</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 基本地图设置</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> center = [<span class="number">-5639523.95</span>, <span class="number">-3501274.52</span>];</span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line"><span class="javascript">        target: <span class="built_in">document</span>.getElementById(<span class="string">"map"</span>),</span></span><br><span class="line"><span class="actionscript">        view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line">          center: center,</span><br><span class="line">          zoom: 10,</span><br><span class="line">          minZoom: 2,</span><br><span class="line">          maxZoom: 19</span><br><span class="line">        &#125;),</span><br><span class="line">        layers: [</span><br><span class="line"><span class="actionscript">          <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">            source: <span class="keyword">new</span> ol.source.BingMaps(&#123;</span></span><br><span class="line"><span class="actionscript">              imagerySet: <span class="string">"AerialWithLabelsOnDemand"</span>,</span></span><br><span class="line"><span class="actionscript">              key: <span class="string">"Your Bing Maps Key from http://www.bingmapsportal.com/ here"</span></span></span><br><span class="line">            &#125;)</span><br><span class="line">          &#125;),</span><br><span class="line">          vectorLayer</span><br><span class="line">        ]</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 移动要素的回调函数</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> moveFeature = <span class="function"><span class="params">event</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> vectorContext = ol.render.getVectorContext(event);</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> frameState = event.frameState;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 当animating为true的时候才执行</span></span></span><br><span class="line">        if (animating) &#123;</span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> elapsedTime = frameState.time - now;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 这里提升速度的技巧时在lineString的坐标上跳过几个索引</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> index = <span class="built_in">Math</span>.round((speed * elapsedTime) / <span class="number">1000</span>);</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 当索引大过总数的时候就结束</span></span></span><br><span class="line">          if (index &gt;= routeLength) &#123;</span><br><span class="line"><span class="actionscript">            stopAnimation(<span class="literal">true</span>);</span></span><br><span class="line"><span class="actionscript">            <span class="keyword">return</span>;</span></span><br><span class="line">          &#125;</span><br><span class="line"><span class="actionscript">          <span class="comment">// 把最近的一个点拿出来做成要素，形成动画效果</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> currentPoint = <span class="keyword">new</span> ol.geom.Point(routeCoords[index]);</span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> feature = <span class="keyword">new</span> ol.Feature(currentPoint);</span></span><br><span class="line">          vectorContext.drawFeature(feature, styles.geoMarker);</span><br><span class="line">        &#125;</span><br><span class="line"><span class="actionscript">        <span class="comment">// 继续渲染动画</span></span></span><br><span class="line">        map.render();</span><br><span class="line">      &#125;;</span><br><span class="line">      /**</span><br><span class="line">       * @description: 按钮点击的回调函数</span><br><span class="line"><span class="actionscript">       * @param &#123;type&#125; <span class="literal">null</span></span></span><br><span class="line"><span class="actionscript">       * @<span class="keyword">return</span>: <span class="literal">null</span></span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> startAnimation = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span></span><br><span class="line">        if (animating) &#123;</span><br><span class="line"><span class="actionscript">          <span class="comment">// 如果animating为true就执行停止动画的函数</span></span></span><br><span class="line"><span class="actionscript">          stopAnimation(<span class="literal">false</span>);</span></span><br><span class="line"><span class="actionscript">        &#125; <span class="keyword">else</span> &#123;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 把animating改为true，设置时间戳，取到初始速度，把按钮文字设为取消动画</span></span></span><br><span class="line"><span class="actionscript">          animating = <span class="literal">true</span>;</span></span><br><span class="line"><span class="javascript">          now = <span class="keyword">new</span> <span class="built_in">Date</span>().getTime();</span></span><br><span class="line">          speed = speedInput.value;</span><br><span class="line"><span class="actionscript">          startButton.textContent = <span class="string">"取消动画"</span>;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 隐藏标记</span></span></span><br><span class="line"><span class="actionscript">          geoMarker.setStyle(<span class="literal">null</span>);</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 防止平移了地图，重新设置地图中心</span></span></span><br><span class="line">          map.getView().setCenter(center);</span><br><span class="line"><span class="actionscript">          <span class="comment">// 添加postrender回调</span></span></span><br><span class="line"><span class="actionscript">          vectorLayer.on(<span class="string">"postrender"</span>, moveFeature);</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 渲染地图</span></span></span><br><span class="line">          map.render();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line">      /**</span><br><span class="line">       * @description: 停止动画</span><br><span class="line"><span class="javascript">       * @param &#123;<span class="built_in">Boolean</span>&#125; ended 为<span class="literal">true</span>的时候也就是正常结束，所以标记在最后；为<span class="literal">false</span>的时候是主动取消，所以标记在最前。</span></span><br><span class="line"><span class="actionscript">       * @<span class="keyword">return</span>: <span class="literal">null</span></span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> stopAnimation = <span class="function"><span class="params">ended</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 把aniamting设为false，把按钮文字改为开始动画</span></span></span><br><span class="line"><span class="actionscript">        animating = <span class="literal">false</span>;</span></span><br><span class="line"><span class="actionscript">        startButton.textContent = <span class="string">"开始动画"</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="actionscript">        <span class="comment">// 如果点击取消动画，在开始的地方设置标记</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 如果ended为true，就把点放到最后一个；如果ended为false，就把点放第一个。</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> coord = ended ? routeCoords[routeLength - <span class="number">1</span>] : routeCoords[<span class="number">0</span>];</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 给geoMaker设为coords</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> geometry = geoMarker.getGeometry();</span></span><br><span class="line">        geometry.setCoordinates(coord);</span><br><span class="line"><span class="actionscript">        <span class="comment">// 解绑postrender事件监听</span></span></span><br><span class="line"><span class="actionscript">        vectorLayer.un(<span class="string">"postrender"</span>, moveFeature);</span></span><br><span class="line">      &#125;;</span><br><span class="line"><span class="actionscript">      <span class="comment">// 给按钮绑定点击事件</span></span></span><br><span class="line"><span class="actionscript">      startButton.addEventListener(<span class="string">"click"</span>, startAnimation, <span class="literal">false</span>);</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenLayers/" rel="tag"># OpenLayers</a>
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/%E5%9C%B0%E5%9B%BE/" rel="tag"># 地图</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/345abd9.html" rel="prev" title="OpenLayers6实例分析：Layer Spy（图层探查）">
+      <i class="fa fa-chevron-left"></i> OpenLayers6实例分析：Layer Spy（图层探查）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/560a199f.html" rel="next" title="OpenLayers6实例分析：Magnify（放大镜）">
+      OpenLayers6实例分析：Magnify（放大镜） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#定义基本结构"><span class="nav-number">1.</span> <span class="nav-text">定义基本结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置-vectorLayer"><span class="nav-number">2.</span> <span class="nav-text">设置 vectorLayer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#加载数据并生成要素"><span class="nav-number">2.1.</span> <span class="nav-text">加载数据并生成要素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#生成样式和图层"><span class="nav-number">2.2.</span> <span class="nav-text">生成样式和图层</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#按钮点击的回调函数"><span class="nav-number">3.</span> <span class="nav-text">按钮点击的回调函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#startAnimation"><span class="nav-number">3.1.</span> <span class="nav-text">startAnimation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stopAnimation"><span class="nav-number">3.2.</span> <span class="nav-text">stopAnimation</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#移动要素的回调函数"><span class="nav-number">4.</span> <span class="nav-text">移动要素的回调函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全部代码"><span class="nav-number">5.</span> <span class="nav-text">全部代码</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '08b5e9b2eb063664defaa95ab3eeb669',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

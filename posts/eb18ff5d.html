@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="去年下半年，红宝书新发布了第四版，删减了一些老旧内容，并一直更新到了 ES2019，传说第三版译者李松峰老师正在翻译中，今年下半年可以出中文版。现在迫不及待地提前学习就只能看英文原版，边学边把部分新增章节翻译下。 下述内容来自 Professional JavaScript for Web Developes,4th Edition（JavaScript 高级程序设计第四版），29 页，VARIA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JS高程第4版新增章节翻译：变量">
+<meta property="og:url" content="https://linjingyi.cn/posts/eb18ff5d.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="去年下半年，红宝书新发布了第四版，删减了一些老旧内容，并一直更新到了 ES2019，传说第三版译者李松峰老师正在翻译中，今年下半年可以出中文版。现在迫不及待地提前学习就只能看英文原版，边学边把部分新增章节翻译下。 下述内容来自 Professional JavaScript for Web Developes,4th Edition（JavaScript 高级程序设计第四版），29 页，VARIA">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-31T23:16:38.000Z">
+<meta property="article:modified_time" content="2020-03-31T23:16:38.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="JS">
+<meta property="article:tag" content="JS高程">
+<meta property="article:tag" content="红宝书">
+<meta property="article:tag" content="JavaScript高级程序设计">
+<meta property="article:tag" content="第4版">
+<meta property="article:tag" content="变量">
+<meta property="article:tag" content="翻译">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/eb18ff5d.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>JS高程第4版新增章节翻译：变量 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/eb18ff5d.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          JS高程第4版新增章节翻译：变量
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-04-01 07:16:38" itemprop="dateCreated datePublished" datetime="2020-04-01T07:16:38+08:00">2020-04-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/" itemprop="url" rel="index">
+                    <span itemprop="name">JS</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E7%BF%BB%E8%AF%91/" itemprop="url" rel="index">
+                    <span itemprop="name">翻译</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>去年下半年，红宝书新发布了第四版，删减了一些老旧内容，并一直更新到了 ES2019，传说第三版译者李松峰老师正在翻译中，今年下半年可以出中文版。现在迫不及待地提前学习就只能看英文原版，边学边把部分新增章节翻译下。</p>
+<p>下述内容来自 Professional JavaScript for Web Developes,4th Edition（<a href="https://www.ituring.com.cn/book/2472" target="_blank" rel="external nofollow noopener noreferrer">JavaScript 高级程序设计第四版</a>），29 页，VARIABLES（变量）章节。</p>
+<a id="more"></a>
+
+<h2 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h2><p>ECMAScript 变量是松散类型的，所谓松散类型就是可以用来保存任何类型的数据。换句话说，每个变量仅仅是一个用于保存值的占位符而已。声明一个变量时可以使用三种关键词：var（所有 ECMAScript 版本可用）、const 和 let（ECMASCript6 引入）。</p>
+<h3 id="var-关键词"><a href="#var-关键词" class="headerlink" title="var 关键词"></a>var 关键词</h3><p>使用 var 操作符（注意 var 是一个关键字），后跟一个变量名（即一个标识符），如下所示：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> message;</span><br></pre></td></tr></table></figure>
+
+<p>这行代码定义了一个名为 message 的变量，该变量可以用来保存任何值（像这样未经过初始化的变量，会保存一个特殊的值——undefined，相关内容在之后章节讨论）。ECMAScript 支持直接初始化变量，因此在定义变量的同时就可以设置变量的值，如下所示：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> message = <span class="string">'hi'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在此，变量 message 中保存了一个字符串值“hi”，像这样初始化变量并不会把它标记为字符串类型，初始化的过程就是给变量赋一个值那么简单。因此，可以在修改变量值的同时修改值的类型，如下所示：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> message = <span class="string">'hi'</span>;</span><br><span class="line">message = <span class="number">100</span>; <span class="comment">// 有效，但不推荐</span></span><br></pre></td></tr></table></figure>
+
+<p>在这个例子中，变量 message 一开始保存了一个字符串值“hi”，然后该值又被一个数字值 100 取代。虽然我们不建议修改变量所保存值的类型，但这种操作在 ECMAScript 中完全有效。</p>
+<h4 id="声明作用域"><a href="#声明作用域" class="headerlink" title="声明作用域"></a>声明作用域</h4><p>有一点必须注意，即用 var 操作符定义的变量将成为定义该变量的函数作用域中的局部变量。也就是说，如果在函数中使用 var 定义一个变量，那么这个变量在函数退出后就会被销毁，，例如：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">test</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> message = <span class="string">'hi'</span>; <span class="comment">// 局部变量</span></span><br><span class="line">&#125;</span><br><span class="line">test();</span><br><span class="line"><span class="built_in">console</span>.log(message); <span class="comment">// 错误！</span></span><br></pre></td></tr></table></figure>
+
+<p>这里，变量 message 是在函数中使用 var 定义的。当函数被调用时，就会创建该变量并为其赋值。在此之后，这个变量又会立即被销毁，因此例子中的下一行代码就会导致错误。不过，可以像下面这样省略 var 操作符，从而创建一个全局变量：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">test</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  message = <span class="string">'hi'</span>; <span class="comment">// 全局变量</span></span><br><span class="line">&#125;</span><br><span class="line">test();</span><br><span class="line"><span class="built_in">console</span>.log(message); <span class="comment">// "hi"</span></span><br></pre></td></tr></table></figure>
+
+<p>这个例子省略了 var 操作符，因而 message 就成了全局变量。这样，只要调用过一次 test()函数，这个变量就有了定义，就可以在函数外部的任何地方被访问到。</p>
+<blockquote>
+<p>注意：虽然省略 var 操作符可以定义全局变量，但这也不是我们推荐的做法。因为在局部作用域中定义的全局变量很难维护，而且如果有意地忽略了 var 操作符，也会由于相应变量不会马上就有定义而导致不必要的混乱。给未经声明的变量赋值在严格模式下会导致抛出 ReferenceError 错误。</p>
+</blockquote>
+<p>可以使用一条语句定义多个变量，只要像下面这样把每个变量（初始化或不初始化均可）用逗号分隔开即可：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> message = <span class="string">'hi'</span>,</span><br><span class="line">  found = <span class="literal">false</span>,</span><br><span class="line">  age = <span class="number">29</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这个例子定义并初始化了 3 个变量。同样由于 ECMAScript 是松散类型的，因而使用不同类型初始化变量的操作可以放在一条语句中来完成。虽然代码里的换行和变量缩进不是必需的，但这样做可以提升可读性。</p>
+<p>在严格模式下，不能定义名为 eval 或 arguments 的变量，否则会导致语法错误。</p>
+<h4 id="var-声明提升"><a href="#var-声明提升" class="headerlink" title="var 声明提升"></a>var 声明提升</h4><p>当使用 var 时，由于变量声明会被提升到函数作用域的顶部，所以下述代码是可行的：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(age);</span><br><span class="line">  <span class="keyword">var</span> age = <span class="number">26</span>;</span><br><span class="line">&#125;</span><br><span class="line">test(); <span class="comment">// undefined</span></span><br></pre></td></tr></table></figure>
+
+<p>由于 ECMAScript 运行时会按照下述的逻辑来执行，所以不会报错：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> age;</span><br><span class="line">  <span class="built_in">console</span>.log(age);</span><br><span class="line">  age = <span class="number">26</span>;</span><br><span class="line">&#125;</span><br><span class="line">test(); <span class="comment">// undefined</span></span><br></pre></td></tr></table></figure>
+
+<p>解释器会把所有的变量声明拉到所在定义域的顶部，这就叫声明提升。这也允许你使用多个 var 来声明同一个变量而不会报错。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> age = <span class="number">16</span>;</span><br><span class="line">  <span class="keyword">var</span> age = <span class="number">26</span>;</span><br><span class="line">  <span class="keyword">var</span> age = <span class="number">36</span>;</span><br><span class="line">  <span class="built_in">console</span>.log(age);</span><br><span class="line">&#125;</span><br><span class="line">foo(); <span class="comment">// 36</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="let-声明"><a href="#let-声明" class="headerlink" title="let 声明"></a>let 声明</h3><p>let 操作符的使用与 var 类似，但也有一些重要的不同。最需要注意的就是在声明时 let 是块级作用域，而 var 是函数作用域。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> name = <span class="string">'Matt'</span>;</span><br><span class="line">  <span class="built_in">console</span>.log(name); <span class="comment">// Matt</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(name); <span class="comment">// Matt</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> age = <span class="number">26</span>;</span><br><span class="line">  <span class="built_in">console</span>.log(age); <span class="comment">// 26</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(age); <span class="comment">// ReferenceError: age is not defined</span></span><br></pre></td></tr></table></figure>
+
+<p>在这里，因为 let 声明变量的作用域不会延伸到块的外部，所以使用 let 声明的变量不能在 if 代码块外引用。块级作用域是函数作用域的严格子集，所以 var 声明时的任何限制同样也适用于 let 声明。</p>
+<p>在块级作用域内，不允许出现对同一个变量的多次 let 声明，否则会导致如下错误。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> name;</span><br><span class="line"><span class="keyword">var</span> name;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> age;</span><br><span class="line"><span class="keyword">let</span> age; <span class="comment">// SyntaxError; identifier 'age' has already been declared</span></span><br></pre></td></tr></table></figure>
+
+<p>当然，JavaScript 引擎将会持续追踪变量声明时所使用的标识符和所在的块级作用域，所以在嵌套内使用相同的标识符时，不会当成重复声明而报错。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> name = <span class="string">'Nicholas'</span>;</span><br><span class="line"><span class="built_in">console</span>.log(name); <span class="comment">// 'Nicholas'</span></span><br><span class="line"><span class="keyword">if</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> name = <span class="string">'Matt'</span>;</span><br><span class="line">  <span class="built_in">console</span>.log(name); <span class="comment">// 'Matt'</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> age = <span class="number">30</span>;</span><br><span class="line"><span class="built_in">console</span>.log(age); <span class="comment">// 30</span></span><br><span class="line"><span class="keyword">if</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> age = <span class="number">26</span>;</span><br><span class="line">  <span class="built_in">console</span>.log(age); <span class="comment">// 26</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重复声明的错误不是一个有序函数，不会被 if 和 var 混用影响。不同的关键词不会声明出不同的变量类型——只会影响到与变量相关的作用域。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> name;</span><br><span class="line"><span class="keyword">let</span> name; <span class="comment">// SyntaxError</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> age;</span><br><span class="line"><span class="keyword">var</span> age; <span class="comment">// SyntaxError</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="暂时性死区"><a href="#暂时性死区" class="headerlink" title="暂时性死区"></a>暂时性死区</h4><p>let 和 var 的另外一个重要的不同点就是 let 不会声明提升：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// name被提升</span></span><br><span class="line"><span class="built_in">console</span>.log(name); <span class="comment">// undefined</span></span><br><span class="line"><span class="keyword">var</span> name = <span class="string">'Matt'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// age没有被提升</span></span><br><span class="line"><span class="built_in">console</span>.log(age); <span class="comment">// ReferenceError: age is not defined</span></span><br><span class="line"><span class="keyword">let</span> age = <span class="number">26</span>;</span><br></pre></td></tr></table></figure>
+
+<p>当解析代码时，JavaScript 引擎仍然能提前识别出代码块中后出现的 let 声明，但是无论如何都不能在真正使用 let 声明前使用变量。在声明前执行的片段被称作为“暂时性死区（TDZ）”，任何试图去引用变量的操作都会抛出 ReferenceError 错误。</p>
+<h4 id="全局声明"><a href="#全局声明" class="headerlink" title="全局声明"></a>全局声明</h4><p>与 var 关键词不同，当在全局环境中使用 let 时，变量不会附加到 window 对象中。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> name = <span class="string">'Matt'</span>;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">window</span>.name); <span class="comment">// 'Matt'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> age = <span class="number">26</span>;</span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">window</span>.age); <span class="comment">// undefined</span></span><br></pre></td></tr></table></figure>
+
+<p>无论如何，在页面的生命周期内，使用 let 在全局块级作用域中声明的变量一直存在。因此为了避免抛出 SyntaxError 的错误，必须确定你的页面不会再试图声明该变量。</p>
+<h4 id="条件声明"><a href="#条件声明" class="headerlink" title="条件声明"></a>条件声明</h4><p>当使用 var 声明变量时，由于声明提升，JavaScript 引擎会将多余的多个声明组合成一个声明并放在函数作用域顶部。但由于 let 声明在块级作用域内，所以检查之前变量是否被声明过并条件性的声明变量是不可行的。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="actionscript">  <span class="keyword">var</span> name = <span class="string">'Nicholas'</span>;</span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> age = <span class="number">26</span>;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="actionscript">  <span class="comment">// 由于不能确定页面内之前声明了什么变量，所以假定变量还未声明</span></span></span><br><span class="line"><span class="actionscript">  <span class="keyword">var</span> name = <span class="string">'Matt'</span>;</span></span><br><span class="line"><span class="actionscript">  <span class="comment">// 不会出现问题，因为会把多个声明组合成一个声明。</span></span></span><br><span class="line"><span class="actionscript">  <span class="comment">// 不需要检查之前name是否声明过</span></span></span><br><span class="line"></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> age = <span class="number">36</span>;</span></span><br><span class="line"><span class="actionscript">  <span class="comment">// 由于“age”之前已经声明过，所以会抛出一个错误</span></span></span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>由于 let 声明会被包裹在条件块代码中，所以使用 try/catch 语句或者 typeof 操作符也解决不了问题。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> name = <span class="string">'Nicholas'</span>;</span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> age = <span class="number">36</span>;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="actionscript">   <span class="comment">// 由于不能确定页面内之前声明了什么变量，所以假定变量还未声明</span></span></span><br><span class="line"></span><br><span class="line"><span class="actionscript">  <span class="keyword">if</span> (<span class="keyword">typeof</span> name !== <span class="string">'undefined'</span>) &#123;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">let</span> name;</span></span><br><span class="line">  &#125;</span><br><span class="line"><span class="actionscript">  <span class="comment">// 由于“name”被限制在了if&#123;&#125;块级作用域中，所以下述变量分配会表现为全局变量</span></span></span><br><span class="line"><span class="actionscript">  name = <span class="string">'Matt'</span>;</span></span><br><span class="line"></span><br><span class="line"><span class="actionscript">  <span class="keyword">try</span> (age) &#123;</span></span><br><span class="line"><span class="actionscript">   <span class="comment">// 如果age没有被声明，将会抛出错误</span></span></span><br><span class="line">  &#125;</span><br><span class="line"><span class="actionscript">  <span class="keyword">catch</span>(error) &#123;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">let</span> age;</span></span><br><span class="line">  &#125;</span><br><span class="line"><span class="actionscript">  <span class="comment">// 由于“age”被限制在了catch&#123;&#125;块级作用域中，所以下述变量分配会表现为全局变量</span></span></span><br><span class="line">  age = 26;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>由于上述原因，在使用 ES6 声明关键词时不能依赖于条件声明。</p>
+<blockquote>
+<p>注意：不能使用 let 进行条件声明是有积极作用的，在代码中使用条件声明不是一个好习惯。条件声明会使代码流更难理解，如果你发现自己经常使用条件声明，ES6 是非常好的改变机会，你会有更好的方式去实现代码。</p>
+</blockquote>
+<h4 id="循环中的-let-声明"><a href="#循环中的-let-声明" class="headerlink" title="循环中的 let 声明"></a>循环中的 let 声明</h4><p>在 let 语法出现之前，for 循环中的迭代变量会溢出到循环体外部：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i) &#123;</span><br><span class="line">  <span class="comment">// 循环体</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(i); <span class="comment">// 5</span></span><br></pre></td></tr></table></figure>
+
+<p>切换到 let 声明后，迭代变量只会作用到 for 循环体的作用域内部：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i) &#123;</span><br><span class="line">  <span class="comment">// 循环体</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(i); <span class="comment">// ReferenceError: i is not defined</span></span><br></pre></td></tr></table></figure>
+
+<p>使用 var 声明时，经常会遇到迭代变量单一声明和修改的问题：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i) &#123;</span><br><span class="line">  setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> <span class="built_in">console</span>.log(i), <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 期望输出的结果 0, 1, 2, 3, 4</span></span><br><span class="line"><span class="comment">// 真正输出的结果 5, 5, 5, 5, 5</span></span><br></pre></td></tr></table></figure>
+
+<p>发生的原因是循环结束的时候，迭代变量仍然被设为导致循环结束的值：5。当 timeout 稍后执行时，所有的 timeout 会引用相同的值，因此打印出来全是最终值。</p>
+<p>当使用 let 声明迭代变量时，Javascript 引擎会真正的给每个循环体声明一个迭代变量。每一个 setTimeOut 会引用一个单独的实例，因此将会打印出期望输出的结果：当循环执行时使用当前循环的迭代变量。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i) &#123;</span><br><span class="line">  setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> <span class="built_in">console</span>.log(i), <span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 打印出 0, 1, 2, 3, 4</span></span><br></pre></td></tr></table></figure>
+
+<p>这个每次迭代单独声明的行为对所有风格的 for 循环都适用，包括 for-in 和 for-of 循环。</p>
+<h3 id="const-声明"><a href="#const-声明" class="headerlink" title="const 声明"></a>const 声明</h3><p>const 的表现与 let 大部分是相同的，除了非常重要的一点区别——const 声明的变量在声明之后不能重新赋值，否则会导致运行时错误。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> age = <span class="number">26</span>;</span><br><span class="line">age = <span class="number">36</span>; <span class="comment">// TypeError: assignment to a constant</span></span><br><span class="line"><span class="comment">// const也不允许多次声明</span></span><br><span class="line"><span class="keyword">const</span> name = <span class="string">'Matt'</span>;</span><br><span class="line"><span class="keyword">const</span> name = <span class="string">'Nicholas'</span>; <span class="comment">// SyntaxError</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// const 仍然是块级作用域</span></span><br><span class="line"><span class="keyword">const</span> name = <span class="string">'Matt'</span>;</span><br><span class="line"><span class="keyword">if</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> name = <span class="string">'Nicholas'</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.log(name); <span class="comment">// Matt</span></span><br></pre></td></tr></table></figure>
+
+<p>const 声明只会强制指向的变量的引用。如果一个 const 变量引用了一个对象，那么修改对象内部的属性不会违反 const 的限制。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> person = &#123;&#125;;</span><br><span class="line">person.name = <span class="string">'Matt'</span>; <span class="comment">// 可行</span></span><br></pre></td></tr></table></figure>
+
+<p>在 for 循环中，尽管 JavaScript 引擎会对 let 声明的迭代变量创建一个新的实例，并且 const 变量和 let 变量的表现相似，但在循环体中并不能使用 const 来声明。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">const</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; ++i) &#123;&#125; <span class="comment">// TypeError: assignment to constant variable</span></span><br></pre></td></tr></table></figure>
+
+<p>然而，如果你想声明一个不会改变的迭代变量，const 是可以使用的——这恰好是因为每次迭代都声明了一个新变量。这对 for-of 和 for-in 循环的情况是非常重要的：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> i = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">const</span> j = <span class="number">7</span>; i &lt; <span class="number">5</span>; ++i) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(j);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 7, 7, 7, 7, 7</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">const</span> key <span class="keyword">in</span> &#123; <span class="attr">a</span>: <span class="number">1</span>, <span class="attr">b</span>: <span class="number">2</span> &#125;) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(key);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// a, b</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">const</span> value <span class="keyword">of</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(value);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 1, 2, 3, 4, 5</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="声明风格和最佳实践"><a href="#声明风格和最佳实践" class="headerlink" title="声明风格和最佳实践"></a>声明风格和最佳实践</h3><p>ECMAScript6 中 let 和 const 的引入提高了声明作用域和语法的精确度，从客观上为该语言带来了更好的工具。众所周知，由于 var 声明的异常行为导致 JavaScript 的问题数不胜数。在引入这些新关键字之后，出现了一些越来越常见的可以提高代码质量的模式。</p>
+<h4 id="不使用-var"><a href="#不使用-var" class="headerlink" title="不使用 var"></a>不使用 var</h4><p>在使用 let 和 const 之后，大部分的开发者可以发现在自己代码的任何地方都将不再需要 var。将变量声明限制为仅让 let 和 const 出现的模式，由于对变量作用域，声明局部性和 const 正确使用的细心管理，将有助于提高代码库质量。</p>
+<h4 id="优先使用-const"><a href="#优先使用-const" class="headerlink" title="优先使用 const"></a>优先使用 const</h4><p>使用 const 声明允许浏览器运行时可以强制一个变量为常量，还可以使用静态代码分析工具来预见非法的赋值操作。因此，许多开发者认为默认情况下将变量声明为 const 是最合适的，除非他们明确知道需要在某个时候重新赋值。这使开发者可以更具体地推断出永远不会改变的值，并在代码执行试图执行重新赋值的情况下快速检测错误行为。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JS/" rel="tag"># JS</a>
+              <a href="/tags/JS%E9%AB%98%E7%A8%8B/" rel="tag"># JS高程</a>
+              <a href="/tags/%E7%BA%A2%E5%AE%9D%E4%B9%A6/" rel="tag"># 红宝书</a>
+              <a href="/tags/JavaScript%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" rel="tag"># JavaScript高级程序设计</a>
+              <a href="/tags/%E7%AC%AC4%E7%89%88/" rel="tag"># 第4版</a>
+              <a href="/tags/%E5%8F%98%E9%87%8F/" rel="tag"># 变量</a>
+              <a href="/tags/%E7%BF%BB%E8%AF%91/" rel="tag"># 翻译</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/ff496e4d.html" rel="prev" title="VSCode编辑器的快捷键">
+      <i class="fa fa-chevron-left"></i> VSCode编辑器的快捷键
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/2da22a8d.html" rel="next" title="JS高程第4版24章翻译：网络请求和远程资源">
+      JS高程第4版24章翻译：网络请求和远程资源 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#变量"><span class="nav-number">1.</span> <span class="nav-text">变量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#var-关键词"><span class="nav-number">1.1.</span> <span class="nav-text">var 关键词</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#声明作用域"><span class="nav-number">1.1.1.</span> <span class="nav-text">声明作用域</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#var-声明提升"><span class="nav-number">1.1.2.</span> <span class="nav-text">var 声明提升</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#let-声明"><span class="nav-number">1.2.</span> <span class="nav-text">let 声明</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#暂时性死区"><span class="nav-number">1.2.1.</span> <span class="nav-text">暂时性死区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#全局声明"><span class="nav-number">1.2.2.</span> <span class="nav-text">全局声明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#条件声明"><span class="nav-number">1.2.3.</span> <span class="nav-text">条件声明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#循环中的-let-声明"><span class="nav-number">1.2.4.</span> <span class="nav-text">循环中的 let 声明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#const-声明"><span class="nav-number">1.3.</span> <span class="nav-text">const 声明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#声明风格和最佳实践"><span class="nav-number">1.4.</span> <span class="nav-text">声明风格和最佳实践</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#不使用-var"><span class="nav-number">1.4.1.</span> <span class="nav-text">不使用 var</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#优先使用-const"><span class="nav-number">1.4.2.</span> <span class="nav-text">优先使用 const</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: 'a5cbbbb9d26c39e6647af74a8681f142',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

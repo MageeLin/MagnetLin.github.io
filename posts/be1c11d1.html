@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="前面的文章—ECMA-262 规范第 4 节 Overview 翻译—翻译了 ECMA-262 规范的总览章节，下面翻译规范中第 6 节—ECMAScript Data Types and Values—的前半部分 Language Types，并对规范中的一些符号进行总结。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ECMA-262规范第6节中Language Types翻译">
+<meta property="og:url" content="https://linjingyi.cn/posts/be1c11d1.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="前面的文章—ECMA-262 规范第 4 节 Overview 翻译—翻译了 ECMA-262 规范的总览章节，下面翻译规范中第 6 节—ECMAScript Data Types and Values—的前半部分 Language Types，并对规范中的一些符号进行总结。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-13T07:06:37.000Z">
+<meta property="article:modified_time" content="2020-03-13T07:06:37.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="翻译">
+<meta property="article:tag" content="ECMA262">
+<meta property="article:tag" content="规范">
+<meta property="article:tag" content="总览">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/be1c11d1.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>ECMA-262规范第6节中Language Types翻译 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/be1c11d1.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          ECMA-262规范第6节中Language Types翻译
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-13 15:06:37" itemprop="dateCreated datePublished" datetime="2020-03-13T15:06:37+08:00">2020-03-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/" itemprop="url" rel="index">
+                    <span itemprop="name">JS</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E8%A7%84%E8%8C%83/" itemprop="url" rel="index">
+                    <span itemprop="name">规范</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>前面的文章—<a href="https://linjingyi.cn/posts/23f9220f.html">ECMA-262 规范第 4 节 Overview 翻译</a>—翻译了 ECMA-262 规范的总览章节，下面翻译规范中第 6 节—<a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">ECMAScript Data Types and Values</a>—的前半部分 Language Types，并对规范中的一些符号进行总结。</p>
+<a id="more"></a>
+
+<h2 id="翻译"><a href="#翻译" class="headerlink" title="翻译"></a>翻译</h2><p>本规范中的算法处理每个具有相关类型的值。本节中定义了所有可能的值类型。类型进一步细分为 ECMAScript 语言类型和规范类型。</p>
+<p>在本规范中，“Type(x)”符号看作“x 的类型”的简写，其中“Type”指的是在本节中定义的 ECMAScript 语言和规范类型。 当使用术语“empty”时，等同于说“no value of any type”。</p>
+<h3 id="语言类型"><a href="#语言类型" class="headerlink" title="语言类型"></a>语言类型</h3><p>ECMAScript 语言类型对应于由 ECMAScript 程序员使用 ECMAScript 语言直接操作的值。 ECMAScript 语言类型为 Undefined、 Null、 Boolean、 String、 Symbol、 Number 和 Object。 一个 ECMAScript 语言的值是一个 ECMAScript 语言类型的拥有属性。</p>
+<h4 id="Undefined-类型"><a href="#Undefined-类型" class="headerlink" title="Undefined 类型"></a>Undefined 类型</h4><p>Undefined 类型只有一个名为 undefined 的值。 任何未赋值的变量值都为 undefined。</p>
+<h4 id="Null-类型"><a href="#Null-类型" class="headerlink" title="Null 类型"></a>Null 类型</h4><p>Null 类型只有一个值 null。</p>
+<h4 id="Boolean-类型"><a href="#Boolean-类型" class="headerlink" title="Boolean 类型"></a>Boolean 类型</h4><p>Boolean 类型表示具有两个值(true 和 false)的逻辑实体。</p>
+<h4 id="String-类型"><a href="#String-类型" class="headerlink" title="String 类型"></a>String 类型</h4><p>String 类型是所有由零个或多个 16 位无符号整数值(“elements”)组成的有序序列的集合，最大长度为 253-1 个元素。 String 类型通常用于表示正在运行的 ECMAScript 程序中的文本数据，在这种情况下，String 中的每个元素都被视为 UTF-16 码元值。 每个元素被在序列中占据一个位置。 这些位置用非负整数进行索引。 第一个元素(如果存在)位于索引 0，下一个元素(如果存在)位于索引 1，依此类推。 String 的长度是其中元素的数量(即 16 位值)。 空 String 的长度为零，因此不包含任何元素。</p>
+<p>不解释 String 内容的 ECMAScript 操作不应用进一步的语义。 解释 String 值的操作将每个元素视为单个 UTF-16 码元。 然而，ECMAScript 并不限制这些码元的值或这些码元之间的关系，因此进一步将 String 内容解释为 UTF-16 编码的 Unicode 代码点序列的操作必须考虑到形式不良的子序列。 这些操作对包含数值在 0xD800 到 0xDBFF 范围内的每个码元(Unicode 标准将其定义为主要代理，或更正式地定义为高代理码元)和包含数值在 0xDC00 到 0xDFFF 范围内的每个代码单元(定义为尾随代理项，或更正式地称为低代理项码元)使用以下规则进行特殊处理:</p>
+<ul>
+<li>不是高代理项和低代理项的代码单元被解释为具有相同值的代码点。</li>
+<li>一个由两个代码单元组成的序列，其中第一个代码单元 c1 是高代理，第二个代码单元 c2 是低代理，它是一个代理对，并被解释为一个值为(c1-0xD800)0x400 + (c2-0xDC00) + 0x10000 的代码点。 (见 10.1.2)</li>
+<li>作为高代理或低代理，但不是代理对的一部分的代码单元，被解释为具有相同值的代码点。</li>
+</ul>
+<p>String.prototype.normalize (参见 21.1.3.12)可用于显式规范化 String 值。String.prototype.localeCompare(参见 21.1.3.10)内部规范字符串值，但是没有其他操作隐式规范所操作的字符串。 只有明确指定为语言或部分敏感的操作才会产生对语言敏感的结果。</p>
+<blockquote>
+<p>注意：这种设计背后的基本原理是保证 Strings 的实现尽可能简单和高性能。 如果 ECMAScript 源文本采用规范化表单 C，那么字符串文本也肯定会被规范化（只要它们不包含任何 Unicode 转义序列）。</p>
+</blockquote>
+<p>在本规范中，短语“the string-concatenation of A, B, …”(其中每个参数是一个 String 值、一个代码单元或一个代码单元序列)表示 String 值，其代码单元序列是每个参数的代码单元的串联(按顺序)。。</p>
+<h4 id="Symbol-类型"><a href="#Symbol-类型" class="headerlink" title="Symbol 类型"></a>Symbol 类型</h4><p>Symbol 类型是可用作 Object 属性(6.1.7)的键的所有非 String 值的集合。</p>
+<p>每个 Symbol 值都是唯一的和不可变的。</p>
+<p>每个 Symbol 值不可变地保存一个名为[[ Description ]]的关联值，该值要么是 undefined，要么是 String 值。</p>
+<h5 id="Well-Known-Symbols"><a href="#Well-Known-Symbols" class="headerlink" title="Well-Known Symbols"></a>Well-Known Symbols</h5><p>Well-known symbols 是本规范的算法显式引用的内置 Symbol 值。它们通常用作属性的键，这些属性的值充当规范算法的扩展点。 除非另有说明，否则所有范围(8.2)都共享 Well-known symbols 值。</p>
+<p>Within this specification a well-known symbol is referred to by using a notation of the form @@name, where “name” is one of the values listed in Table 1.</p>
+<p>在本规范中，使用<code>@@name</code>形式的符号来引用一个 Well-known symbols，其中“name”是表 1 中列出的值之一。</p>
+<center>表 1: Well-known Symbols</center>
+
+<table>
+<thead>
+<tr>
+<th>规范名称</th>
+<th>[[Description]]</th>
+<th>值和作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>@@asyncIterator</td>
+<td><code>&quot;Symbol.asyncIterator&quot;</code></td>
+<td>方法，返回对象的默认 AsyncIterator 。由 for-await-of 语句的语义调用。</td>
+</tr>
+<tr>
+<td>@@hasInstance</td>
+<td><code>&quot;Symbol.hasInstance&quot;</code></td>
+<td>方法，用于确定构造函数是否将对象识别为自身实例之一。 由 instanceof 运算符的语义调用。</td>
+</tr>
+<tr>
+<td>@@isConcatSpreadable</td>
+<td><code>&quot;Symbol.isConcatSpreadable&quot;</code></td>
+<td>Boolean 值属性，如果为 true，则表示对象应该通过 Array.prototype.concat 将其展平为数组元素。</td>
+</tr>
+<tr>
+<td>@@iterator</td>
+<td><code>&quot;Symbol.iterator&quot;</code></td>
+<td>方法，返回对象的默认迭代器。由 for-of 语句的语义调用。</td>
+</tr>
+<tr>
+<td>@@match</td>
+<td><code>&quot;Symbol.match&quot;</code></td>
+<td>方法，匹配正则表达式与字符串，由 String.prototype.match 方法调用。</td>
+</tr>
+<tr>
+<td>@@replace</td>
+<td><code>&quot;Symbol.replace&quot;</code></td>
+<td>方法，替换字符串中与正则表达式匹配的子字符串。由 String.prototype.replace 方法调用。</td>
+</tr>
+<tr>
+<td>@@search</td>
+<td><code>&quot;Symbol.search&quot;</code></td>
+<td>方法，返回与正则表达式匹配的字符串中的索引。 由 String.prototype.search 方法调用。</td>
+</tr>
+<tr>
+<td>@@species</td>
+<td><code>&quot;Symbol.species&quot;</code></td>
+<td>函数值属性，是用于创建派生对象的构造函数。</td>
+</tr>
+<tr>
+<td>@@split</td>
+<td><code>&quot;Symbol.split&quot;</code></td>
+<td>正则表达式方法，在与正则表达式匹配的索引处拆分字符串。 由 String.prototype.split 方法调用。</td>
+</tr>
+<tr>
+<td>@@toPrimitive</td>
+<td><code>&quot;Symbol.toPrimitive&quot;</code></td>
+<td>方法，将对象转换为对应基本值。由 ToPrimitive 抽象操作调用。</td>
+</tr>
+<tr>
+<td>@@toStringTag</td>
+<td><code>&quot;Symbol.toStringTag&quot;</code></td>
+<td>String 值属性，用于创建对象的默认字符串说明 。 通过内置方法 Object.prototype.toString 访问。</td>
+</tr>
+<tr>
+<td>@@unscopables</td>
+<td><code>&quot;Symbol.unscopables&quot;</code></td>
+<td>一个 Object 值属性，其自身和继承的属性名称是从关联对象的 with 环境绑定中排除的属性名称。</td>
+</tr>
+</tbody></table>
+<h4 id="Number-类型"><a href="#Number-类型" class="headerlink" title="Number 类型"></a>Number 类型</h4><p>Number 类型有 18437736874454810627 个值(即 2^64-2^53 + 3) ，表示 IEEE 754-2008 中 二进制浮点运算标准中指定的双精度 64 位格式值，去除了 IEEE 标准中的 9007199254740990 个“Not-a-Number”值，这些值在 ECMAScript 中表示为一个特殊的 NaN 值。 (注意，NaN 值是由程序表达式 NaN 生成的) 在一些实现中，外部代码可能能够检测不同 Not-a-Number 值之间的差异，但是这种行为依赖于如何实现; 对于 ECMAScript 代码，所有 NaN 值彼此之间是无法区分的。</p>
+<blockquote>
+<p>注意：存储 Number 值后在 ArrayBuffer (参见 24.1)或 SharedArrayBuffer (参见 24.2)中可能观察到的位模式不一定与 ECMAScript 实现使用的 Number 值的内部表示相同。</p>
+</blockquote>
+<p>还有另外两个特殊的值，称为正无穷大和负无穷大。 为了简洁起见，这些值也分别用 + ∞ 和-∞ 来说明。 (注意，这两个无限数值是由表达式 + Infinity (或 Infinity)和-Infinity 产生的。)</p>
+<p>另外 18437736874454810624 个(即 2^64-2^53)值称为有限数。 其中一半是正数，一半是负数; 对于每一个有限的正数值，都有一个具有相同大小的对应负值。</p>
+<p>请注意，这里有一个正零和一个负零。 为了简洁起见，这些值也分别用 + 0 和-0 来说明。 (注意，这两个不同的零数值是由程序表达式 + 0(或简称 0)和-0 产生的。)</p>
+<p>18437736874454810622(即 2^64-2^53-2)有限非零值有两种:</p>
+<p>18428729675200069632(即 2^64-2^54)被规范化，具有如下格式：</p>
+<p>s × m × 2 ^ e</p>
+<p>s 是 + 1 或-1，m 是小于 2^53 但不小于 2^52 的正整数，e 是从-1074 到 971 的整数。</p>
+<p>其余的 9007199254740990 个(即 2^53-2)值是非规范化的，具有如下格式：</p>
+<p>s × m × 2 ^e</p>
+<p>S 是 + 1 或者-1 m 是小于 2^52 的正整数 ，e 是-1074。</p>
+<p>请注意，所有大小不大于 2^53 的正整数和负整数都可以用 Number 类型表示(实际上，整数 0 有两个表示，+ 0 和-0)。</p>
+<p>有限数有奇数的意义，如果它是非零的，表示它的整数 m (在上面所示的两种形式之一)是奇数。 除此之外，它还有一个更为重要的意义。</p>
+<p>在本规范中，短语“the Number value for x” ，其中 x 表示一个精确的真实数学量(甚至可能是一个无理数，如 π) ，表示按以下方式选择的数值。 考虑数字类型的所有有限值的集合，去掉 -0，再加上两个在数字类型中不能表示的额外值，即 2^1024(+ 1×2^53×2^971)和 -2^1024(- 1×2^53×2^971)。 选择该集合中值最接近 x 的成员。 如果集合中的两个值相等接近，则选择具有偶数意义的一个; 为此，2^1024 和 -2^1024 这两个额外值被认为具有偶数意义。 最后，如果选择了 2^1024，将其替换为 + ∞ ; 如果选择了-2^1024，将其替换为-∞ ; 如果选择了 + 0，当且仅当 x 小于零时，将其替换为-0; 任何其他选择的值将不变地使用。 结果是 x 的 Number 值(此过程完全符合 IEEE 754-2008“四舍五入到最近的，约束到偶数”模式的行为)。</p>
+<p>有些 ECMAScript 运算符只处理特定范围内的整数，比如 -2^31 到 2^31-1，或者从 0 到 2^16-1。 这些运算符接受 Number 类型的任何值，但首先将每个值转换为预期范围内的整数值。 请参阅 7.1 中对数值转换操作的描述。</p>
+<h4 id="Object-类型"><a href="#Object-类型" class="headerlink" title="Object 类型"></a>Object 类型</h4><p>一个 Object 在逻辑上是属性的集合。每个属性要么是数据属性，要么是访问器属性:</p>
+<ul>
+<li>数据属性将键值与 ECMAScript 语言值和一组 Boolean 属性关联。</li>
+<li>访问器属性将键值与 1 个或 2 个访问器函数以及一组布尔属性关联。 访问器函数用于存储或检索与属性关联的 ECMAScript 语言值。</li>
+</ul>
+<p>属性使用键值对进行标识。 属性键值对可以是 ECMAScript String 值，也可以是 Symbol 值。 所有 String 和 Symbol 值(包括空字符串)都作为属性键都有效。 属性名称是一个属性键，它是一个 String 值。</p>
+<p>整数索引是一个 String 值属性键，它是一个规范的数值 String (参见 7.1.16) ，其数值可以是 + 0 或者是一个 ≤2^53-1 的正整数。 数组索引是一个整数索引，其数值 i 在 + 0≤ i&lt;2^32-1 范围内。</p>
+<p>属性键用于访问属性及其值。 对于属性有两种访问方式: get 和 set，分别对应于值检索和赋值。 通过 get 和 set 访问的属性既包括作为对象直接部分的属性，也包括由另一个关联对象通过属性继承关系提供的继承属性。 继承的属性可以是关联对象的自有属性，也可以是继承的属性。 对象的每个属性都必须有一个键值，这个键值与对象的其他属性的键值不同。</p>
+<p>所有对象在逻辑上都是属性的集合，但是存在多种形式的对象，这些对象的语义不同，因此不能访问和操作它们的属性。 Ordinary object 是对象最常见的形式，具有默认的对象语义。 Exotic object 是任意形式的对象，其属性语义在任何情况下与默认语义都不同。</p>
+<h5 id="Property-Attributes"><a href="#Property-Attributes" class="headerlink" title="Property Attributes"></a>Property Attributes</h5><p>attributes 在本规范中用于定义和解释对象 property 的状态。 数据 property 将键值与表 2 中列出的 attributes 关联起来。</p>
+<center>表 2: 数据 property 的 attributes</center>
+
+<table>
+<thead>
+<tr>
+<th>Attribute Name</th>
+<th>Value Domain</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[[Value]]</td>
+<td>Any <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types" target="_blank" rel="external nofollow noopener noreferrer">ECMAScript language type</a></td>
+<td>通过 value 访问 property 值。</td>
+</tr>
+<tr>
+<td>[[Writable]]</td>
+<td>Boolean</td>
+<td>如果为 false，则 ECMAScript 代码使用[[Set ]]更改 property 的[[Value]] attribute 的尝试将不会成功。</td>
+</tr>
+<tr>
+<td>[[Enumerable]]</td>
+<td>Boolean</td>
+<td>如果为 true，则该属性可通过 for-in 进行枚举。 否则，该属性被不可枚举。</td>
+</tr>
+<tr>
+<td>[[Configurable]]</td>
+<td>Boolean</td>
+<td>如果为 false，则尝试删除 property、将 property 更改为访问器 property 或更改 property 的 attribute(除了[[Value]] ，或将[[Writable]]更改为 false)将失败。</td>
+</tr>
+</tbody></table>
+<p>访问器 property 将键值与表 3 中列出的 attributes 关联。</p>
+<center>表 3: 访问器property的attributes</center>
+
+<table>
+<thead>
+<tr>
+<th>Attribute Name</th>
+<th>Value Domain</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[[Get]]</td>
+<td>Object | Undefined</td>
+<td>如果值是一个对象，那么它必须是一个函数对象。 函数的[[Call]]内部方法(表 6)使用一个空参数列表调用，以便在每次执行对属性的 get 访问时检索属性值。</td>
+</tr>
+<tr>
+<td>[[Set]]</td>
+<td>Object | Undefined</td>
+<td>如果值是一个对象，那么它必须是一个函数对象。 调用函数的[[Call]]内部方法(表 6)时，每次执行属性的访问时，都使用一个参数列表，其中包含分配的值作为其唯一的参数。 属性的[[[Set]]内部方法的效果可能会影响随后调用属性的[[Get]]内部方法所返回的值，但并不需要这样做。</td>
+</tr>
+<tr>
+<td>[[Enumerable]]</td>
+<td>Boolean</td>
+<td>如果为 true，则该属性可通过 for-in 进行枚举。 否则，该属性被不可枚举。</td>
+</tr>
+<tr>
+<td>[[Configurable]]</td>
+<td>Boolean</td>
+<td>如果为 false，则尝试删除 property、将属性更改为数据 property 或更改其 property 将失败。</td>
+</tr>
+</tbody></table>
+<p>如果本规范未显式指定 property 的 attributes 初始值，则使用表 4 中定义的默认值。</p>
+<center>表4: 默认attribute值</center>
+
+<table>
+<thead>
+<tr>
+<th>Attribute Name</th>
+<th>Default Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[[Value]]</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>[[Get]]</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>[[Set]]</td>
+<td>undefined</td>
+</tr>
+<tr>
+<td>[[Writable]]</td>
+<td>false</td>
+</tr>
+<tr>
+<td>[[Enumerable]]</td>
+<td>false</td>
+</tr>
+<tr>
+<td>[[Configurable]]</td>
+<td>false</td>
+</tr>
+</tbody></table>
+<h5 id="对象的内部方法和内部插槽"><a href="#对象的内部方法和内部插槽" class="headerlink" title="对象的内部方法和内部插槽"></a>对象的内部方法和内部插槽</h5><p>在 ECMAScript 中，对象的实际语义是通过称为内部方法的算法指定的。 ECMAScript 引擎中的每个对象都与一组定义其运行时表现的内部方法相关联。 这些内部方法不是 ECMAScript 语言的一部分。 在本规范中，它们的定义完全是为了说明性的目的。 但是，ECMAScript 实现中的每个对象必须按照与其关联的内部方法的指定来表现。 实现此目标的确切方式取决于如何实现。</p>
+<p>内部方法名称有多种形态。 这意味着不同的对象值在调用相同的内部方法名称时可能执行不同的算法。 调用内部方法的实际对象是调用的“target”。 如果在运行时，算法的实现试图使用对象不支持的内部方法，则会引抛出 TypeError 异常。</p>
+<p>内部插槽对应于与关联对象的内部状态，并由各种 ECMAScript 规范算法使用。 内部插槽不是对象的属性，也不可继承。 根据特定的内部插槽规范，这种状态可能由任何 ECMAScript 语言类型的值或特定的 ECMAScript 规范类型值组成。 除非另有明确指定，否则内部插槽是在创建对象过程中分配的，不能动态地添加到对象中。 除非另有说明，否则内部插槽的初始值是 undefined。 本规范中的各种算法创建具有内部插槽的对象。 但是，ECMAScript 语言没有提供将内部插槽与对象关联的直接方法。</p>
+<p>内部方法和内部插槽在本规范中使用双方括号[[ ]]内的 name 来标识。</p>
+<p>表 5 总结了本规范使用的基本内部方法，这些方法适用于由 ECMAScript 代码创建或操作的所有对象。 每个对象都必须有适用于所有基本内部方法的算法。 但是，对于这些方法，所有对象并不一定使用相同的算法。</p>
+<p>表 5 和其他类似表的“Signature”列描述了每个内部方法的调用模式。 调用模式总是包含一个带括号的描述性参数名列表。 如果参数名称与 ECMAScript 类型名称相同，则参数名称描述的是参数值所需的类型。 如果内部方法显式的返回值，则其参数列表后跟符号“→”和返回值的类型名称。 Signature 中使用的类型名称是指第 6 条中定义的类型，该类型由以下附加名称进行扩充。 “ any”表示该值可以是任何 ECMAScript 语言类型。 内部方法隐式返回 Completion Record。 除了参数之外，内部方法总是可以访问作为方法调用 target 的对象。</p>
+<center>表5: 基本内部方法</center>
+
+<table>
+<thead>
+<tr>
+<th>Internal Method</th>
+<th>Signature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[[GetPrototypeOf]]</td>
+<td>( ) <strong>→</strong> Object | Null</td>
+<td>获取为此对象提供继承属性的对象。null 没有继承属性。</td>
+</tr>
+<tr>
+<td>[[SetPrototypeOf]]</td>
+<td>(Object | Null) <strong>→</strong> Boolean</td>
+<td>将此对象与另一个提供继承属性的对象关联。 传递 null 表示没有继承的属性。 返回 true，指示操作已成功完成，或返回 false，指示操作未成功。</td>
+</tr>
+<tr>
+<td>[[IsExtensible]]</td>
+<td>( ) <strong>→</strong> Boolean</td>
+<td>确定是否允许向此对象添加其他属性</td>
+</tr>
+<tr>
+<td>[[PreventExtensions]]</td>
+<td>( ) <strong>→</strong> Boolean</td>
+<td>控制是否可以向此对象添加新属性。 如果操作成功，返回 true; 如果操作不成功，返回 false。</td>
+</tr>
+<tr>
+<td>[[GetOwnProperty]]</td>
+<td>(propertyKey) <strong>→</strong> Undefined | <a href="http://www.ecma-international.org/ecma-262/#sec-property-descriptor-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Property Descriptor</a></td>
+<td>返回此对象的属性键为 propertyKey 的属性描述符，如果不存在此属性，则返回 undefined。</td>
+</tr>
+<tr>
+<td>[[DefineOwnProperty]]</td>
+<td>(propertyKey, PropertyDescriptor) <strong>→</strong> Boolean</td>
+<td>创建或更改自己的键为 propertyKey 属性，使该属性状态按照 PropertyDescriptor 描述。 如果该属性已成功创建 / 更新，则返回 true; 如果无法创建或更新该属性，则返回 false。</td>
+</tr>
+<tr>
+<td>[[HasProperty]]</td>
+<td>(propertyKey) <strong>→</strong> Boolean</td>
+<td>返回一个 Boolean 值，该值指示此对象是否已经具有键为 propertyKey 的自有属性或继承属性。</td>
+</tr>
+<tr>
+<td>[[Get]]</td>
+<td>(propertyKey, Receiver) <strong>→</strong> <em>any</em></td>
+<td>从此对象返回其键为 propertyKey 的属性的值。 如果必须执行任何 ECMAScript 代码来检索属性值，则在计算代码时使用 Receiver 作为 this 值。</td>
+</tr>
+<tr>
+<td>[[Set]]</td>
+<td>(propertyKey, value, Receiver) <strong>→</strong> Boolean</td>
+<td>如果必须执行任何 ECMAScript 代码来设置属性值，则在计算代码时使用 Receiver 作为 this 值。 如果属性值设置成功，则返回 true; 如果设置失败，则返回 false。</td>
+</tr>
+<tr>
+<td>[[Delete]]</td>
+<td>(propertyKey) <strong>→</strong> Boolean</td>
+<td>从此对象中删除键为 propertyKey 的属性。 如果属性没有被删除并且仍然存在，则返回 false。 如果属性被删除或不存在，则返回 true。</td>
+</tr>
+<tr>
+<td>[[OwnPropertyKeys]]</td>
+<td>( ) <strong>→</strong> <a href="http://www.ecma-international.org/ecma-262/#sec-list-and-record-specification-type" target="_blank" rel="external nofollow noopener noreferrer">List</a> of propertyKey</td>
+<td>返回一个 List，其元素都是对象自己的属性键。</td>
+</tr>
+</tbody></table>
+<center>表6: 函数对象附加的基本内部方法</center>
+
+<table>
+<thead>
+<tr>
+<th>Internal Method</th>
+<th>Signature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[[Call]]</td>
+<td>(<em>any</em>, a <a href="http://www.ecma-international.org/ecma-262/#sec-list-and-record-specification-type" target="_blank" rel="external nofollow noopener noreferrer">List</a> of <em>any</em>) <strong>→</strong> <em>any</em></td>
+<td>执行与此对象关联的代码。 通过函数调用表达式调用。 内部方法的参数是一个 this 值和一个包含传递给函数的参数的列表。 实现此内部方法的对象必须是可调用的。</td>
+</tr>
+<tr>
+<td>[[Construct]]</td>
+<td>(a <a href="http://www.ecma-international.org/ecma-262/#sec-list-and-record-specification-type" target="_blank" rel="external nofollow noopener noreferrer">List</a> of <em>any</em>, Object) <strong>→</strong> Object</td>
+<td>创建一个对象。 通过 new 或 super 运算符调用。 此内部方法的第一个参数是一个包含运算符参数的列表。 第二个参数是最初应用 new 运算符的对象。 实现此内部方法的对象称为构造函数。 函数对象不一定是构造函数，非构造函数的函数对象没有[[Construct]]内部方法。</td>
+</tr>
+</tbody></table>
+<p>ordinary objects 和标准 exotic objects 的基本内部方法的语义在第 9 条中有详细说明。如果某个实现不支持对 exotic objects 的内部方法的某指定使用，则该使用必须在尝试时抛出 TypeError 异常。</p>
+<h5 id="基本内部方法的不变量"><a href="#基本内部方法的不变量" class="headerlink" title="基本内部方法的不变量"></a>基本内部方法的不变量</h5><p>ECMAScript 引擎的内部对象方法必须符合下面指定的不变量列表。 普通的 ECMAScript 对象以及本规范中的所有标准 exotic objects 都维护这些不变量。 ECMAScript Proxy 对象通过在运行时检查[[ ProxyHandler]]对象上调用的 trap 的结果来维护这些不变量。</p>
+<p>实现时必须为这些 exotic objects 维护这些不变量。 违反这些不变量可能会导致 ECMAScript 代码具有不可预测的行为并产生安全问题。 但是，违反这些不变量决不能危及实现时的内存安全。</p>
+<p>实现时决不能允许以任何方式规避这些不变量，例如提供替代接口来实现基本内部方法的功能，而不强制使用不变量。</p>
+<h6 id="定义"><a href="#定义" class="headerlink" title="定义:"></a>定义:</h6><ul>
+<li>内部方法的 target 是调用内部方法的对象。</li>
+<li>如果观察到 target 从其[[[IsExtensible]]]内部方法返回 false，或从其[[ PreventExtensions ]]内部方法返回 true，则该目标是不可扩展的。</li>
+<li>不存在的属性不是非可扩展 target 上的属性。</li>
+<li>所有对 SameValue 的引用都依据 <a href="http://www.ecma-international.org/ecma-262/#sec-samevalue" target="_blank" rel="external nofollow noopener noreferrer">SameValue</a> 算法的定义。</li>
+</ul>
+<h6 id="GetPrototypeOf-（）"><a href="#GetPrototypeOf-（）" class="headerlink" title="[[GetPrototypeOf]]（）"></a>[[GetPrototypeOf]]（）</h6><ul>
+<li>返回值的类型必须是 Object 或 Null。</li>
+<li>如果 target 是不可扩展的，并且[[GetPrototypeOf]]返回一个值 V，那么将来对[[GetPrototypeOf]]的任何调用都应该将 <a href="http://www.ecma-international.org/ecma-262/#sec-samevalue" target="_blank" rel="external nofollow noopener noreferrer">SameValue</a> 作为 V 返回。</li>
+</ul>
+<blockquote>
+<p>注意 1：一个对象的原型链应该有有限的长度(也就是说，从任何对象开始，递归地应用[[GetPrototypeOf]]内部方法到它的结果最终应该导致值 null)。 但是，如果原型链包含任何 exotic objects（该对象不使用 ordinary object 的[[GetPrototypeOf]]定义），那么这个要求作为对象级别的不变量并不是强制的。 这样的循环原型链在访问对象属性时可能导致无限循环。</p>
+</blockquote>
+<h6 id="SetPrototypeOf-（V）"><a href="#SetPrototypeOf-（V）" class="headerlink" title="[[SetPrototypeOf]]（V）"></a>[[SetPrototypeOf]]（V）</h6><ul>
+<li>返回值的类型必须是 Boolean 值。</li>
+<li>如果 target 是不可扩展的，[[SetPrototypeOf]]必须返回 false，除非 V 是 target 所观察到的[[GetPrototypeOf]]值的 SameValue。</li>
+</ul>
+<h6 id="IsExtensible-（）"><a href="#IsExtensible-（）" class="headerlink" title="[[IsExtensible]]（）"></a>[[IsExtensible]]（）</h6><ul>
+<li>返回值的类型必须是 Boolean 值。</li>
+<li>如果[[ IsExtensible ]]返回 false，那么将来对 target 的所有[[IsExtensible]]调用都必须返回 false。</li>
+</ul>
+<h6 id="PreventExtensions-（）"><a href="#PreventExtensions-（）" class="headerlink" title="[[PreventExtensions]]（）"></a>[[PreventExtensions]]（）</h6><ul>
+<li>返回值的类型必须是 Boolean 值。</li>
+<li>如果[[PreventExtensions]]返回 true，那么将来对目标的所有[[IsExtensible]]调用都必须返回 false，并且 target 现在被认为是不可扩展的。</li>
+</ul>
+<h6 id="GetOwnProperty-（P）"><a href="#GetOwnProperty-（P）" class="headerlink" title="[[GetOwnProperty]]（P）"></a>[[GetOwnProperty]]（P）</h6><ul>
+<li>返回值的类型必须是 <a href="http://www.ecma-international.org/ecma-262/#sec-property-descriptor-specification-type" target="_blank" rel="external nofollow noopener noreferrer">属性描述符</a> 或 Undefined.</li>
+<li>如果返回值的类型为属性描述符 ，则返回值必须是完整的属性描述符。</li>
+<li>如果将 P 描述为一个不可配置、不可写的自己的数据属性，那么对[[GetOwnProperty]]（P）的所有未来调用都必须返回属性描述符，它的[[Value]]是作为 P 的[[Value]]属性的 SameValue。</li>
+<li>如果 P 的[[Writable]]以外的其他属性可能随时间变化，或者属性可能被删除，那么 P 的[[Configurable]]属性必须为 true。</li>
+<li>如果[[Writable]]属性可能从 false 更改为 true，那么[[Configurable]]属性必须为 true。</li>
+<li>如果 target 是不可扩展的且 P 不存在，那么将来对 target 上的[[GetOwnProperty]]（P）的所有调用都必须将 P 描述为不存在的(即[[ GetOwnProperty ]]（P）必须返回 undefined)。</li>
+</ul>
+<blockquote>
+<p>注意 2：作为第三个不变量的结果，如果一个属性被描述为一个数据属性，并且随着时间的推移它可能返回不同的值，那么[[ Writable ]]和[[ Configurable ]]属性中的一个或两个必须为 true，即使没有通过其他内部方法公开更改值的机制。</p>
+</blockquote>
+<h6 id="DefineOwnProperty-P-Desc"><a href="#DefineOwnProperty-P-Desc" class="headerlink" title="[[DefineOwnProperty]] ( P, Desc )"></a>[[DefineOwnProperty]] ( P, Desc )</h6><ul>
+<li>返回值的类型必须是 Boolean 值。</li>
+<li>如果先前观察到 P 是 target 的一个不可配置的属性，[[DefineOwnProperty]]必须返回 false，除非：<ol>
+<li>P 是一个可写数据属性。 可将不可配置的可写数据属性更改为不可配置不可写数据属性。</li>
+<li>Desc 的所有属性都是作为 P 属性的 SameValue。</li>
+</ol>
+</li>
+<li>如果 target 是不可扩展的并且 P 是一个不存在的属性，那么[[ DefineOwnProperty ]]（P，Desc）必须返回 false。 也就是说，不可扩展的目标对象不能使用新属性进行扩展。</li>
+</ul>
+<h6 id="HasProperty-（P）"><a href="#HasProperty-（P）" class="headerlink" title="[[HasProperty]]（P）"></a>[[HasProperty]]（P）</h6><ul>
+<li>返回值的类型必须是 Boolean 值。</li>
+<li>如果以前观察到 P 是 target 的不可配置的自身的数据或访问器属性，那么[[ HasProperty]]必须返回 true。</li>
+</ul>
+<h6 id="Get-P-Receiver"><a href="#Get-P-Receiver" class="headerlink" title="[[Get]] ( P, Receiver )"></a>[[Get]] ( P, Receiver )</h6><ul>
+<li>如果以前观察到 P 是 target 的不可配置、不可写的数据属性，值为 V，那么[[Get]]必须将 返回为 v 的 SameValue 。</li>
+<li>如果以前观察到 P 是 target 的不可配置的自身的访问器属性，其[[ Get ]]]属性是 undefined，则[[ Get ]]操作必须返回 undefined。</li>
+</ul>
+<h6 id="Set-P-V-Receiver"><a href="#Set-P-V-Receiver" class="headerlink" title="[[Set]] ( P, V, Receiver )"></a>[[Set]] ( P, V, Receiver )</h6><ul>
+<li>返回值的类型必须是 Boolean 值。</li>
+<li>如果以前观察到 P 是 target 的不可配置的、不可写的数据属性，那么[[ Set ]]必须返回 false，除非 v 是作为 P 的[[ Value ]]属性的 SameValue。</li>
+<li>如果以前观察到 P 是 target 的不可配置的自身的访问器属性，并且[[ Set ]]属性是 undefined，那么[[Set]]操作必须返回 false。</li>
+</ul>
+<h6 id="Delete-（P）"><a href="#Delete-（P）" class="headerlink" title="[[Delete]]（P）"></a>[[Delete]]（P）</h6><ul>
+<li>返回值的类型必须是 Boolean 值。</li>
+<li>如果以前观察到 P 是 target 的不可配置的自身数据或访问器属性，那么[[Delete]]必须返回 false。</li>
+</ul>
+<h6 id="OwnPropertyKeys-（）"><a href="#OwnPropertyKeys-（）" class="headerlink" title="[[OwnPropertyKeys]]（）"></a>[[OwnPropertyKeys]]（）</h6><ul>
+<li>返回值必须是一个 List。</li>
+<li>返回的 List 不能包含任何重复项。</li>
+<li>返回的 List 的每个元素的类型为 String 或 Symbol。</li>
+<li>返回的 List 必须至少包含以前观察到的所有不可配置属性的键。</li>
+<li>如果对象是不可扩展的，则返回的 List 必须只包含使用[[GetOwnProperty]]可观察到的对象的所有属性的键。</li>
+</ul>
+<h6 id="Construct-（）"><a href="#Construct-（）" class="headerlink" title="[[Construct]]（）"></a>[[Construct]]（）</h6><ul>
+<li>返回值的类型必须是 Object。</li>
+</ul>
+<h5 id="Well-Known-内部对象"><a href="#Well-Known-内部对象" class="headerlink" title="Well-Known 内部对象"></a>Well-Known 内部对象</h5><p>well-known 内部对象是本规范的算法显式引用的内置对象，它们通常具有特定作用域的标识。 除非另有说明，否则每个内部对象实际上对应于一组相似的对象（每个作用域一个）。</p>
+<p>在此规范中，引用如%name% 表示与当前作用域关联的对应于该名称内部对象。 当前作用域及其内部对象的确定在 8.3 中描述。 well-known 内部对象列在表 7 中。</p>
+<center>表7: Well-Known 内部对象</center>
+
+<table>
+<thead>
+<tr>
+<th>Intrinsic Name</th>
+<th>Global Name</th>
+<th>ECMAScript Language Association</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-array-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Array%</a></td>
+<td><code>Array</code></td>
+<td>Array 类型的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-arraybuffer-constructor" target="_blank" rel="external nofollow noopener noreferrer">%ArrayBuffer%</a></td>
+<td><code>ArrayBuffer</code></td>
+<td>ArrayBuffer 类型的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-arraybuffer-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%ArrayBufferPrototype%</a></td>
+<td><code>ArrayBuffer.prototype</code></td>
+<td>%ArrayBuffer%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-%arrayiteratorprototype%-object" target="_blank" rel="external nofollow noopener noreferrer">%ArrayIteratorPrototype%</a></td>
+<td></td>
+<td>Array 迭代器对象的原型</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-array-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%ArrayPrototype%</a></td>
+<td><code>Array.prototype</code></td>
+<td>%Array%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-array.prototype.entries" target="_blank" rel="external nofollow noopener noreferrer">%ArrayProto_entries%</a></td>
+<td><code>Array.prototype.entries</code></td>
+<td>%ArrayPrototype%的 entries 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-array.prototype.foreach" target="_blank" rel="external nofollow noopener noreferrer">%ArrayProto_forEach%</a></td>
+<td><code>Array.prototype.forEach</code></td>
+<td>%ArrayPrototype%的 forEach 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-array.prototype.keys" target="_blank" rel="external nofollow noopener noreferrer">%ArrayProto_keys%</a></td>
+<td><code>Array.prototype.keys</code></td>
+<td>%ArrayPrototype%的 keys 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-array.prototype.values" target="_blank" rel="external nofollow noopener noreferrer">%ArrayProto_values%</a></td>
+<td><code>Array.prototype.values</code></td>
+<td>%ArrayPrototype%的 values 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-%asyncfromsynciteratorprototype%-object" target="_blank" rel="external nofollow noopener noreferrer">%AsyncFromSyncIteratorPrototype%</a></td>
+<td></td>
+<td>Async-from-sync 迭代器对象的原型。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-async-function-constructor" target="_blank" rel="external nofollow noopener noreferrer">%AsyncFunction%</a></td>
+<td></td>
+<td>Async 函数对象的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-async-function-prototype-properties" target="_blank" rel="external nofollow noopener noreferrer">%AsyncFunctionPrototype%</a></td>
+<td></td>
+<td>%AsyncFunction%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorfunction-prototype" target="_blank" rel="external nofollow noopener noreferrer">%AsyncGenerator%</a></td>
+<td></td>
+<td>%AsyncGeneratorFunction%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-asyncgeneratorfunction-constructor" target="_blank" rel="external nofollow noopener noreferrer">%AsyncGeneratorFunction%</a></td>
+<td></td>
+<td>async 迭代器对象的构造函数。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-asyncgenerator-prototype" target="_blank" rel="external nofollow noopener noreferrer">%AsyncGeneratorPrototype%</a></td>
+<td></td>
+<td>%AsyncGenerator%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-asynciteratorprototype" target="_blank" rel="external nofollow noopener noreferrer">%AsyncIteratorPrototype%</a></td>
+<td></td>
+<td>所有标准的内置 async 迭代器对象都间接继承的对象</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-atomics-object" target="_blank" rel="external nofollow noopener noreferrer">%Atomics%</a></td>
+<td><code>Atomics</code></td>
+<td>Atomics 对象</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-boolean-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Boolean%</a></td>
+<td><code>Boolean</code></td>
+<td>Boolean 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-boolean-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%BooleanPrototype%</a></td>
+<td><code>Boolean.prototype</code></td>
+<td>%Boolean%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-dataview-constructor" target="_blank" rel="external nofollow noopener noreferrer">%DataView%</a></td>
+<td><code>DataView</code></td>
+<td>DataView 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-dataview-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%DataViewPrototype%</a></td>
+<td>`DataView.prototype</td>
+<td>%DataView%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-date-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Date%</a></td>
+<td><code>Date</code></td>
+<td>Date 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-date-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%DatePrototype%</a></td>
+<td><code>Date.prototype</code></td>
+<td>%Date%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-decodeuri-encodeduri" target="_blank" rel="external nofollow noopener noreferrer">%decodeURI%</a></td>
+<td><code>decodeURI</code></td>
+<td>decodeURIh 函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-decodeuricomponent-encodeduricomponent" target="_blank" rel="external nofollow noopener noreferrer">%decodeURIComponent%</a></td>
+<td><code>decodeURIComponent</code></td>
+<td>decodeURIComponent 函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-encodeuri-uri" target="_blank" rel="external nofollow noopener noreferrer">%encodeURI%</a></td>
+<td><code>encodeURI</code></td>
+<td>encodeURI 函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-encodeuricomponent-uricomponent" target="_blank" rel="external nofollow noopener noreferrer">%encodeURIComponent%</a></td>
+<td><code>encodeURIComponent</code></td>
+<td>encodeURIComponent 函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-error-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Error%</a></td>
+<td><code>Error</code></td>
+<td>Error 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-error-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%ErrorPrototype%</a></td>
+<td><code>Error.prototype</code></td>
+<td>%Error%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-eval-x" target="_blank" rel="external nofollow noopener noreferrer">%eval%</a></td>
+<td><code>eval</code></td>
+<td>eval 函数</td>
+</tr>
+<tr>
+<td>%EvalError%</td>
+<td><code>EvalError</code></td>
+<td>EvalError 的构造函数</td>
+</tr>
+<tr>
+<td>%EvalErrorPrototype%</td>
+<td>`EvalError.prototype</td>
+<td>%EvalError%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%Float32Array%</td>
+<td><code>Float32Array</code></td>
+<td>Float32Array 的构造函数</td>
+</tr>
+<tr>
+<td>%Float32ArrayPrototype%</td>
+<td>`Float32Array.prototype</td>
+<td>%Float32Array%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%Float64Array%</td>
+<td><code>Float64Array</code></td>
+<td>Float64Array 的构造函数</td>
+</tr>
+<tr>
+<td>%Float64ArrayPrototype%</td>
+<td><code>Float64Array.prototype</code></td>
+<td>%Float64Array%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-function-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Function%</a></td>
+<td><code>Function</code></td>
+<td>Function 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-function-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%FunctionPrototype%</a></td>
+<td><code>Function.prototype</code></td>
+<td>%Function%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-generatorfunction-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%Generator%</a></td>
+<td></td>
+<td>%GeneratorFunction%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-generatorfunction-constructor" target="_blank" rel="external nofollow noopener noreferrer">%GeneratorFunction%</a></td>
+<td></td>
+<td>Generator 对象的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-generator-prototype" target="_blank" rel="external nofollow noopener noreferrer">%GeneratorPrototype%</a></td>
+<td></td>
+<td>%Generator%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%Int8Array%</td>
+<td></td>
+<td>Int8Array 的构造函数</td>
+</tr>
+<tr>
+<td>%Int8ArrayPrototype%</td>
+<td><code>Int8Array.prototype</code></td>
+<td>%Int8Array%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%Int16Array%</td>
+<td><code>Int16Array</code></td>
+<td>Int16Array 的构造函数</td>
+</tr>
+<tr>
+<td>%Int16ArrayPrototype%</td>
+<td><code>Int16Array.prototype</code></td>
+<td>%Int16Array%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%Int32Array%</td>
+<td><code>Int32Array</code></td>
+<td>Int32Array 的构造函数</td>
+</tr>
+<tr>
+<td>%Int32ArrayPrototype%</td>
+<td><code>Int32Array.prototype</code></td>
+<td>%Int32Array%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-isfinite-number" target="_blank" rel="external nofollow noopener noreferrer">%isFinite%</a></td>
+<td><code>isFinite</code></td>
+<td>isFinite 函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-isnan-number" target="_blank" rel="external nofollow noopener noreferrer">%isNaN%</a></td>
+<td><code>isNaN</code></td>
+<td>isNaN 函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-%iteratorprototype%-object" target="_blank" rel="external nofollow noopener noreferrer">%IteratorPrototype%</a></td>
+<td></td>
+<td>所有标准内置迭代器对象间接继承来源的对象</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-json-object" target="_blank" rel="external nofollow noopener noreferrer">%JSON%</a></td>
+<td><code>JSON</code></td>
+<td>JSON 对象</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-json.parse" target="_blank" rel="external nofollow noopener noreferrer">%JSONParse%</a></td>
+<td><code>JSON.parse</code></td>
+<td>%JSON%的 parse 属性的初始值。</td>
+</tr>
+<tr>
+<td>%JSONStringify%</td>
+<td><code>JSON.stringify</code></td>
+<td>%JSON%的 stringfy 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-map-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Map%</a></td>
+<td><code>Map</code></td>
+<td>Map 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-%mapiteratorprototype%-object" target="_blank" rel="external nofollow noopener noreferrer">%MapIteratorPrototype%</a></td>
+<td></td>
+<td>Map 迭代器对象的 prototype</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-map-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%MapPrototype%</a></td>
+<td><code>Map.prototype</code></td>
+<td>%Map%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-math-object" target="_blank" rel="external nofollow noopener noreferrer">%Math%</a></td>
+<td><code>Math</code></td>
+<td>Math 对象</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-number-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Number%</a></td>
+<td><code>Number</code></td>
+<td>Number 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-number-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%NumberPrototype%</a></td>
+<td><code>Number.prototype</code></td>
+<td>%Number%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-object-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Object%</a></td>
+<td><code>Object</code></td>
+<td>Object 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-object-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%ObjectPrototype%</a></td>
+<td><code>Object.prototype</code></td>
+<td>%Object%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-object.prototype.tostring" target="_blank" rel="external nofollow noopener noreferrer">%ObjProto_toString%</a></td>
+<td><code>Object.prototype.toString</code></td>
+<td>%ObjectPrototype%的 toString 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-object.prototype.valueof" target="_blank" rel="external nofollow noopener noreferrer">%ObjProto_valueOf%</a></td>
+<td><code>Object.prototype.valueOf</code></td>
+<td>%ObjectPrototype%的 valueOf 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-parsefloat-string" target="_blank" rel="external nofollow noopener noreferrer">%parseFloat%</a></td>
+<td><code>parseFloat</code></td>
+<td>parseFloat 函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-parseint-string-radix" target="_blank" rel="external nofollow noopener noreferrer">%parseInt%</a></td>
+<td><code>parseInt</code></td>
+<td>parseInt 函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-promise-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Promise%</a></td>
+<td><code>Promise</code></td>
+<td>Promise 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-promise-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%PromisePrototype%</a></td>
+<td><code>Promise.prototype</code></td>
+<td>%Promise%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-promise.prototype.then" target="_blank" rel="external nofollow noopener noreferrer">%PromiseProto_then%</a></td>
+<td><code>Promise.prototype.then</code></td>
+<td>%PromisePrototype%的 then 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-promise.all" target="_blank" rel="external nofollow noopener noreferrer">%Promise_all%</a></td>
+<td><code>Promise.all</code></td>
+<td>%Promise%的 all 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-promise.reject" target="_blank" rel="external nofollow noopener noreferrer">%Promise_reject%</a></td>
+<td><code>Promise.reject</code></td>
+<td>%Promise%的 reject 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-promise.resolve" target="_blank" rel="external nofollow noopener noreferrer">%Promise_resolve%</a></td>
+<td><code>Promise.resolve</code></td>
+<td>%Promise%的 resolve 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-proxy-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Proxy%</a></td>
+<td><code>Proxy</code></td>
+<td>Proxy 的构造函数</td>
+</tr>
+<tr>
+<td>%RangeError%</td>
+<td><code>RangeError</code></td>
+<td>RangeError 的构造函数</td>
+</tr>
+<tr>
+<td>%RangeErrorPrototype%</td>
+<td><code>RangeError.prototype</code></td>
+<td>%RangeError%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%ReferenceError%</td>
+<td><code>ReferenceError</code></td>
+<td>ReferenceError 的构造函数</td>
+</tr>
+<tr>
+<td>%ReferenceErrorPrototype%</td>
+<td><code>ReferenceError.prototype</code></td>
+<td>%ReferenceError%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-reflect-object" target="_blank" rel="external nofollow noopener noreferrer">%Reflect%</a></td>
+<td><code>Reflect</code></td>
+<td>Reflect 对象</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-regexp-constructor" target="_blank" rel="external nofollow noopener noreferrer">%RegExp%</a></td>
+<td><code>RegExp</code></td>
+<td>RegExp 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-regexp-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%RegExpPrototype%</a></td>
+<td><code>RegExp.prototype</code></td>
+<td>%RegExp%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-set-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Set%</a></td>
+<td><code>Set</code></td>
+<td>Set 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-%setiteratorprototype%-object" target="_blank" rel="external nofollow noopener noreferrer">%SetIteratorPrototype%</a></td>
+<td></td>
+<td>Set 迭代器对象的 prototype 属性</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-set-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%SetPrototype%</a></td>
+<td><code>Set.prototype</code></td>
+<td>%Set%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-sharedarraybuffer-constructor" target="_blank" rel="external nofollow noopener noreferrer">%SharedArrayBuffer%</a></td>
+<td><code>SharedArrayBuffer</code></td>
+<td>SharedArrayBuffer 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-sharedarraybuffer-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%SharedArrayBufferPrototype%</a></td>
+<td><code>SharedArrayBuffer.prototype</code></td>
+<td>%SharedArrayBuffer%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-string-constructor" target="_blank" rel="external nofollow noopener noreferrer">%String%</a></td>
+<td><code>String</code></td>
+<td>String 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-%stringiteratorprototype%-object" target="_blank" rel="external nofollow noopener noreferrer">%StringIteratorPrototype%</a></td>
+<td></td>
+<td>String 迭代器对象的 prototype</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-string-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%StringPrototype%</a></td>
+<td><code>String.prototype</code></td>
+<td>%String%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-symbol-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Symbol%</a></td>
+<td><code>Symbol</code></td>
+<td>Symbol 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-symbol-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%SymbolPrototype%</a></td>
+<td><code>Symbol.prototype</code></td>
+<td>%Symbol%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%SyntaxError%</td>
+<td><code>SyntaxError</code></td>
+<td>SyntaxError 的构造函数</td>
+</tr>
+<tr>
+<td>%SyntaxErrorPrototype%</td>
+<td><code>SyntaxError.prototype</code></td>
+<td>%SyntaxError%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-%throwtypeerror%" target="_blank" rel="external nofollow noopener noreferrer">%ThrowTypeError%</a></td>
+<td></td>
+<td>无条件抛出%TypeError%新实例的函数对象</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-%typedarray%-intrinsic-object" target="_blank" rel="external nofollow noopener noreferrer">%TypedArray%</a></td>
+<td></td>
+<td>所有类型化 Array 构造函数的 super 类</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-%typedarrayprototype%-object" target="_blank" rel="external nofollow noopener noreferrer">%TypedArrayPrototype%</a></td>
+<td></td>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-%typedarray%-intrinsic-object" target="_blank" rel="external nofollow noopener noreferrer">%TypedArray%</a>的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%TypeError%</td>
+<td><code>TypeError</code></td>
+<td>TypeError 的构造函数</td>
+</tr>
+<tr>
+<td>%TypeErrorPrototype%</td>
+<td><code>TypeError.prototype</code></td>
+<td>%TypeError%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%Uint8Array%</td>
+<td><code>Uint8Array</code></td>
+<td>Uint8Array 的构造函数</td>
+</tr>
+<tr>
+<td>%Uint8ArrayPrototype%</td>
+<td><code>Uint8Array.prototype</code></td>
+<td>%Uint8Array%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%Uint8ClampedArray%</td>
+<td><code>Uint8ClampedArray</code></td>
+<td>Uint8ClampedArray 的构造函数</td>
+</tr>
+<tr>
+<td>%Uint8ClampedArrayPrototype%</td>
+<td><code>Uint8ClampedArray.prototype</code></td>
+<td>%Uint8ClampedArray%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%Uint16Array%</td>
+<td><code>Uint16Array</code></td>
+<td>Uint16Array 的构造函数</td>
+</tr>
+<tr>
+<td>%Uint16ArrayPrototype%</td>
+<td><code>Uint16Array.prototype</code></td>
+<td>%Uint16Array%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%Uint32Array%</td>
+<td><code>Uint32Array</code></td>
+<td>Uint32Array 的构造函数</td>
+</tr>
+<tr>
+<td>%Uint32ArrayPrototype%</td>
+<td><code>Uint32Array.prototype</code></td>
+<td>%Uint32Array%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td>%URIError%</td>
+<td><code>URIError</code></td>
+<td>URIError 的构造函数</td>
+</tr>
+<tr>
+<td>%URIErrorPrototype%</td>
+<td><code>URIError.prototype</code></td>
+<td>%URIError%的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-weakmap-constructor" target="_blank" rel="external nofollow noopener noreferrer">%WeakMap%</a></td>
+<td><code>WeakMap</code></td>
+<td>WeakMap 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-weakmap-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%WeakMapPrototype%</a></td>
+<td><code>WeakMap.prototype</code></td>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-weakmap-constructor" target="_blank" rel="external nofollow noopener noreferrer">%WeakMap%</a>的 prototype 属性的初始值。</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-weakset-constructor" target="_blank" rel="external nofollow noopener noreferrer">%WeakSet%</a></td>
+<td><code>WeakSet</code></td>
+<td>WeakSet 的构造函数</td>
+</tr>
+<tr>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-weakset-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%WeakSetPrototype%</a></td>
+<td><code>WeakSet.prototype</code></td>
+<td><a href="http://www.ecma-international.org/ecma-262/#sec-weakset-constructor" target="_blank" rel="external nofollow noopener noreferrer">%WeakSet%</a>的 prototype 属性的初始值。</td>
+</tr>
+</tbody></table>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>列举一些规范中除文法外符号含义：</p>
+<ul>
+<li><p>@@name：well-known symbol</p>
+</li>
+<li><p>[[name]]：内部方法和内部插槽</p>
+</li>
+<li><p>%name%：当前作用域的内部对象</p>
+</li>
+<li><p>Type(x)：x 的类型</p>
+</li>
+<li><p>« element1, element2 »：List</p>
+</li>
+<li><p>PropertyDescriptor { [[Value]]: 42, [[Writable]]: false, [[Configurable]]: true }：用类似对象的方式描述 attribute</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BF%BB%E8%AF%91/" rel="tag"># 翻译</a>
+              <a href="/tags/ECMA262/" rel="tag"># ECMA262</a>
+              <a href="/tags/%E8%A7%84%E8%8C%83/" rel="tag"># 规范</a>
+              <a href="/tags/%E6%80%BB%E8%A7%88/" rel="tag"># 总览</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/23f9220f.html" rel="prev" title="ECMA-262规范第4节Overview翻译">
+      <i class="fa fa-chevron-left"></i> ECMA-262规范第4节Overview翻译
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/28742d18.html" rel="next" title="ECMA-262规范第6节中Specification Types翻译">
+      ECMA-262规范第6节中Specification Types翻译 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#翻译"><span class="nav-number">1.</span> <span class="nav-text">翻译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语言类型"><span class="nav-number">1.1.</span> <span class="nav-text">语言类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Undefined-类型"><span class="nav-number">1.1.1.</span> <span class="nav-text">Undefined 类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Null-类型"><span class="nav-number">1.1.2.</span> <span class="nav-text">Null 类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Boolean-类型"><span class="nav-number">1.1.3.</span> <span class="nav-text">Boolean 类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#String-类型"><span class="nav-number">1.1.4.</span> <span class="nav-text">String 类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Symbol-类型"><span class="nav-number">1.1.5.</span> <span class="nav-text">Symbol 类型</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Well-Known-Symbols"><span class="nav-number">1.1.5.1.</span> <span class="nav-text">Well-Known Symbols</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Number-类型"><span class="nav-number">1.1.6.</span> <span class="nav-text">Number 类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Object-类型"><span class="nav-number">1.1.7.</span> <span class="nav-text">Object 类型</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Property-Attributes"><span class="nav-number">1.1.7.1.</span> <span class="nav-text">Property Attributes</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#对象的内部方法和内部插槽"><span class="nav-number">1.1.7.2.</span> <span class="nav-text">对象的内部方法和内部插槽</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#基本内部方法的不变量"><span class="nav-number">1.1.7.3.</span> <span class="nav-text">基本内部方法的不变量</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#定义"><span class="nav-number">1.1.7.3.1.</span> <span class="nav-text">定义:</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#GetPrototypeOf-（）"><span class="nav-number">1.1.7.3.2.</span> <span class="nav-text">[[GetPrototypeOf]]（）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#SetPrototypeOf-（V）"><span class="nav-number">1.1.7.3.3.</span> <span class="nav-text">[[SetPrototypeOf]]（V）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#IsExtensible-（）"><span class="nav-number">1.1.7.3.4.</span> <span class="nav-text">[[IsExtensible]]（）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#PreventExtensions-（）"><span class="nav-number">1.1.7.3.5.</span> <span class="nav-text">[[PreventExtensions]]（）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#GetOwnProperty-（P）"><span class="nav-number">1.1.7.3.6.</span> <span class="nav-text">[[GetOwnProperty]]（P）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#DefineOwnProperty-P-Desc"><span class="nav-number">1.1.7.3.7.</span> <span class="nav-text">[[DefineOwnProperty]] ( P, Desc )</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#HasProperty-（P）"><span class="nav-number">1.1.7.3.8.</span> <span class="nav-text">[[HasProperty]]（P）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Get-P-Receiver"><span class="nav-number">1.1.7.3.9.</span> <span class="nav-text">[[Get]] ( P, Receiver )</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Set-P-V-Receiver"><span class="nav-number">1.1.7.3.10.</span> <span class="nav-text">[[Set]] ( P, V, Receiver )</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Delete-（P）"><span class="nav-number">1.1.7.3.11.</span> <span class="nav-text">[[Delete]]（P）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#OwnPropertyKeys-（）"><span class="nav-number">1.1.7.3.12.</span> <span class="nav-text">[[OwnPropertyKeys]]（）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Construct-（）"><span class="nav-number">1.1.7.3.13.</span> <span class="nav-text">[[Construct]]（）</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Well-Known-内部对象"><span class="nav-number">1.1.7.4.</span> <span class="nav-text">Well-Known 内部对象</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '43b6fc641a956b2eee6a4d3f9be18194',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

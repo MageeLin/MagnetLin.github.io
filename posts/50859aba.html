@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="在构建可视化大屏的过程中，首先要先布局组件位置和大小。上两篇文章《关于各种像素概念和前端长度单位的理解》和《CSS数学表达式calc()的规范草案翻译》学习了 CSS 相对单位 vw、vh、rem 和 clac()，本文以上两篇内容为基础，加上 mentor 仕春哥的启发，分析前端构建可视化大屏的一种布局方式。 大屏系统的内在原理硬件大屏系统实际上是由任意 n × m 块窄边显示器组成，具体如下图">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在可视化大屏布局中相对单位和calc()的应用">
+<meta property="og:url" content="https://linjingyi.cn/posts/50859aba.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="在构建可视化大屏的过程中，首先要先布局组件位置和大小。上两篇文章《关于各种像素概念和前端长度单位的理解》和《CSS数学表达式calc()的规范草案翻译》学习了 CSS 相对单位 vw、vh、rem 和 clac()，本文以上两篇内容为基础，加上 mentor 仕春哥的启发，分析前端构建可视化大屏的一种布局方式。 大屏系统的内在原理硬件大屏系统实际上是由任意 n × m 块窄边显示器组成，具体如下图">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/50859aba/%E5%A4%A7%E5%B1%8F%E5%86%85%E5%9C%A8%E5%8E%9F%E7%90%86.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/50859aba/%E6%9C%80%E4%BD%B3%E6%98%BE%E7%A4%BA%E6%95%88%E6%9E%9C.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/50859aba/%E5%A4%A7%E5%B1%8F%E6%8E%92%E7%89%88%E5%B8%83%E5%B1%80.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/50859aba/%E7%A4%BA%E4%BE%8B.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/50859aba/%E7%A4%BA%E4%BE%8B%E5%A4%84%E7%90%86%E5%90%8E.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/50859aba/%E5%9F%BA%E6%9C%AC%E9%87%8F.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/50859aba/%E5%B8%83%E5%B1%80%E7%BB%93%E6%9E%9C.png">
+<meta property="article:published_time" content="2020-02-29T22:49:42.000Z">
+<meta property="article:modified_time" content="2020-02-29T22:49:42.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="CSS">
+<meta property="article:tag" content="calc">
+<meta property="article:tag" content="大屏">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/50859aba/%E5%A4%A7%E5%B1%8F%E5%86%85%E5%9C%A8%E5%8E%9F%E7%90%86.jpg">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/50859aba.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>在可视化大屏布局中相对单位和calc()的应用 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/50859aba.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          在可视化大屏布局中相对单位和calc()的应用
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-01 06:49:42" itemprop="dateCreated datePublished" datetime="2020-03-01T06:49:42+08:00">2020-03-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/CSS/" itemprop="url" rel="index">
+                    <span itemprop="name">CSS</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%A4%A7%E5%B1%8F/" itemprop="url" rel="index">
+                    <span itemprop="name">大屏</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在构建可视化大屏的过程中，首先要先布局组件位置和大小。上两篇文章<a href="https://linjingyi.cn/posts/3680799e.html">《关于各种像素概念和前端长度单位的理解》</a>和<a href="https://linjingyi.cn/posts/ef0a6799.html">《CSS数学表达式calc()的规范草案翻译》</a>学习了 CSS 相对单位 <code>vw</code>、<code>vh</code>、<code>rem</code> 和 <code>clac()</code>，本文以上两篇内容为基础，加上 mentor 仕春哥的启发，分析前端构建可视化大屏的一种布局方式。</p>
+<h2 id="大屏系统的内在原理"><a href="#大屏系统的内在原理" class="headerlink" title="大屏系统的内在原理"></a>大屏系统的内在原理</h2><h3 id="硬件"><a href="#硬件" class="headerlink" title="硬件"></a>硬件</h3><p>大屏系统实际上是由任意 <code>n × m</code> 块窄边显示器组成，具体如下图示例所示：</p>
+<a id="more"></a>
+
+<p><img src="/posts/50859aba/%E5%A4%A7%E5%B1%8F%E5%86%85%E5%9C%A8%E5%8E%9F%E7%90%86.jpg" alt></p>
+<p>该例子中左下信号源的两台电脑通过显卡计算显示被投屏的内容，然后输出到大屏接收器中的矩阵切换器。矩阵切换器将两台电脑中的多路信号转换成单路信号。这个过程中播放控制设备可以控制两个画面的拼接的位置和模式（比如组合显示、开窗、漫游、叠加）。最后传输给上半部分的 <code>4 × 2</code> 块显示器大屏（拼接墙），最后展示大屏画面。</p>
+<h3 id="最佳显示效果"><a href="#最佳显示效果" class="headerlink" title="最佳显示效果"></a>最佳显示效果</h3><p>如果想实现最佳显示效果，应该满足下面的条件：</p>
+<p><img src="/posts/50859aba/%E6%9C%80%E4%BD%B3%E6%98%BE%E7%A4%BA%E6%95%88%E6%9E%9C.jpg" alt></p>
+<ul>
+<li><p>大屏逻辑分辨率（设计稿尺寸）的长宽比 = 大屏实际物理分辨率的长宽比</p>
+</li>
+<li><p>大屏逻辑分辨率（设计稿尺寸）的长宽比 = 显卡输出分辨率的长宽比</p>
+</li>
+<li><p>显卡输出分辨率 = 视频矩阵切换器支持分辨率 = 大屏实际物理分辨率</p>
+</li>
+</ul>
+<p>在实际实现时，大屏一般由 <code>n × n</code> 块长宽比 <code>16：9</code>，分辨率为 <code>1920×1080</code> 的液晶屏拼接成，如果是 <code>5 × 5</code> 块大屏，实际物理分辨率已经达到了 <code>9600×5400</code>。但是，不管是显卡还是矩阵切换器，能支持 <code>4k</code> 显示（<code>4096×2160</code>）就很优秀了。所以在设计和前端实现时，一般符合 <code>16：9</code> 的比例的 <code>1920×1080</code> 分辨率，就可以高质量的进行大屏展示。</p>
+<h2 id="设计稿分割"><a href="#设计稿分割" class="headerlink" title="设计稿分割"></a>设计稿分割</h2><h3 id="设计规则"><a href="#设计规则" class="headerlink" title="设计规则"></a>设计规则</h3><p>大屏的排版布局一般遵循下面的规则，主中间，次两边，附加各种动效和下钻：</p>
+<p><img src="/posts/50859aba/%E5%A4%A7%E5%B1%8F%E6%8E%92%E7%89%88%E5%B8%83%E5%B1%80.jpg" alt></p>
+<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><p>在谷歌上搜索了一个大屏设计稿的例子——<a href="https://www.zhisheji.com/yuanchuang/1164232.html" target="_blank" rel="external nofollow noopener noreferrer">中国移动全球基站管理</a>，示例图片如下：</p>
+<p><img src="/posts/50859aba/%E7%A4%BA%E4%BE%8B.png" alt></p>
+<p>这个例子很符合主中间，次两边的规则，而且很显然中间的 3D 地球应该是有动效，两侧的卡片是可以下钻的。将图片大致分割一些，应该主要由以下部分构成：</p>
+<p><img src="/posts/50859aba/%E7%A4%BA%E4%BE%8B%E5%A4%84%E7%90%86%E5%90%8E.png" alt></p>
+<h2 id="前端布局"><a href="#前端布局" class="headerlink" title="前端布局"></a>前端布局</h2><p>由于大屏的每个组件卡片排布方式都不同，普通的定位很难适配所有情况，所以这里使用 <code>position: absolute</code> 绝对定位脱离文档流，用 <code>top</code>、<code>left</code>、<code>width</code>、<code>height</code> 来定位组件卡片。</p>
+<h3 id="定义基本量和卡片名"><a href="#定义基本量和卡片名" class="headerlink" title="定义基本量和卡片名"></a>定义基本量和卡片名</h3><p>首先把基本量的长度先定义下来，这里的基本量可以复用，用画图做一个巨丑的简单示意图如下：</p>
+<p><img src="/posts/50859aba/%E5%9F%BA%E6%9C%AC%E9%87%8F.png" alt></p>
+<p>标题的高度为 <code>heightHeader</code>，正文主体部分的<code>外边距</code>分别为 <code>marginMainTop</code>、<code>marginMainRight</code>、<code>marginMainBotom</code>、<code>marginMainLeft</code>，正文中每个小卡片的<code>外边距</code>为 <code>marginCardTopBottom</code>、<code>marginCardLeftRight</code>（这里的边距并不是真正的 <code>margin</code>，只是表达类似的概念）。与 <code>x</code> 轴相关的长度统一用相对单位 <code>vw</code>，与 <code>y</code> 轴相关的长度统一用 <code>vw</code>，基础变量设置如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 基础变量的设定</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="comment">// 标题部分的高度</span></span><br><span class="line"><span class="keyword">const</span> heightHeader = <span class="string">'8vh'</span>;</span><br><span class="line"><span class="comment">// 正文部分的外边距</span></span><br><span class="line"><span class="keyword">const</span> marginMainTop = <span class="string">'0.7vh'</span>;</span><br><span class="line"><span class="keyword">const</span> marginMainBottom = <span class="string">'0.7vh'</span>;</span><br><span class="line"><span class="keyword">const</span> marginMainLeft = <span class="string">'0.7vw'</span>;</span><br><span class="line"><span class="keyword">const</span> marginMainRight = <span class="string">'0.7vw'</span>;</span><br><span class="line"><span class="comment">// 每个小卡片的外边距</span></span><br><span class="line"><span class="keyword">const</span> marginCardTopBottom = <span class="string">'0.5vh'</span>;</span><br><span class="line"><span class="keyword">const</span> marginCardLeftRight = <span class="string">'0.5vw'</span>;</span><br></pre></td></tr></table></figure>
+
+<p>将每个卡片的中文标题翻译为英文<code>简称</code>，命名如下：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>英文翻译</th>
+<th>简称</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>标题</td>
+<td>header</td>
+<td>HD</td>
+</tr>
+<tr>
+<td>信号处理情况</td>
+<td>Signal processing situation</td>
+<td>SPS</td>
+</tr>
+<tr>
+<td>动态 3D 地球</td>
+<td>Dynamic 3D earth</td>
+<td>D3E</td>
+</tr>
+<tr>
+<td>基站信息数据统计</td>
+<td>Base station information data statistics</td>
+<td>BSIDS</td>
+</tr>
+<tr>
+<td>国家基站变化对比</td>
+<td>Comparison of changes in national base stations</td>
+<td>CCNBS</td>
+</tr>
+<tr>
+<td>基站总体变化</td>
+<td>Overall change of base station</td>
+<td>OCBS</td>
+</tr>
+</tbody></table>
+<h3 id="使用-calc-计算"><a href="#使用-calc-计算" class="headerlink" title="使用 calc()计算"></a>使用 calc()计算</h3><p>接下来就是最核心的地方，新建一个 <code>config.js</code> 文件，存放 <code>calc()</code>模板，给每个卡片都计算自己的 <code>top</code>、<code>left</code>、<code>width</code>、<code>height</code> 值。</p>
+<p>以 <code>y</code> 方向举例，“标题”只需要计算 <code>height</code>，，但是计算“信号处理情况”的 <code>top</code> 就需要在 <code>heightHD</code> 的基础上加上正文上边距 <code>marginMainTop</code> 和卡片上边距 <code>marginCardTopBottom</code>。</p>
+<p>另外，最下面和最右面的组件卡片 <code>width</code> 和 <code>height</code> 需要利用 <code>100%</code>来减，完成自适应效果。还是以 <code>y</code> 方向举例，“基站总体变化”卡片，<code>height</code> 计算时，需要用 <code>100%减</code>去正文下边距 <code>marginMainBottom</code>、卡片下边距 <code>marginCardTopBottom</code> 和卡片自身的 <code>top</code> 值 <code>topOCBS</code>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 计算每个部分的top、left、height、width</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 标题 header HD</span></span><br><span class="line"><span class="keyword">const</span> topHD = <span class="string">`0vh`</span>;</span><br><span class="line"><span class="keyword">const</span> heightHD = <span class="string">`calc(<span class="subst">$&#123;heightHeader&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> leftHD = <span class="string">`0vw`</span>;</span><br><span class="line"><span class="keyword">const</span> widthHD = <span class="string">`100%`</span>;</span><br><span class="line"><span class="comment">// 信号处理情况 Signal processing situation SPS</span></span><br><span class="line"><span class="keyword">const</span> topSPS = <span class="string">`calc(<span class="subst">$&#123;heightHeader&#125;</span> + <span class="subst">$&#123;marginMainTop&#125;</span> + <span class="subst">$&#123;marginCardTopBottom&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> heightSPS = <span class="string">`50vh`</span>;</span><br><span class="line"><span class="keyword">const</span> leftSPS = <span class="string">`calc(<span class="subst">$&#123;marginMainLeft&#125;</span> + <span class="subst">$&#123;marginCardLeftRight&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> widthSPS = <span class="string">`15vw`</span>;</span><br><span class="line"><span class="comment">// 动态3D地球 Dynamic 3D earth D3E</span></span><br><span class="line"><span class="keyword">const</span> topD3E = <span class="string">`calc(<span class="subst">$&#123;heightHeader&#125;</span> + <span class="subst">$&#123;marginMainTop&#125;</span> + <span class="subst">$&#123;marginCardTopBottom&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> heightD3E = <span class="string">`calc(100% - <span class="subst">$&#123;marginMainBottom&#125;</span> - <span class="subst">$&#123;marginCardTopBottom&#125;</span> - <span class="subst">$&#123;topD3E&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> leftD3E = <span class="string">`calc(<span class="subst">$&#123;marginMainLeft&#125;</span> + <span class="subst">$&#123;marginCardLeftRight&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> widthD3E = <span class="string">`70vw`</span>;</span><br><span class="line"><span class="comment">// 基站信息数据统计 Base station information data statistics BSIDS</span></span><br><span class="line"><span class="keyword">const</span> topBSIDS = <span class="string">`calc(<span class="subst">$&#123;heightHeader&#125;</span> + <span class="subst">$&#123;marginMainTop&#125;</span> + <span class="subst">$&#123;marginCardTopBottom&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> heightBSIDS = <span class="string">`35vh`</span>;</span><br><span class="line"><span class="keyword">const</span> leftBSIDS = <span class="string">`calc(<span class="subst">$&#123;leftD3E&#125;</span> + <span class="subst">$&#123;widthD3E&#125;</span> + <span class="subst">$&#123;marginCardLeftRight&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> widthBSIDS = <span class="string">`calc(100% - <span class="subst">$&#123;leftBSIDS&#125;</span> - <span class="subst">$&#123;marginCardLeftRight&#125;</span> - <span class="subst">$&#123;marginMainRight&#125;</span>)`</span>;</span><br><span class="line"><span class="comment">// 国家基站变化对比 Comparison of changes in national base stations CCNBS</span></span><br><span class="line"><span class="keyword">const</span> topCCNBS = <span class="string">`calc(<span class="subst">$&#123;topBSIDS&#125;</span> + <span class="subst">$&#123;heightBSIDS&#125;</span> + <span class="subst">$&#123;marginCardTopBottom&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> heightCCNBS = <span class="string">`35vh`</span>;</span><br><span class="line"><span class="keyword">const</span> leftCCNBS = <span class="string">`calc(<span class="subst">$&#123;leftD3E&#125;</span> + <span class="subst">$&#123;widthD3E&#125;</span> + <span class="subst">$&#123;marginCardLeftRight&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> widthCCNBS = <span class="string">`calc(100% - <span class="subst">$&#123;leftCCNBS&#125;</span> - <span class="subst">$&#123;marginCardLeftRight&#125;</span> - <span class="subst">$&#123;marginMainRight&#125;</span>)`</span>;</span><br><span class="line"><span class="comment">// 基站总体变化 Overall change of base station OCBS</span></span><br><span class="line"><span class="keyword">const</span> topOCBS = <span class="string">`calc(<span class="subst">$&#123;topCCNBS&#125;</span> + <span class="subst">$&#123;heightCCNBS&#125;</span> + <span class="subst">$&#123;marginCardTopBottom&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> heightOCBS = <span class="string">`calc(100% - <span class="subst">$&#123;marginMainBottom&#125;</span> - <span class="subst">$&#123;marginCardTopBottom&#125;</span> - <span class="subst">$&#123;topOCBS&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> leftOCBS = <span class="string">`calc(<span class="subst">$&#123;leftD3E&#125;</span> + <span class="subst">$&#123;widthD3E&#125;</span> + <span class="subst">$&#123;marginCardLeftRight&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> widthOCBS = <span class="string">`calc(100% - <span class="subst">$&#123;leftOCBS&#125;</span> - <span class="subst">$&#123;marginCardLeftRight&#125;</span> - <span class="subst">$&#123;marginMainRight&#125;</span>)`</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置输出"><a href="#配置输出" class="headerlink" title="配置输出"></a>配置输出</h3><p>把上述计算的配置项输出，使用<code>简称</code>为<code>键名</code>，需要配置的 CSS <code>属性</code>为<code>键值</code>。</p>
+<p>比较特殊的两项是“信号处理情况”和“动态 3D 地球”。这两个组件相互叠加，需要把上层组件和下层组件设置不同的 <code>z-index</code> 来区分高低。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description </span>生成配置对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;&#125;</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;Object&#125;</span> </span>每个id对应的需要配置的style</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">let</span> generatorConfigLayout = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    HD: &#123;</span><br><span class="line">      top: topHD,</span><br><span class="line">      left: leftHD,</span><br><span class="line">      height: heightHD,</span><br><span class="line">      width: widthHD</span><br><span class="line">    &#125;,</span><br><span class="line">    SPS: &#123;</span><br><span class="line">      top: topSPS,</span><br><span class="line">      left: leftSPS,</span><br><span class="line">      height: heightSPS,</span><br><span class="line">      width: widthSPS,</span><br><span class="line">      <span class="comment">// 类似左侧的底图，需要加个z-index</span></span><br><span class="line">      <span class="string">'z-index'</span>: <span class="number">2</span></span><br><span class="line">    &#125;,</span><br><span class="line">    D3E: &#123;</span><br><span class="line">      top: topD3E,</span><br><span class="line">      left: leftD3E,</span><br><span class="line">      height: heightD3E,</span><br><span class="line">      width: widthD3E,</span><br><span class="line">      <span class="comment">// 类似左侧的底图，需要加个z-index</span></span><br><span class="line">      <span class="string">'z-index'</span>: <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    BSIDS: &#123;</span><br><span class="line">      top: topBSIDS,</span><br><span class="line">      left: leftBSIDS,</span><br><span class="line">      height: heightBSIDS,</span><br><span class="line">      width: widthBSIDS</span><br><span class="line">    &#125;,</span><br><span class="line">    CCNBS: &#123;</span><br><span class="line">      top: topCCNBS,</span><br><span class="line">      left: leftCCNBS,</span><br><span class="line">      height: heightCCNBS,</span><br><span class="line">      width: widthCCNBS</span><br><span class="line">    &#125;,</span><br><span class="line">    OCBS: &#123;</span><br><span class="line">      top: topOCBS,</span><br><span class="line">      left: leftOCBS,</span><br><span class="line">      height: heightOCBS,</span><br><span class="line">      width: widthOCBS</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 最后导出配置函数</span></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> generatorConfigLayout;</span><br></pre></td></tr></table></figure>
+
+<h2 id="页面样式"><a href="#页面样式" class="headerlink" title="页面样式"></a>页面样式</h2><h3 id="html"><a href="#html" class="headerlink" title="html"></a>html</h3><p>页面的样式就比较简单，首先新建一个 <code>index.html</code>，然后要给 <code>html</code> 和 <code>body</code> 设置一个基础样式，<code>z-index</code> 是为了把 <code>body</code> 放在最底层，<code>overflow: hidden</code> 防止出现滚动条。设置根元素字体大小时使用相对大小，让文字在不同分辨率中视觉效果尽量统一（注意：Chrome 最小字体大小为 <code>12px</code>）。</p>
+<p>每个组件的标签都有自己的 <code>id</code>，<code>id</code> 为简称。在通用<code>.layout</code> 样式中，给每个组件设置<code>绝对定位</code>。为了容易区分，给每个标签设置了不同的<code>背景颜色</code>。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>可视化大屏布局<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line"><span class="css">      <span class="comment">/*  */</span></span></span><br><span class="line">      html,</span><br><span class="line">      body &#123;</span><br><span class="line"><span class="css">        <span class="comment">/* 布局必需start */</span></span></span><br><span class="line">        margin: 0;</span><br><span class="line">        padding: 0;</span><br><span class="line">        width: 100%;</span><br><span class="line">        height: 100%;</span><br><span class="line">        z-index: -1;</span><br><span class="line">        overflow: hidden;</span><br><span class="line"><span class="css">        <span class="comment">/* 布局必需end */</span></span></span><br><span class="line"><span class="css">        <span class="comment">/* 让字体使用相对大小 */</span></span></span><br><span class="line">        font-size: calc(100vw / 120);</span><br><span class="line"><span class="css">        <span class="selector-tag">background-color</span>: <span class="selector-id">#fdffdf</span>;</span></span><br><span class="line">      &#125;</span><br><span class="line">      p &#123;</span><br><span class="line">        margin: 0;</span><br><span class="line">      &#125;</span><br><span class="line"><span class="css">      <span class="selector-class">.layout</span> &#123;</span></span><br><span class="line"><span class="css">        <span class="comment">/* 布局必需start */</span></span></span><br><span class="line">        position: absolute;</span><br><span class="line">        overflow: hidden;</span><br><span class="line"><span class="css">        <span class="comment">/* 布局必需end */</span></span></span><br><span class="line"><span class="css">        <span class="comment">/* flex start */</span></span></span><br><span class="line">        display: flex;</span><br><span class="line">        flex-direction: column;</span><br><span class="line">        justify-content: space-around;</span><br><span class="line">        align-items: center;</span><br><span class="line"><span class="css">        <span class="comment">/* flex end */</span></span></span><br><span class="line"><span class="css">        <span class="comment">/* border: 1px solid bisque; */</span></span></span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"HD"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color: #EFCEE8;"</span>&gt;</span></span><br><span class="line">      标题</span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"SPS"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color:#F0F0F0;"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>信号处理情况<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"D3E"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color:#F3D7B5;"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>动态3D地球<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"BSIDS"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color:#DAF9CA;"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>基站信息数据统计<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"CCNBS"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color:#C7B3E5;"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>国家基站变化对比<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"OCBS"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color:#A79496;"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>基站总体变化<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="配置导入"><a href="#配置导入" class="headerlink" title="配置导入"></a>配置导入</h3><p>为了让浏览器能使用 ES6 的导入导出，需要在 <code>script 标签</code>中添加 <code>type=&quot;module&quot;</code>。</p>
+<p>从上节的<code>配置文件</code>中导入 <code>generatorConfigLayout</code> 函数，执行函数生成布局变量 <code>configLayout</code>。遍历 <code>configLayout</code>，每次执行 <code>setStyle()</code>函数，将 css 样式设置给相对应的组件标签。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"module"</span>&gt;</span></span><br><span class="line"><span class="javascript">  <span class="keyword">import</span> generatorConfigLayout <span class="keyword">from</span> <span class="string">'./config.js'</span>;</span></span><br><span class="line">  /**</span><br><span class="line">   * @description 根据id和对应配置项config给dom添加style</span><br><span class="line"><span class="javascript">   * @param &#123;<span class="built_in">String</span>&#125; id id</span></span><br><span class="line"><span class="javascript">   * @param &#123;<span class="built_in">Object</span>&#125; config 每个id对应配置项</span></span><br><span class="line">   */</span><br><span class="line"><span class="javascript">  <span class="keyword">const</span> setStyle = <span class="function">(<span class="params">id, config</span>) =&gt;</span> &#123;</span></span><br><span class="line"><span class="javascript">    <span class="keyword">let</span> dom = <span class="built_in">document</span>.querySelector(<span class="string">`#<span class="subst">$&#123;id&#125;</span>`</span>);</span></span><br><span class="line"><span class="javascript">    <span class="built_in">Object</span>.keys(config).forEach(<span class="function"><span class="params">item</span> =&gt;</span> &#123;</span></span><br><span class="line">      dom.style[item] = config[item];</span><br><span class="line"><span class="javascript">      dom.innerHTML += <span class="string">`&lt;p&gt;<span class="subst">$&#123;item&#125;</span> : <span class="subst">$&#123;config[item]&#125;</span>&lt;/p&gt;`</span>;</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;;</span><br><span class="line"><span class="actionscript">  <span class="comment">// 循环每个id，给每个标签都设置style</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> configLayout = generatorConfigLayout();</span></span><br><span class="line"><span class="javascript">  <span class="built_in">Object</span>.keys(configLayout).forEach(<span class="function"><span class="params">key</span> =&gt;</span> &#123;</span></span><br><span class="line">    setStyle(key, configLayout[key]);</span><br><span class="line">  &#125;);</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>最后生成的布局结果如下所示，完成！</p>
+<p><img src="/posts/50859aba/%E5%B8%83%E5%B1%80%E7%BB%93%E6%9E%9C.png" alt></p>
+<h2 id="全部代码"><a href="#全部代码" class="headerlink" title="全部代码"></a>全部代码</h2><p>全部代码如下：<br>config.js：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 基础变量的设定</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="comment">// 标题部分的高度</span></span><br><span class="line"><span class="keyword">const</span> heightHeader = <span class="string">'8vh'</span>;</span><br><span class="line"><span class="comment">// 正文部分的外边距</span></span><br><span class="line"><span class="keyword">const</span> marginMainTop = <span class="string">'0.7vh'</span>;</span><br><span class="line"><span class="keyword">const</span> marginMainBottom = <span class="string">'0.7vh'</span>;</span><br><span class="line"><span class="keyword">const</span> marginMainLeft = <span class="string">'0.7vw'</span>;</span><br><span class="line"><span class="keyword">const</span> marginMainRight = <span class="string">'0.7vw'</span>;</span><br><span class="line"><span class="comment">// 每个小卡片的外边距</span></span><br><span class="line"><span class="keyword">const</span> marginCardTopBottom = <span class="string">'0.5vh'</span>;</span><br><span class="line"><span class="keyword">const</span> marginCardLeftRight = <span class="string">'0.5vw'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 计算每个部分的top、left、height、width</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 标题 header HD</span></span><br><span class="line"><span class="keyword">const</span> topHD = <span class="string">`0vh`</span>;</span><br><span class="line"><span class="keyword">const</span> heightHD = <span class="string">`calc(<span class="subst">$&#123;heightHeader&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> leftHD = <span class="string">`0vw`</span>;</span><br><span class="line"><span class="keyword">const</span> widthHD = <span class="string">`100%`</span>;</span><br><span class="line"><span class="comment">// 信号处理情况 Signal processing situation SPS</span></span><br><span class="line"><span class="keyword">const</span> topSPS = <span class="string">`calc(<span class="subst">$&#123;heightHeader&#125;</span> + <span class="subst">$&#123;marginMainTop&#125;</span> + <span class="subst">$&#123;marginCardTopBottom&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> heightSPS = <span class="string">`50vh`</span>;</span><br><span class="line"><span class="keyword">const</span> leftSPS = <span class="string">`calc(<span class="subst">$&#123;marginMainLeft&#125;</span> + <span class="subst">$&#123;marginCardLeftRight&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> widthSPS = <span class="string">`15vw`</span>;</span><br><span class="line"><span class="comment">// 动态3D地球 Dynamic 3D earth D3E</span></span><br><span class="line"><span class="keyword">const</span> topD3E = <span class="string">`calc(<span class="subst">$&#123;heightHeader&#125;</span> + <span class="subst">$&#123;marginMainTop&#125;</span> + <span class="subst">$&#123;marginCardTopBottom&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> heightD3E = <span class="string">`calc(100% - <span class="subst">$&#123;marginMainBottom&#125;</span> - <span class="subst">$&#123;marginCardTopBottom&#125;</span> - <span class="subst">$&#123;topD3E&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> leftD3E = <span class="string">`calc(<span class="subst">$&#123;marginMainLeft&#125;</span> + <span class="subst">$&#123;marginCardLeftRight&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> widthD3E = <span class="string">`70vw`</span>;</span><br><span class="line"><span class="comment">// 基站信息数据统计 Base station information data statistics BSIDS</span></span><br><span class="line"><span class="keyword">const</span> topBSIDS = <span class="string">`calc(<span class="subst">$&#123;heightHeader&#125;</span> + <span class="subst">$&#123;marginMainTop&#125;</span> + <span class="subst">$&#123;marginCardTopBottom&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> heightBSIDS = <span class="string">`35vh`</span>;</span><br><span class="line"><span class="keyword">const</span> leftBSIDS = <span class="string">`calc(<span class="subst">$&#123;leftD3E&#125;</span> + <span class="subst">$&#123;widthD3E&#125;</span> + <span class="subst">$&#123;marginCardLeftRight&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> widthBSIDS = <span class="string">`calc(100% - <span class="subst">$&#123;leftBSIDS&#125;</span> - <span class="subst">$&#123;marginCardLeftRight&#125;</span> - <span class="subst">$&#123;marginMainRight&#125;</span>)`</span>;</span><br><span class="line"><span class="comment">// 国家基站变化对比 Comparison of changes in national base stations CCNBS</span></span><br><span class="line"><span class="keyword">const</span> topCCNBS = <span class="string">`calc(<span class="subst">$&#123;topBSIDS&#125;</span> + <span class="subst">$&#123;heightBSIDS&#125;</span> + <span class="subst">$&#123;marginCardTopBottom&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> heightCCNBS = <span class="string">`35vh`</span>;</span><br><span class="line"><span class="keyword">const</span> leftCCNBS = <span class="string">`calc(<span class="subst">$&#123;leftD3E&#125;</span> + <span class="subst">$&#123;widthD3E&#125;</span> + <span class="subst">$&#123;marginCardLeftRight&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> widthCCNBS = <span class="string">`calc(100% - <span class="subst">$&#123;leftCCNBS&#125;</span> - <span class="subst">$&#123;marginCardLeftRight&#125;</span> - <span class="subst">$&#123;marginMainRight&#125;</span>)`</span>;</span><br><span class="line"><span class="comment">// 基站总体变化 Overall change of base station OCBS</span></span><br><span class="line"><span class="keyword">const</span> topOCBS = <span class="string">`calc(<span class="subst">$&#123;topCCNBS&#125;</span> + <span class="subst">$&#123;heightCCNBS&#125;</span> + <span class="subst">$&#123;marginCardTopBottom&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> heightOCBS = <span class="string">`calc(100% - <span class="subst">$&#123;marginMainBottom&#125;</span> - <span class="subst">$&#123;marginCardTopBottom&#125;</span> - <span class="subst">$&#123;topOCBS&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> leftOCBS = <span class="string">`calc(<span class="subst">$&#123;leftD3E&#125;</span> + <span class="subst">$&#123;widthD3E&#125;</span> + <span class="subst">$&#123;marginCardLeftRight&#125;</span>)`</span>;</span><br><span class="line"><span class="keyword">const</span> widthOCBS = <span class="string">`calc(100% - <span class="subst">$&#123;leftOCBS&#125;</span> - <span class="subst">$&#123;marginCardLeftRight&#125;</span> - <span class="subst">$&#123;marginMainRight&#125;</span>)`</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description </span>生成配置对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;&#125;</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;Object&#125;</span> </span>每个id对应的需要配置的style</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">let</span> generatorConfigLayout = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    HD: &#123;</span><br><span class="line">      top: topHD,</span><br><span class="line">      left: leftHD,</span><br><span class="line">      height: heightHD,</span><br><span class="line">      width: widthHD</span><br><span class="line">    &#125;,</span><br><span class="line">    SPS: &#123;</span><br><span class="line">      top: topSPS,</span><br><span class="line">      left: leftSPS,</span><br><span class="line">      height: heightSPS,</span><br><span class="line">      width: widthSPS,</span><br><span class="line">      <span class="comment">// 类似左侧的底图，需要加个z-index</span></span><br><span class="line">      <span class="string">'z-index'</span>: <span class="number">2</span></span><br><span class="line">    &#125;,</span><br><span class="line">    D3E: &#123;</span><br><span class="line">      top: topD3E,</span><br><span class="line">      left: leftD3E,</span><br><span class="line">      height: heightD3E,</span><br><span class="line">      width: widthD3E,</span><br><span class="line">      <span class="comment">// 类似左侧的底图，需要加个z-index</span></span><br><span class="line">      <span class="string">'z-index'</span>: <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    BSIDS: &#123;</span><br><span class="line">      top: topBSIDS,</span><br><span class="line">      left: leftBSIDS,</span><br><span class="line">      height: heightBSIDS,</span><br><span class="line">      width: widthBSIDS</span><br><span class="line">    &#125;,</span><br><span class="line">    CCNBS: &#123;</span><br><span class="line">      top: topCCNBS,</span><br><span class="line">      left: leftCCNBS,</span><br><span class="line">      height: heightCCNBS,</span><br><span class="line">      width: widthCCNBS</span><br><span class="line">    &#125;,</span><br><span class="line">    OCBS: &#123;</span><br><span class="line">      top: topOCBS,</span><br><span class="line">      left: leftOCBS,</span><br><span class="line">      height: heightOCBS,</span><br><span class="line">      width: widthOCBS</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> generatorConfigLayout;</span><br></pre></td></tr></table></figure>
+
+<p>index.html:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>可视化大屏布局<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line"><span class="css">      <span class="comment">/*  */</span></span></span><br><span class="line">      html,</span><br><span class="line">      body &#123;</span><br><span class="line"><span class="css">        <span class="comment">/* 布局必需start */</span></span></span><br><span class="line">        margin: 0;</span><br><span class="line">        padding: 0;</span><br><span class="line">        width: 100%;</span><br><span class="line">        height: 100%;</span><br><span class="line">        z-index: -1;</span><br><span class="line">        overflow: hidden;</span><br><span class="line"><span class="css">        <span class="comment">/* 布局必需end */</span></span></span><br><span class="line"><span class="css">        <span class="comment">/* 让字体使用相对大小 */</span></span></span><br><span class="line">        font-size: calc(100vw / 120);</span><br><span class="line"><span class="css">        <span class="selector-tag">background-color</span>: <span class="selector-id">#fdffdf</span>;</span></span><br><span class="line">      &#125;</span><br><span class="line">      p &#123;</span><br><span class="line">        margin: 0;</span><br><span class="line">      &#125;</span><br><span class="line"><span class="css">      <span class="selector-class">.layout</span> &#123;</span></span><br><span class="line"><span class="css">        <span class="comment">/* 布局必需start */</span></span></span><br><span class="line">        position: absolute;</span><br><span class="line">        overflow: hidden;</span><br><span class="line"><span class="css">        <span class="comment">/* 布局必需end */</span></span></span><br><span class="line"><span class="css">        <span class="comment">/* flex start */</span></span></span><br><span class="line">        display: flex;</span><br><span class="line">        flex-direction: column;</span><br><span class="line">        justify-content: space-around;</span><br><span class="line">        align-items: center;</span><br><span class="line"><span class="css">        <span class="comment">/* flex end */</span></span></span><br><span class="line"><span class="css">        <span class="comment">/* border: 1px solid bisque; */</span></span></span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"HD"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color: #EFCEE8;"</span>&gt;</span></span><br><span class="line">      标题</span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"SPS"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color:#F0F0F0;"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>信号处理情况<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"D3E"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color:#F3D7B5;"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>动态3D地球<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"BSIDS"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color:#DAF9CA;"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>基站信息数据统计<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"CCNBS"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color:#C7B3E5;"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>国家基站变化对比<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"OCBS"</span> <span class="attr">class</span>=<span class="string">"layout"</span> <span class="attr">style</span>=<span class="string">"background-color:#A79496;"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>基站总体变化<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"module"</span>&gt;</span></span><br><span class="line"><span class="javascript">      <span class="keyword">import</span> generatorConfigLayout <span class="keyword">from</span> <span class="string">'./config.js'</span>;</span></span><br><span class="line">      /**</span><br><span class="line">       * @description 根据id和对应配置项config给dom添加style</span><br><span class="line"><span class="javascript">       * @param &#123;<span class="built_in">String</span>&#125; id id</span></span><br><span class="line"><span class="javascript">       * @param &#123;<span class="built_in">Object</span>&#125; config 每个id对应配置项</span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">const</span> setStyle = <span class="function">(<span class="params">id, config</span>) =&gt;</span> &#123;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> dom = <span class="built_in">document</span>.querySelector(<span class="string">`#<span class="subst">$&#123;id&#125;</span>`</span>);</span></span><br><span class="line"><span class="javascript">        <span class="built_in">Object</span>.keys(config).forEach(<span class="function"><span class="params">item</span> =&gt;</span> &#123;</span></span><br><span class="line">          dom.style[item] = config[item];</span><br><span class="line"><span class="javascript">          dom.innerHTML += <span class="string">`&lt;p&gt;<span class="subst">$&#123;item&#125;</span> : <span class="subst">$&#123;config[item]&#125;</span>&lt;/p&gt;`</span>;</span></span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;;</span><br><span class="line"><span class="actionscript">      <span class="comment">// 循环每个id，给每个标签都设置style</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> configLayout = generatorConfigLayout();</span></span><br><span class="line"><span class="javascript">      <span class="built_in">Object</span>.keys(configLayout).forEach(<span class="function"><span class="params">key</span> =&gt;</span> &#123;</span></span><br><span class="line">        setStyle(key, configLayout[key]);</span><br><span class="line">      &#125;);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/CSS/" rel="tag"># CSS</a>
+              <a href="/tags/calc/" rel="tag"># calc</a>
+              <a href="/tags/%E5%A4%A7%E5%B1%8F/" rel="tag"># 大屏</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/ef0a6799.html" rel="prev" title="CSS数学表达式calc()的规范草案翻译">
+      <i class="fa fa-chevron-left"></i> CSS数学表达式calc()的规范草案翻译
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/56b66aa5.html" rel="next" title="CSS3中border-image的草案翻译和应用">
+      CSS3中border-image的草案翻译和应用 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#大屏系统的内在原理"><span class="nav-number">1.</span> <span class="nav-text">大屏系统的内在原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#硬件"><span class="nav-number">1.1.</span> <span class="nav-text">硬件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最佳显示效果"><span class="nav-number">1.2.</span> <span class="nav-text">最佳显示效果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设计稿分割"><span class="nav-number">2.</span> <span class="nav-text">设计稿分割</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设计规则"><span class="nav-number">2.1.</span> <span class="nav-text">设计规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例"><span class="nav-number">2.2.</span> <span class="nav-text">实例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前端布局"><span class="nav-number">3.</span> <span class="nav-text">前端布局</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定义基本量和卡片名"><span class="nav-number">3.1.</span> <span class="nav-text">定义基本量和卡片名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-calc-计算"><span class="nav-number">3.2.</span> <span class="nav-text">使用 calc()计算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置输出"><span class="nav-number">3.3.</span> <span class="nav-text">配置输出</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#页面样式"><span class="nav-number">4.</span> <span class="nav-text">页面样式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#html"><span class="nav-number">4.1.</span> <span class="nav-text">html</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置导入"><span class="nav-number">4.2.</span> <span class="nav-text">配置导入</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全部代码"><span class="nav-number">5.</span> <span class="nav-text">全部代码</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '226741b2b342e027409333a4fab4372c',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

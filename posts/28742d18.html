@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="前面的文章—ECMA-262 规范第 6 节中 Language Types 翻译—翻译了 ECMA-262 规范的 ECMAScript Data Types and Values 章节的前半部分 Language Types，下面翻译后半部分 Specification Types。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ECMA-262规范第6节中Specification Types翻译">
+<meta property="og:url" content="https://linjingyi.cn/posts/28742d18.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="前面的文章—ECMA-262 规范第 6 节中 Language Types 翻译—翻译了 ECMA-262 规范的 ECMAScript Data Types and Values 章节的前半部分 Language Types，下面翻译后半部分 Specification Types。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-03-15T22:06:37.000Z">
+<meta property="article:modified_time" content="2020-03-15T22:06:37.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="翻译">
+<meta property="article:tag" content="ECMA262">
+<meta property="article:tag" content="规范">
+<meta property="article:tag" content="总览">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/28742d18.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>ECMA-262规范第6节中Specification Types翻译 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/28742d18.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          ECMA-262规范第6节中Specification Types翻译
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-16 06:06:37" itemprop="dateCreated datePublished" datetime="2020-03-16T06:06:37+08:00">2020-03-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/" itemprop="url" rel="index">
+                    <span itemprop="name">JS</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E8%A7%84%E8%8C%83/" itemprop="url" rel="index">
+                    <span itemprop="name">规范</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>前面的文章—<a href="https://linjingyi.cn/posts/be1c11d1.html">ECMA-262 规范第 6 节中 Language Types 翻译</a>—翻译了 ECMA-262 规范的 ECMAScript Data Types and Values 章节的前半部分 Language Types，下面翻译后半部分 Specification Types。</p>
+<a id="more"></a>
+
+<h2 id="翻译"><a href="#翻译" class="headerlink" title="翻译"></a>翻译</h2><h3 id="规范类型"><a href="#规范类型" class="headerlink" title="规范类型"></a>规范类型</h3><p>规范类型对应于算法中用于描述 ECMAScript 语言构造和 ECMAScript 语言类型的语义的元值。 规范类型包括 Reference、List、Completion、 Property Descriptor、 Lexical Environment、Environment Record 和 Data Block。 规范类型值是人造产物，不一定对应于 ECMAScript 实现中的任何特定实体。 规范类型值可以用来描述 ECMAScript 表达式计算的中间结果，但是这些值不能被存储为对象的属性或 ECMAScript 语言变量的值。</p>
+<h4 id="List-和-Record-规范类型"><a href="#List-和-Record-规范类型" class="headerlink" title="List 和 Record 规范类型"></a>List 和 Record 规范类型</h4><p>List 类型用于解释在 new 表达式、函数调用和其他需要简单有序值列表的算法中对参数列表(参见 12.3.6)的求值。 List 类型的值只是包含单个值的列表元素的有序序列。 这些序列可以是任意长度的。 可以使用 0-origin 索引随机访问列表的元素。 为了计数方便，可以使用类似数组的语法来访问 List 元素。 例如，arguments[2]是表示 List 参数的第 3 个元素的简写。</p>
+<p>本规范中为了符号更方便，可以使用语法表示一个新的 List 值。 例如，« 1, 2 » 定义了一个 List 值，它有两个元素，每个元素都被初始化为一个特定的值。 一个新的空 List 可以表示为« »。</p>
+<p>Record 类型用于描述本规范算法中的数据聚合。 Record 类型值由一个或多个命名字段组成。 每个字段的值要么是 ECMAScript 值，要么是由与 Record 类型关联的名称表示的抽象值。 字段名总是用双括号括起来，例如[[Value]]。</p>
+<p>在本规范中，为了符号更方便，可以使用类似对象的语法来表示 Record 值。 例如，{[[ Field1]] : 42，[[ Field2]] : false，[[ Field3]] : empty }定义了一个 Record 值，该值有三个字段，每个字段都被初始化为一个特定的值。 字段名称顺序不重要。 任何未显式列出的字段都被认为是不存在的。</p>
+<p>在规范文本和算法中，点符号可用于指代 record 值的特定字段。 例如，如果 R 是上一段中显示的 record，那么 R.[[Field2]]就是“名为[[Field2]]的 R 字段”的简写。</p>
+<p>常用的 Record 字段组合的模式可以命名，该名称可以用作文本 Record 值的前缀，用于标识所描述的特定类型的聚合。 例如: PropertyDescriptor {[[ Value ]] : 42，[[[ Writable ]]] : false，[[ Configurable ]] : true }。</p>
+<h4 id="Set-和-Relation-规范类型"><a href="#Set-和-Relation-规范类型" class="headerlink" title="Set 和 Relation 规范类型"></a>Set 和 Relation 规范类型</h4><p>Set 类型用于解释内存模型中使用的无序元素集合。 Set 类型的值是元素的简单集合，其中任何元素都不会出现超过一次。 元素可以添加到Sets中，也可以从Sets中移除。 Sets可以相互合并、交叉或减去。</p>
+<p>Relation类型用于解释Sets上的约束。 Relation 类型的值是有序对值（来自值域）的Sets。 例如，关于事件的 Relation 是一组事件的有序对。 对于一个Relation R 和的两个值 a 和 b（来自R的值域），a R b 简写为“有序对(a，b)是 R 的一个成员”。 当一个Relation是满足某些条件的最少Relation时，它对这些条件是最小的。</p>
+<p>严格半序是满足下列条件的Relation值 R。</p>
+<ul>
+<li>对于 R 域中的所有 a、 b 和 c:<ul>
+<li>不是a R a的情况, 并且</li>
+<li>如果a R b 且b R c, 则a R c.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>注意 1：上述两个性质按顺序称为非自反性和传递性。</p>
+</blockquote>
+<p>严格全序是满足下列条件的Relation值 R。</p>
+<ul>
+<li>对于 R 域中的所有 a、 b 和 c:<ul>
+<li>a 等同于b 或者说是 a R b 或b R a, 并且</li>
+<li>不是a R a的情况 ，并且</li>
+<li>如果a R b 且b R c，那么a R c.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>注意 2：上述三个性质依次称为总体性、非自反性和传递性。</p>
+</blockquote>
+<h4 id="Completion-Record-规范类型"><a href="#Completion-Record-规范类型" class="headerlink" title="Completion Record 规范类型"></a>Completion Record 规范类型</h4><p>Completion 类型是一个 Record，在执行非本地控制权转移时用于解释执行值的运行时传递和控制流，例如statements的行为(break<code>,</code>continue<code>,</code>return和throw)。</p>
+<p> Completion 类型的值是 Record 值，其字段由表8定义。 这些值称为Completion Records。 </p>
+<center>表 8: Completion Record 字段</center>
+
+<table>
+<thead>
+<tr>
+<th>Field Name</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[[Type]]</td>
+<td>normal, break, continue, return或throw</td>
+<td>发生的completion的类型</td>
+</tr>
+<tr>
+<td>[[Value]]</td>
+<td>任意 <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-language-types" target="_blank" rel="external nofollow noopener noreferrer">ECMAScript 语言类型值</a> 或 空值</td>
+<td>产生的值</td>
+</tr>
+<tr>
+<td>[[Target]]</td>
+<td>任意ECMAScript String类型值 或空值</td>
+<td>定向控制传输的目标label。</td>
+</tr>
+</tbody></table>
+<p>“abrupt completion”这个术语指的是任何带有[[Type]]值的非正常完成。</p>
+<h5 id="Await"><a href="#Await" class="headerlink" title="Await"></a>Await</h5><p>下述的算法步骤：</p>
+<ol>
+<li>Let completion be <a href="http://www.ecma-international.org/ecma-262/#await" target="_blank" rel="external nofollow noopener noreferrer">Await</a>(value).</li>
+</ol>
+<p>等同于下述算法步骤：</p>
+<ol>
+<li>Let asyncContext be the <a href="http://www.ecma-international.org/ecma-262/#running-execution-context" target="_blank" rel="external nofollow noopener noreferrer">running execution context</a>.</li>
+<li>Let promise be ? <a href="http://www.ecma-international.org/ecma-262/#sec-promise-resolve" target="_blank" rel="external nofollow noopener noreferrer">PromiseResolve</a>(<a href="http://www.ecma-international.org/ecma-262/#sec-promise-constructor" target="_blank" rel="external nofollow noopener noreferrer">%Promise%</a>, « value »).</li>
+<li>Let stepsFulfilled be the algorithm steps defined in <a href="http://www.ecma-international.org/ecma-262/#await-fulfilled" target="_blank" rel="external nofollow noopener noreferrer">Await Fulfilled Functions</a>.</li>
+<li>Let onFulfilled be <a href="http://www.ecma-international.org/ecma-262/#sec-createbuiltinfunction" target="_blank" rel="external nofollow noopener noreferrer">CreateBuiltinFunction</a>(stepsFulfilled, « [[AsyncContext]] »).</li>
+<li>Set onFulfilled.[[AsyncContext]] to asyncContext.</li>
+<li>Let stepsRejected be the algorithm steps defined in <a href="http://www.ecma-international.org/ecma-262/#await-rejected" target="_blank" rel="external nofollow noopener noreferrer">Await Rejected Functions</a>.</li>
+<li>Let onRejected be <a href="http://www.ecma-international.org/ecma-262/#sec-createbuiltinfunction" target="_blank" rel="external nofollow noopener noreferrer">CreateBuiltinFunction</a>(stepsRejected, « [[AsyncContext]] »).</li>
+<li>Set onRejected.[[AsyncContext]] to asyncContext.</li>
+<li>Perform ! <a href="http://www.ecma-international.org/ecma-262/#sec-performpromisethen" target="_blank" rel="external nofollow noopener noreferrer">PerformPromiseThen</a>(promise, onFulfilled, onRejected).</li>
+<li>Remove asyncContext from the <a href="http://www.ecma-international.org/ecma-262/#execution-context-stack" target="_blank" rel="external nofollow noopener noreferrer">execution context stack</a> and restore the <a href="http://www.ecma-international.org/ecma-262/#sec-execution-contexts" target="_blank" rel="external nofollow noopener noreferrer">execution context</a> that is at the top of the <a href="http://www.ecma-international.org/ecma-262/#execution-context-stack" target="_blank" rel="external nofollow noopener noreferrer">execution context stack</a> as the <a href="http://www.ecma-international.org/ecma-262/#running-execution-context" target="_blank" rel="external nofollow noopener noreferrer">running execution context</a>.</li>
+<li>Set the code evaluation state of asyncContext such that when evaluation is resumed with a <a href="http://www.ecma-international.org/ecma-262/#sec-completion-record-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Completion</a> completion, the following steps of the algorithm that invoked <a href="http://www.ecma-international.org/ecma-262/#await" target="_blank" rel="external nofollow noopener noreferrer">Await</a> will be performed, with completion available.</li>
+<li>Return.</li>
+<li>NOTE: This returns to the evaluation of the operation that had most previously resumed evaluation of asyncContext.</li>
+</ol>
+<p>其中，除了completion之外，上述步骤中的所有变量都是临时的，只有在与 Await 相关的步骤中变量才可见。</p>
+<blockquote>
+<p>注意：可以与? 和! 前缀结合使用，例如</p>
+<ol>
+<li>Let result be ? <a href="http://www.ecma-international.org/ecma-262/#await" target="_blank" rel="external nofollow noopener noreferrer">Await</a>(value).</li>
+</ol>
+<p>与下述步骤等同：</p>
+<ol>
+<li>Let result be <a href="http://www.ecma-international.org/ecma-262/#await" target="_blank" rel="external nofollow noopener noreferrer">Await</a>(value).</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#sec-returnifabrupt" target="_blank" rel="external nofollow noopener noreferrer">ReturnIfAbrupt</a>(result).</li>
+</ol>
+</blockquote>
+<h6 id="Await-Fulfilled-函数"><a href="#Await-Fulfilled-函数" class="headerlink" title="Await Fulfilled 函数"></a>Await Fulfilled 函数</h6><p>Await fulfilled 函数是一个匿名的内置函数，它作为 Await 规范工具的一部分用于将promise fulfillment值作为正常completion交付给caller。 每个Await fulfilled的函数都有一个[[ AsyncContext ]]内部插槽。 </p>
+<p>当使用参数值调用Await fulfilled的函数时，将采取以下步骤:</p>
+<ol>
+<li>Let F be the <a href="http://www.ecma-international.org/ecma-262/#active-function-object" target="_blank" rel="external nofollow noopener noreferrer">active function object</a>.</li>
+<li>Let asyncContext be F.[[AsyncContext]].</li>
+<li>Let prevContext be the <a href="http://www.ecma-international.org/ecma-262/#running-execution-context" target="_blank" rel="external nofollow noopener noreferrer">running execution context</a>.</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#sec-suspend" target="_blank" rel="external nofollow noopener noreferrer">Suspend</a> prevContext.</li>
+<li>Push asyncContext onto the <a href="http://www.ecma-international.org/ecma-262/#execution-context-stack" target="_blank" rel="external nofollow noopener noreferrer">execution context stack</a>; asyncContext is now the <a href="http://www.ecma-international.org/ecma-262/#running-execution-context" target="_blank" rel="external nofollow noopener noreferrer">running execution context</a>.</li>
+<li>Resume the suspended evaluation of asyncContext using <a href="http://www.ecma-international.org/ecma-262/#sec-normalcompletion" target="_blank" rel="external nofollow noopener noreferrer">NormalCompletion</a>(value) as the result of the operation that suspended it.</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: When we reach this step, asyncContext has already been removed from the <a href="http://www.ecma-international.org/ecma-262/#execution-context-stack" target="_blank" rel="external nofollow noopener noreferrer">execution context stack</a> and prevContext is the currently <a href="http://www.ecma-international.org/ecma-262/#running-execution-context" target="_blank" rel="external nofollow noopener noreferrer">running execution context</a>.</li>
+<li>Return undefined.</li>
+</ol>
+<p>Await fulfilled函数的“ length”属性值是1。</p>
+<h6 id="Await-Rejected-函数"><a href="#Await-Rejected-函数" class="headerlink" title="Await Rejected 函数"></a>Await Rejected 函数</h6><p>Await rejected 函数是一个匿名的内置函数，用作 Await 规范工具的一部分，将promise rejection的reason作为一个abrupt throw completion交付给调用者。 每个 Await rejected 函数都有一个[[ AsyncContext ]]内部插槽。</p>
+<p>当使用参数reason调用 Await rejected 函数时，将采取以下步骤:</p>
+<ol>
+<li>Let F be the <a href="http://www.ecma-international.org/ecma-262/#active-function-object" target="_blank" rel="external nofollow noopener noreferrer">active function object</a>.</li>
+<li>Let asyncContext be F.[[AsyncContext]].</li>
+<li>Let prevContext be the <a href="http://www.ecma-international.org/ecma-262/#running-execution-context" target="_blank" rel="external nofollow noopener noreferrer">running execution context</a>.</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#sec-suspend" target="_blank" rel="external nofollow noopener noreferrer">Suspend</a> prevContext.</li>
+<li>Push asyncContext onto the <a href="http://www.ecma-international.org/ecma-262/#execution-context-stack" target="_blank" rel="external nofollow noopener noreferrer">execution context stack</a>; asyncContext is now the <a href="http://www.ecma-international.org/ecma-262/#running-execution-context" target="_blank" rel="external nofollow noopener noreferrer">running execution context</a>.</li>
+<li>Resume the suspended evaluation of asyncContext using <a href="http://www.ecma-international.org/ecma-262/#sec-throwcompletion" target="_blank" rel="external nofollow noopener noreferrer">ThrowCompletion</a>(reason) as the result of the operation that suspended it.</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: When we reach this step, asyncContext has already been removed from the <a href="http://www.ecma-international.org/ecma-262/#execution-context-stack" target="_blank" rel="external nofollow noopener noreferrer">execution context stack</a> and prevContext is the currently <a href="http://www.ecma-international.org/ecma-262/#running-execution-context" target="_blank" rel="external nofollow noopener noreferrer">running execution context</a>.</li>
+<li>Return undefined.</li>
+</ol>
+<p>Await rejected函数的“length”属性值是1。</p>
+<h5 id="NormalCompletion"><a href="#NormalCompletion" class="headerlink" title="NormalCompletion"></a>NormalCompletion</h5><p>抽象操作 NormalCompletion 只有一个参数，例如:</p>
+<ol>
+<li>Return <a href="http://www.ecma-international.org/ecma-262/#sec-normalcompletion" target="_blank" rel="external nofollow noopener noreferrer">NormalCompletion</a>(argument).</li>
+</ol>
+<p>是如下定义的简写形式：</p>
+<ol>
+<li>Return <a href="http://www.ecma-international.org/ecma-262/#sec-completion-record-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Completion</a> { [[Type]]: normal, [[Value]]: argument, [[Target]]: empty }.</li>
+</ol>
+<h5 id="ThrowCompletion"><a href="#ThrowCompletion" class="headerlink" title="ThrowCompletion"></a>ThrowCompletion</h5><p>带有一个参数的抽象操作 ThrowCompletion，例如:</p>
+<ol>
+<li>Return <a href="http://www.ecma-international.org/ecma-262/#sec-throwcompletion" target="_blank" rel="external nofollow noopener noreferrer">ThrowCompletion</a>(argument).</li>
+</ol>
+<p>是如下定义的简写形式：</p>
+<ol>
+<li>Return <a href="http://www.ecma-international.org/ecma-262/#sec-completion-record-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Completion</a> { [[Type]]: throw, [[Value]]: argument, [[Target]]: empty }.</li>
+</ol>
+<h5 id="UpdateEmpty-completionRecord-value"><a href="#UpdateEmpty-completionRecord-value" class="headerlink" title="UpdateEmpty ( completionRecord, value )"></a>UpdateEmpty ( completionRecord, value )</h5><p>带completionRecord 和 value参数的 UpdateEmpty 抽象操作执行以下步骤:</p>
+<ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: If completionRecord.[[Type]] is either return or throw, then completionRecord.[[Value]] is not empty.</li>
+<li>If completionRecord.[[Value]] is not empty, return <a href="http://www.ecma-international.org/ecma-262/#sec-completion-record-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Completion</a>(completionRecord).</li>
+<li>Return <a href="http://www.ecma-international.org/ecma-262/#sec-completion-record-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Completion</a> { [[Type]]: completionRecord.[[Type]], [[Value]]: value, [[Target]]: completionRecord.[[Target]] }.</li>
+</ol>
+<h4 id="Reference-规范类型"><a href="#Reference-规范类型" class="headerlink" title="Reference 规范类型"></a>Reference 规范类型</h4><blockquote>
+<p>注意：Reference 类型用于解释诸如 delete、 typeof、赋值操作符、 super 关键字和其他语言特性等操作符的行为。 例如，赋值的左操作数应该产生引用。</p>
+</blockquote>
+<p>Reference 是已解析的名称或属性绑定。 Reference 由三个组件组成: 基础值组件、引用名称组件和布尔值严格引用标志。 基础值组件是undefined、 Object、 Boolean、 String、 Symbol、 Number 或 Environment Record。 undefined的基础值组件表示Reference无法解析为绑定。 引用名称组件是 String 或 Symbol 值。 </p>
+<p>Super Reference 是一个 Reference，用于表示使用 Super 关键字表示的名称绑定。Super Reference有一个附加的 thisValue 组件，它的基础值组件永远不会是 Environment Record。 </p>
+<p>本规范使用下列抽象操作对reference 进行操作:</p>
+<h5 id="GetBase-V"><a href="#GetBase-V" class="headerlink" title="GetBase ( V )"></a>GetBase ( V )</h5><ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V) is <a href="http://www.ecma-international.org/ecma-262/#sec-reference-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Reference</a>.</li>
+<li>Return the base value component of V.</li>
+</ol>
+<h5 id="GetReferencedName-V"><a href="#GetReferencedName-V" class="headerlink" title="GetReferencedName ( V )"></a>GetReferencedName ( V )</h5><ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V) is <a href="http://www.ecma-international.org/ecma-262/#sec-reference-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Reference</a>.</li>
+<li>Return the referenced name component of V.</li>
+</ol>
+<h5 id="IsStrictReference-V"><a href="#IsStrictReference-V" class="headerlink" title="IsStrictReference ( V )"></a>IsStrictReference ( V )</h5><ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V) is <a href="http://www.ecma-international.org/ecma-262/#sec-reference-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Reference</a>.Return the strict reference flag of V.</li>
+</ol>
+<h5 id="HasPrimitiveBase-V"><a href="#HasPrimitiveBase-V" class="headerlink" title="HasPrimitiveBase ( V )"></a>HasPrimitiveBase ( V )</h5><ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V) is <a href="http://www.ecma-international.org/ecma-262/#sec-reference-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Reference</a>.</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V’s base value component) is Boolean, String, Symbol, or Number, return true; otherwise return false.</li>
+</ol>
+<h5 id="IsPropertyReference-V"><a href="#IsPropertyReference-V" class="headerlink" title="IsPropertyReference ( V )"></a>IsPropertyReference ( V )</h5><ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V) is <a href="http://www.ecma-international.org/ecma-262/#sec-reference-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Reference</a>.</li>
+<li>If either the base value component of V is an Object or <a href="http://www.ecma-international.org/ecma-262/#sec-hasprimitivebase" target="_blank" rel="external nofollow noopener noreferrer">HasPrimitiveBase</a>(V) is true, return true; otherwise return false.</li>
+</ol>
+<h5 id="IsUnresolvableReference-V"><a href="#IsUnresolvableReference-V" class="headerlink" title="IsUnresolvableReference ( V )"></a>IsUnresolvableReference ( V )</h5><ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V) is <a href="http://www.ecma-international.org/ecma-262/#sec-reference-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Reference</a>.</li>
+<li>If the base value component of V is undefined, return true; otherwise return false.</li>
+</ol>
+<h5 id="IsSuperReference-V"><a href="#IsSuperReference-V" class="headerlink" title="IsSuperReference ( V )"></a>IsSuperReference ( V )</h5><ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V) is <a href="http://www.ecma-international.org/ecma-262/#sec-reference-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Reference</a>.</li>
+<li>If V has a thisValue component, return true; otherwise return false.</li>
+</ol>
+<h5 id="GetValue-V"><a href="#GetValue-V" class="headerlink" title="GetValue ( V )"></a>GetValue ( V )</h5><ol>
+<li><p><a href="http://www.ecma-international.org/ecma-262/#sec-returnifabrupt" target="_blank" rel="external nofollow noopener noreferrer">ReturnIfAbrupt</a>(V).</p>
+</li>
+<li><p>If <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V) is not <a href="http://www.ecma-international.org/ecma-262/#sec-reference-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Reference</a>, return V.</p>
+</li>
+<li><p>Let base be <a href="http://www.ecma-international.org/ecma-262/#sec-getbase" target="_blank" rel="external nofollow noopener noreferrer">GetBase</a>(V).</p>
+</li>
+<li><p>If <a href="http://www.ecma-international.org/ecma-262/#sec-isunresolvablereference" target="_blank" rel="external nofollow noopener noreferrer">IsUnresolvableReference</a>(V) is true, throw a ReferenceError exception.</p>
+</li>
+<li><p>If[IsPropertyReference(<a href="http://www.ecma-international.org/ecma-262/#sec-ispropertyreference)(V)" target="_blank" rel="external nofollow noopener noreferrer">http://www.ecma-international.org/ecma-262/#sec-ispropertyreference)(V)</a> is true, then</p>
+<p>If<a href="http://www.ecma-international.org/ecma-262/#sec-hasprimitivebase" target="_blank" rel="external nofollow noopener noreferrer">HasPrimitiveBase</a>(V) is true, then</p>
+<ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: In this case, base will never be undefined or null.</li>
+<li>Set base to ! <a href="http://www.ecma-international.org/ecma-262/#sec-toobject" target="_blank" rel="external nofollow noopener noreferrer">ToObject</a>(base).</li>
+<li>Return ? base.<a href="[GetReferencedName](http://www.ecma-international.org/ecma-262/#sec-getreferencedname)(V">[Get]</a>, <a href="http://www.ecma-international.org/ecma-262/#sec-getthisvalue" target="_blank" rel="external nofollow noopener noreferrer">GetThisValue</a>(V)).</li>
+</ol>
+</li>
+<li><p>Else base must be an <a href="http://www.ecma-international.org/ecma-262/#sec-environment-records" target="_blank" rel="external nofollow noopener noreferrer">Environment Record</a>,</p>
+<ol>
+<li>Return ? base.GetBindingValue(<a href="http://www.ecma-international.org/ecma-262/#sec-getreferencedname" target="_blank" rel="external nofollow noopener noreferrer">GetReferencedName</a>(V), <a href="http://www.ecma-international.org/ecma-262/#sec-isstrictreference" target="_blank" rel="external nofollow noopener noreferrer">IsStrictReference</a>(V)) (see <a href="http://www.ecma-international.org/ecma-262/#sec-environment-records" target="_blank" rel="external nofollow noopener noreferrer">8.1.1</a>).</li>
+</ol>
+</li>
+</ol>
+<h5 id="PutValue-V-W"><a href="#PutValue-V-W" class="headerlink" title="PutValue ( V, W )"></a>PutValue ( V, W )</h5><ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#sec-returnifabrupt" target="_blank" rel="external nofollow noopener noreferrer">ReturnIfAbrupt</a>(V).</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#sec-returnifabrupt" target="_blank" rel="external nofollow noopener noreferrer">ReturnIfAbrupt</a>(W).</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V) is not <a href="http://www.ecma-international.org/ecma-262/#sec-reference-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Reference</a>, throw a ReferenceError exception.</li>
+<li>Let base be <a href="http://www.ecma-international.org/ecma-262/#sec-getbase" target="_blank" rel="external nofollow noopener noreferrer">GetBase</a>(V).</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-isunresolvablereference" target="_blank" rel="external nofollow noopener noreferrer">IsUnresolvableReference</a>(V) is true, then<ol>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-isstrictreference" target="_blank" rel="external nofollow noopener noreferrer">IsStrictReference</a>(V) is true, then<ol>
+<li>Throw a ReferenceError exception.</li>
+</ol>
+</li>
+<li>Let globalObj be <a href="http://www.ecma-international.org/ecma-262/#sec-getglobalobject" target="_blank" rel="external nofollow noopener noreferrer">GetGlobalObject</a>().</li>
+<li>Return ? <a href="http://www.ecma-international.org/ecma-262/#sec-set-o-p-v-throw" target="_blank" rel="external nofollow noopener noreferrer">Set</a>(globalObj, <a href="http://www.ecma-international.org/ecma-262/#sec-getreferencedname" target="_blank" rel="external nofollow noopener noreferrer">GetReferencedName</a>(V), W, false).</li>
+</ol>
+</li>
+<li>Else if <a href="http://www.ecma-international.org/ecma-262/#sec-ispropertyreference" target="_blank" rel="external nofollow noopener noreferrer">IsPropertyReference</a>(V) is true, then<ol>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-hasprimitivebase" target="_blank" rel="external nofollow noopener noreferrer">HasPrimitiveBase</a>(V) is true, then<ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: In this case, base will never be undefined or null.</li>
+<li>Set base to ! <a href="http://www.ecma-international.org/ecma-262/#sec-toobject" target="_blank" rel="external nofollow noopener noreferrer">ToObject</a>(base).</li>
+</ol>
+</li>
+<li>Let succeeded be ? base.<a href="[GetReferencedName](http://www.ecma-international.org/ecma-262/#sec-getreferencedname)(V">[Set]</a>, W, <a href="http://www.ecma-international.org/ecma-262/#sec-getthisvalue" target="_blank" rel="external nofollow noopener noreferrer">GetThisValue</a>(V)).</li>
+<li>If succeeded is false and <a href="http://www.ecma-international.org/ecma-262/#sec-isstrictreference" target="_blank" rel="external nofollow noopener noreferrer">IsStrictReference</a>(V) is true, throw a TypeError exception.</li>
+<li>Return.</li>
+</ol>
+</li>
+<li>Else base must be an <a href="http://www.ecma-international.org/ecma-262/#sec-environment-records" target="_blank" rel="external nofollow noopener noreferrer">Environment Record</a>,<ol>
+<li>Return ? base.SetMutableBinding(<a href="http://www.ecma-international.org/ecma-262/#sec-getreferencedname" target="_blank" rel="external nofollow noopener noreferrer">GetReferencedName</a>(V), W, <a href="http://www.ecma-international.org/ecma-262/#sec-isstrictreference" target="_blank" rel="external nofollow noopener noreferrer">IsStrictReference</a>(V)) (see <a href="http://www.ecma-international.org/ecma-262/#sec-environment-records" target="_blank" rel="external nofollow noopener noreferrer">8.1.1</a>).</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p> 注意：在上述算法和普通对象[[Set]]内部方法之外不能访问在步骤6.1.2中可能创建的对象。 实现时可以选择避免实际创建该对象。</p>
+</blockquote>
+<h5 id="GetThisValue-V"><a href="#GetThisValue-V" class="headerlink" title="GetThisValue ( V )"></a>GetThisValue ( V )</h5><ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: <a href="http://www.ecma-international.org/ecma-262/#sec-ispropertyreference" target="_blank" rel="external nofollow noopener noreferrer">IsPropertyReference</a>(V) is true.</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-issuperreference" target="_blank" rel="external nofollow noopener noreferrer">IsSuperReference</a>(V) is true, then<ol>
+<li>Return the value of the thisValue component of the reference V.</li>
+</ol>
+</li>
+<li>Return <a href="http://www.ecma-international.org/ecma-262/#sec-getbase" target="_blank" rel="external nofollow noopener noreferrer">GetBase</a>(V).</li>
+</ol>
+<h5 id="InitializeReferencedBinding-V-W"><a href="#InitializeReferencedBinding-V-W" class="headerlink" title="InitializeReferencedBinding ( V, W )"></a>InitializeReferencedBinding ( V, W )</h5><ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#sec-returnifabrupt" target="_blank" rel="external nofollow noopener noreferrer">ReturnIfAbrupt</a>(V).</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#sec-returnifabrupt" target="_blank" rel="external nofollow noopener noreferrer">ReturnIfAbrupt</a>(W).</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(V) is <a href="http://www.ecma-international.org/ecma-262/#sec-reference-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Reference</a>.</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: <a href="http://www.ecma-international.org/ecma-262/#sec-isunresolvablereference" target="_blank" rel="external nofollow noopener noreferrer">IsUnresolvableReference</a>(V) is false.</li>
+<li>Let base be <a href="http://www.ecma-international.org/ecma-262/#sec-getbase" target="_blank" rel="external nofollow noopener noreferrer">GetBase</a>(V).</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: base is an <a href="http://www.ecma-international.org/ecma-262/#sec-environment-records" target="_blank" rel="external nofollow noopener noreferrer">Environment Record</a>.</li>
+<li>Return base.InitializeBinding(<a href="http://www.ecma-international.org/ecma-262/#sec-getreferencedname" target="_blank" rel="external nofollow noopener noreferrer">GetReferencedName</a>(V), W).</li>
+</ol>
+<h4 id="属性描述符规范类型"><a href="#属性描述符规范类型" class="headerlink" title="属性描述符规范类型"></a>属性描述符规范类型</h4><p>属性描述符类型用于解释对象 property 的attributes的操作和具体化。 属性描述符类型的值为Record。 每个字段的名称是一个属性名，其值是在6.1.7.1中指定的对应属性值。 此外，任何字段都可以存在或不存在。 此规范中用于标记属性描述符records文本描述的模式名称是“ PropertyDescriptor”。</p>
+<p>根据具体字段的存在或使用，属性描述符值可以进一步分类为数据属性描述符和访问器属性描述符。 数据属性描述符包含任何名为[[[Value]]或[[Writable]]的字段。 访问器属性描述符包含任何名为[[ Get ]]或[[ Set ]]的字段。 任何属性描述符都可以有名为[[Enumerable]和[[Configurable]]的字段。 属性描述符值不能既是数据属性描述符又是访问器属性描述符; 但是，它可能既不是数据属性描述符也不是访问器属性描述符。 泛型属性描述符是既不是数据属性描述符也不是访问器属性描述符。 完全填充的属性描述符包含与表2或表3中定义的property attributes相对应的所有字段。</p>
+<p>本规范中使用以下抽象操作对属性描述符值进行操作:</p>
+<h5 id="IsAccessorDescriptor-Desc"><a href="#IsAccessorDescriptor-Desc" class="headerlink" title="IsAccessorDescriptor ( Desc )"></a>IsAccessorDescriptor ( Desc )</h5><p>当使用属性描述符 Desc 调用抽象操作 IsAccessorDescriptor 时，将执行以下步骤:</p>
+<ol>
+<li>If Desc is undefined, return false.</li>
+<li>If both Desc.[[Get]] and Desc.[[Set]] are absent, return false.</li>
+<li>Return true.</li>
+</ol>
+<h5 id="IsDataDescriptor-Desc"><a href="#IsDataDescriptor-Desc" class="headerlink" title="IsDataDescriptor ( Desc )"></a>IsDataDescriptor ( Desc )</h5><p>当使用属性描述符 Desc 调用抽象操作 IsDataDescriptor时，将执行以下步骤:</p>
+<ol>
+<li>If Desc is undefined, return false.</li>
+<li>If both Desc.[[Value]] and Desc.[[Writable]] are absent, return false.</li>
+<li>Return true.</li>
+</ol>
+<h5 id="IsGenericDescriptor-Desc"><a href="#IsGenericDescriptor-Desc" class="headerlink" title="IsGenericDescriptor ( Desc )"></a>IsGenericDescriptor ( Desc )</h5><p>当使用属性描述符 Desc 调用抽象操作 IsGenericDescriptor 时，将执行以下步骤:</p>
+<ol>
+<li>If Desc is undefined, return false.</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-isaccessordescriptor" target="_blank" rel="external nofollow noopener noreferrer">IsAccessorDescriptor</a>(Desc) and <a href="http://www.ecma-international.org/ecma-262/#sec-isdatadescriptor" target="_blank" rel="external nofollow noopener noreferrer">IsDataDescriptor</a>(Desc) are both false, return true.</li>
+<li>Return false.</li>
+</ol>
+<h5 id="FromPropertyDescriptor-Desc"><a href="#FromPropertyDescriptor-Desc" class="headerlink" title="FromPropertyDescriptor ( Desc )"></a>FromPropertyDescriptor ( Desc )</h5><p>当使用属性描述符 Desc 调用抽象操作 FromPropertyDescriptor 时，将执行以下步骤:</p>
+<ol>
+<li>If Desc is undefined, return undefined.</li>
+<li>Let obj be <a href="http://www.ecma-international.org/ecma-262/#sec-objectcreate" target="_blank" rel="external nofollow noopener noreferrer">ObjectCreate</a>(<a href="http://www.ecma-international.org/ecma-262/#sec-properties-of-the-object-prototype-object" target="_blank" rel="external nofollow noopener noreferrer">%ObjectPrototype%</a>).</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: obj is an extensible ordinary object with no own properties.</li>
+<li>If Desc has a [[Value]] field, then<ol>
+<li>Perform <a href="http://www.ecma-international.org/ecma-262/#sec-createdataproperty" target="_blank" rel="external nofollow noopener noreferrer">CreateDataProperty</a>(obj, <code>&quot;value&quot;</code>, Desc.[[Value]]).</li>
+</ol>
+</li>
+<li>If Desc has a [[Writable]] field, then<ol>
+<li>Perform <a href="http://www.ecma-international.org/ecma-262/#sec-createdataproperty" target="_blank" rel="external nofollow noopener noreferrer">CreateDataProperty</a>(obj, <code>&quot;writable&quot;</code>, Desc.[[Writable]]).</li>
+</ol>
+</li>
+<li>If Desc has a [[Get]] field, then<ol>
+<li>Perform <a href="http://www.ecma-international.org/ecma-262/#sec-createdataproperty" target="_blank" rel="external nofollow noopener noreferrer">CreateDataProperty</a>(obj, <code>&quot;get&quot;</code>, Desc.[[Get]]).</li>
+</ol>
+</li>
+<li>If Desc has a [[Set]] field, then<ol>
+<li>Perform <a href="http://www.ecma-international.org/ecma-262/#sec-createdataproperty" target="_blank" rel="external nofollow noopener noreferrer">CreateDataProperty</a>(obj, <code>&quot;set&quot;</code>, Desc.[[Set]]).</li>
+</ol>
+</li>
+<li>If Desc has an [[Enumerable]] field, then<ol>
+<li>Perform <a href="http://www.ecma-international.org/ecma-262/#sec-createdataproperty" target="_blank" rel="external nofollow noopener noreferrer">CreateDataProperty</a>(obj, <code>&quot;enumerable&quot;</code>, Desc.[[Enumerable]]).</li>
+</ol>
+</li>
+<li>If Desc has a [[Configurable]] field, then<ol>
+<li>Perform <a href="http://www.ecma-international.org/ecma-262/#sec-createdataproperty" target="_blank" rel="external nofollow noopener noreferrer">CreateDataProperty</a>(obj, <code>&quot;configurable&quot;</code>, Desc.[[Configurable]]).</li>
+</ol>
+</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: All of the above <a href="http://www.ecma-international.org/ecma-262/#sec-createdataproperty" target="_blank" rel="external nofollow noopener noreferrer">CreateDataProperty</a> operations return true.</li>
+<li>Return obj.</li>
+</ol>
+<h5 id="ToPropertyDescriptor-Obj"><a href="#ToPropertyDescriptor-Obj" class="headerlink" title="ToPropertyDescriptor ( Obj )"></a>ToPropertyDescriptor ( Obj )</h5><p>当使用对象 Obj 调用抽象操作 ToPropertyDescriptor 时，将执行以下步骤:</p>
+<ol>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(Obj) is not Object, throw a TypeError exception.</li>
+<li>Let desc be a new <a href="http://www.ecma-international.org/ecma-262/#sec-property-descriptor-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Property Descriptor</a> that initially has no fields.</li>
+<li>Let hasEnumerable be ? <a href="http://www.ecma-international.org/ecma-262/#sec-hasproperty" target="_blank" rel="external nofollow noopener noreferrer">HasProperty</a>(Obj, <code>&quot;enumerable&quot;</code>).</li>
+<li>If hasEnumerable is true, then<ol>
+<li>Let enumerable be <a href="http://www.ecma-international.org/ecma-262/#sec-toboolean" target="_blank" rel="external nofollow noopener noreferrer">ToBoolean</a>(? <a href="http://www.ecma-international.org/ecma-262/#sec-get-o-p" target="_blank" rel="external nofollow noopener noreferrer">Get</a>(Obj, <code>&quot;enumerable&quot;</code>)).</li>
+<li>Set desc.[[Enumerable]] to enumerable.</li>
+</ol>
+</li>
+<li>Let hasConfigurable be ? <a href="http://www.ecma-international.org/ecma-262/#sec-hasproperty" target="_blank" rel="external nofollow noopener noreferrer">HasProperty</a>(Obj, <code>&quot;configurable&quot;</code>).</li>
+<li>If hasConfigurable is true, then<ol>
+<li>Let configurable be <a href="http://www.ecma-international.org/ecma-262/#sec-toboolean" target="_blank" rel="external nofollow noopener noreferrer">ToBoolean</a>(? <a href="http://www.ecma-international.org/ecma-262/#sec-get-o-p" target="_blank" rel="external nofollow noopener noreferrer">Get</a>(Obj, <code>&quot;configurable&quot;</code>)).</li>
+<li>Set desc.[[Configurable]] to configurable.</li>
+</ol>
+</li>
+<li>Let hasValue be ? <a href="http://www.ecma-international.org/ecma-262/#sec-hasproperty" target="_blank" rel="external nofollow noopener noreferrer">HasProperty</a>(Obj, <code>&quot;value&quot;</code>).</li>
+<li>If hasValue is true, then<ol>
+<li>Let value be ? <a href="http://www.ecma-international.org/ecma-262/#sec-get-o-p" target="_blank" rel="external nofollow noopener noreferrer">Get</a>(Obj, <code>&quot;value&quot;</code>).</li>
+<li>Set desc.[[Value]] to value.</li>
+</ol>
+</li>
+<li>Let hasWritable be ? <a href="http://www.ecma-international.org/ecma-262/#sec-hasproperty" target="_blank" rel="external nofollow noopener noreferrer">HasProperty</a>(Obj, <code>&quot;writable&quot;</code>).</li>
+<li>If hasWritable is true, then<ol>
+<li>Let writable be <a href="http://www.ecma-international.org/ecma-262/#sec-toboolean" target="_blank" rel="external nofollow noopener noreferrer">ToBoolean</a>(? <a href="http://www.ecma-international.org/ecma-262/#sec-get-o-p" target="_blank" rel="external nofollow noopener noreferrer">Get</a>(Obj, <code>&quot;writable&quot;</code>)).</li>
+<li>Set desc.[[Writable]] to writable.</li>
+</ol>
+</li>
+<li>Let hasGet be ? <a href="http://www.ecma-international.org/ecma-262/#sec-hasproperty" target="_blank" rel="external nofollow noopener noreferrer">HasProperty</a>(Obj, <code>&quot;get&quot;</code>).</li>
+<li>If hasGet is true, then<ol>
+<li>Let getter be ? <a href="http://www.ecma-international.org/ecma-262/#sec-get-o-p" target="_blank" rel="external nofollow noopener noreferrer">Get</a>(Obj, <code>&quot;get&quot;</code>).</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-iscallable" target="_blank" rel="external nofollow noopener noreferrer">IsCallable</a>(getter) is false and getter is not undefined, throw a TypeError exception.</li>
+<li>Set desc.[[Get]] to getter.</li>
+</ol>
+</li>
+<li>Let hasSet be ? <a href="http://www.ecma-international.org/ecma-262/#sec-hasproperty" target="_blank" rel="external nofollow noopener noreferrer">HasProperty</a>(Obj, <code>&quot;set&quot;</code>).</li>
+<li>If hasSet is true, then<ol>
+<li>Let setter be ? <a href="http://www.ecma-international.org/ecma-262/#sec-get-o-p" target="_blank" rel="external nofollow noopener noreferrer">Get</a>(Obj, <code>&quot;set&quot;</code>).</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-iscallable" target="_blank" rel="external nofollow noopener noreferrer">IsCallable</a>(setter) is false and setter is not undefined, throw a TypeError exception.</li>
+<li>Set desc.[[Set]] to setter.</li>
+</ol>
+</li>
+<li>If desc.[[Get]] is present or desc.[[Set]] is present, then<ol>
+<li>If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.</li>
+</ol>
+</li>
+<li>Return desc.</li>
+</ol>
+<h5 id="CompletePropertyDescriptor-Desc"><a href="#CompletePropertyDescriptor-Desc" class="headerlink" title="CompletePropertyDescriptor ( Desc )"></a>CompletePropertyDescriptor ( Desc )</h5><p>当使用属性描述符 Desc 调用抽象操作 CompletePropertyDescriptor时，将执行以下步骤:</p>
+<ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: Desc is a <a href="http://www.ecma-international.org/ecma-262/#sec-property-descriptor-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Property Descriptor</a>.</li>
+<li>Let like be <a href="http://www.ecma-international.org/ecma-262/#sec-list-and-record-specification-type" target="_blank" rel="external nofollow noopener noreferrer">Record</a> { [[Value]]: undefined, [[Writable]]: false, [[Get]]: undefined, [[Set]]: undefined, [[Enumerable]]: false, [[Configurable]]: false }.</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/#sec-isgenericdescriptor" target="_blank" rel="external nofollow noopener noreferrer">IsGenericDescriptor</a>(Desc) is true or <a href="http://www.ecma-international.org/ecma-262/#sec-isdatadescriptor" target="_blank" rel="external nofollow noopener noreferrer">IsDataDescriptor</a>(Desc) is true, then<ol>
+<li>If Desc does not have a [[Value]] field, set Desc.[[Value]] to like.[[Value]].</li>
+<li>If Desc does not have a [[Writable]] field, set Desc.[[Writable]] to like.[[Writable]].</li>
+</ol>
+</li>
+<li>Else,<ol>
+<li>If Desc does not have a [[Get]] field, set Desc.[[Get]] to like.[[Get]].</li>
+<li>If Desc does not have a [[Set]] field, set Desc.[[Set]] to like.[[Set]].</li>
+</ol>
+</li>
+<li>If Desc does not have an [[Enumerable]] field, set Desc.[[Enumerable]] to like.[[Enumerable]].</li>
+<li>If Desc does not have a [[Configurable]] field, set Desc.[[Configurable]] to like.[[Configurable]].</li>
+<li>Return Desc.</li>
+</ol>
+<h4 id="词法环境和环境Record规范类型"><a href="#词法环境和环境Record规范类型" class="headerlink" title="词法环境和环境Record规范类型"></a>词法环境和环境Record规范类型</h4><p>词法环境和环境Record类型用于解释嵌套函数和块中的名称解析行为。 这些类型和对它们的操作在8.1中定义。</p>
+<h4 id="数据块"><a href="#数据块" class="headerlink" title="数据块"></a>数据块</h4><p>数据块规范类型用于描述一个不同的、可变的8位数值序列。 数据块值是用固定数量的字节创建的，每个字节的初始值为0。</p>
+<p>在本规范中，为了计数方便，可以使用类似数组的语法来访问 Data Block 值的单个字节。 这种表示法将 Data Block 值表示为一个从0开始的的整数索引序列。 例如，如果 db 是一个5字节的数据块值，那么可以使用 db[2]来访问它的第3个字节。</p>
+<p>驻留在内存中的、可以从多个代理并发引用的数据块被指定为共享数据块。 共享数据块具有一个无地址的标识(用于测试共享数据块的值是否相等) : 它不绑定到任何进程中映射到的虚拟地址，而是绑定到该块所代表的内存中的位置集。 只有当两个数据块所包含的位置集合相等时，它们才相等; 否则，它们不相等而且它们所包含的位置集合的交集为空。 最后，可以区分共享数据块和数据块。</p>
+<p>内存模型使用共享数据块事件定义共享数据块的语义。 下面的抽象操作引入共享数据块事件，并充当计算语义和内存模型的事件语义之间的接口。 事件形成一个候选执行，内存模型在其中充当一个过滤器。 请参考<a href="http://www.ecma-international.org/ecma-262/#sec-memory-model" target="_blank" rel="external nofollow noopener noreferrer">内存模型</a>以获得完整的语义。</p>
+<p>共享数据块事件由内存模型中定义的 Records 建模。</p>
+<p>本规范使用以下抽象操作对数据块值进行操作:</p>
+<h5 id="CreateByteDataBlock-size"><a href="#CreateByteDataBlock-size" class="headerlink" title="CreateByteDataBlock ( size )"></a>CreateByteDataBlock ( size )</h5><p>当使用整数参数大小调用 CreateByteDataBlock 抽象操作时，将执行以下步骤:</p>
+<ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: size ≥ 0.</li>
+<li>Let db be a new <a href="http://www.ecma-international.org/ecma-262/#sec-data-blocks" target="_blank" rel="external nofollow noopener noreferrer">Data Block</a> value consisting of size bytes. If it is impossible to create such a <a href="http://www.ecma-international.org/ecma-262/#sec-data-blocks" target="_blank" rel="external nofollow noopener noreferrer">Data Block</a>, throw a RangeError exception.</li>
+<li>Set all of the bytes of db to 0.</li>
+<li>Return db.</li>
+</ol>
+<h5 id="CreateSharedByteDataBlock-size"><a href="#CreateSharedByteDataBlock-size" class="headerlink" title="CreateSharedByteDataBlock ( size )"></a>CreateSharedByteDataBlock ( size )</h5><p>当使用整数参数大小调用 CreateSharedByteDataBlock 抽象操作时，将执行以下步骤:</p>
+<ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: size ≥ 0.</li>
+<li>Let db be a new <a href="http://www.ecma-international.org/ecma-262/#sec-data-blocks" target="_blank" rel="external nofollow noopener noreferrer">Shared Data Block</a> value consisting of size bytes. If it is impossible to create such a <a href="http://www.ecma-international.org/ecma-262/#sec-data-blocks" target="_blank" rel="external nofollow noopener noreferrer">Shared Data Block</a>, throw a RangeError exception.</li>
+<li>Let execution be the [[CandidateExecution]] field of the <a href="http://www.ecma-international.org/ecma-262/#surrounding-agent" target="_blank" rel="external nofollow noopener noreferrer">surrounding agent</a>‘s <a href="http://www.ecma-international.org/ecma-262/#agent-record" target="_blank" rel="external nofollow noopener noreferrer">Agent Record</a>.</li>
+<li>Let eventList be the [[EventList]] field of the element in execution.[[EventsRecords]] whose [[AgentSignifier]] is <a href="http://www.ecma-international.org/ecma-262/#sec-agentsignifier" target="_blank" rel="external nofollow noopener noreferrer">AgentSignifier</a>().</li>
+<li>Let zero be « 0 ».</li>
+<li>For each index i of db, do<ol>
+<li>Append <a href="http://www.ecma-international.org/ecma-262/#sec-memory-model-fundamentals" target="_blank" rel="external nofollow noopener noreferrer">WriteSharedMemory</a> { [[Order]]: <code>&quot;Init&quot;</code>, [[NoTear]]: true, [[Block]]: db, [[ByteIndex]]: i, [[ElementSize]]: 1, [[Payload]]: zero } to eventList.</li>
+</ol>
+</li>
+<li>Return db.</li>
+</ol>
+<h5 id="CopyDataBlockBytes-toBlock-toIndex-fromBlock-fromIndex-count"><a href="#CopyDataBlockBytes-toBlock-toIndex-fromBlock-fromIndex-count" class="headerlink" title="CopyDataBlockBytes ( toBlock, toIndex, fromBlock, fromIndex, count )"></a>CopyDataBlockBytes ( toBlock, toIndex, fromBlock, fromIndex, count )</h5><p>当调用抽象操作CopyDataBlockBytes 时，将执行以下步骤:</p>
+<ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: fromBlock and toBlock are distinct <a href="http://www.ecma-international.org/ecma-262/#sec-data-blocks" target="_blank" rel="external nofollow noopener noreferrer">Data Block</a> or <a href="http://www.ecma-international.org/ecma-262/#sec-data-blocks" target="_blank" rel="external nofollow noopener noreferrer">Shared Data Block</a> values.</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: fromIndex, toIndex, and count are integer values ≥ 0.</li>
+<li>Let fromSize be the number of bytes in fromBlock.</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: fromIndex + count ≤ fromSize.</li>
+<li>Let toSize be the number of bytes in toBlock.</li>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: toIndex + count ≤ toSize.</li>
+<li>Repeat, while count &gt; 0<ol>
+<li>If fromBlock is a <a href="http://www.ecma-international.org/ecma-262/#sec-data-blocks" target="_blank" rel="external nofollow noopener noreferrer">Shared Data Block</a>, then<ol>
+<li>Let execution be the [[CandidateExecution]] field of the <a href="http://www.ecma-international.org/ecma-262/#surrounding-agent" target="_blank" rel="external nofollow noopener noreferrer">surrounding agent</a>‘s <a href="http://www.ecma-international.org/ecma-262/#agent-record" target="_blank" rel="external nofollow noopener noreferrer">Agent Record</a>.</li>
+<li>Let eventList be the [[EventList]] field of the element in execution.[[EventsRecords]] whose [[AgentSignifier]] is <a href="http://www.ecma-international.org/ecma-262/#sec-agentsignifier" target="_blank" rel="external nofollow noopener noreferrer">AgentSignifier</a>().</li>
+<li>Let bytes be a <a href="http://www.ecma-international.org/ecma-262/#sec-list-and-record-specification-type" target="_blank" rel="external nofollow noopener noreferrer">List</a> of length 1 that contains a nondeterministically chosen byte value.</li>
+<li>NOTE: In implementations, bytes is the result of a non-atomic read instruction on the underlying hardware. The nondeterminism is a semantic prescription of the <a href="http://www.ecma-international.org/ecma-262/#sec-memory-model" target="_blank" rel="external nofollow noopener noreferrer">memory model</a> to describe observable behaviour of hardware with weak consistency.</li>
+<li>Let readEvent be <a href="http://www.ecma-international.org/ecma-262/#sec-memory-model-fundamentals" target="_blank" rel="external nofollow noopener noreferrer">ReadSharedMemory</a> { [[Order]]: <code>&quot;Unordered&quot;</code>, [[NoTear]]: true, [[Block]]: fromBlock, [[ByteIndex]]: fromIndex, [[ElementSize]]: 1 }.</li>
+<li>Append readEvent to eventList.</li>
+<li>Append <a href="http://www.ecma-international.org/ecma-262/#sec-chosen-value-records" target="_blank" rel="external nofollow noopener noreferrer">Chosen Value Record</a> { [[Event]]: readEvent, [[ChosenValue]]: bytes } to execution.[[ChosenValues]].</li>
+<li>If toBlock is a <a href="http://www.ecma-international.org/ecma-262/#sec-data-blocks" target="_blank" rel="external nofollow noopener noreferrer">Shared Data Block</a>, then<ol>
+<li>Append <a href="http://www.ecma-international.org/ecma-262/#sec-memory-model-fundamentals" target="_blank" rel="external nofollow noopener noreferrer">WriteSharedMemory</a> { [[Order]]: <code>&quot;Unordered&quot;</code>, [[NoTear]]: true, [[Block]]: toBlock, [[ByteIndex]]: toIndex, [[ElementSize]]: 1, [[Payload]]: bytes } to eventList.</li>
+</ol>
+</li>
+<li>Else,<ol>
+<li>Set toBlock[toIndex] to bytes[0].</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Else,<ol>
+<li><a href="http://www.ecma-international.org/ecma-262/#assert" target="_blank" rel="external nofollow noopener noreferrer">Assert</a>: toBlock is not a <a href="http://www.ecma-international.org/ecma-262/#sec-data-blocks" target="_blank" rel="external nofollow noopener noreferrer">Shared Data Block</a>.</li>
+<li>Set toBlock[toIndex] to fromBlock[fromIndex].</li>
+</ol>
+</li>
+<li>Increment toIndex and fromIndex each by 1.</li>
+<li>Decrement count by 1.</li>
+</ol>
+</li>
+<li>Return <a href="http://www.ecma-international.org/ecma-262/#sec-normalcompletion" target="_blank" rel="external nofollow noopener noreferrer">NormalCompletion</a>(empty).</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>翻译完后自己对规范类型的理解是：Specification Type是一个抽象的概念，只存在在规范里，并不真实存在在ECMAScript中。规范类型用来描述表达式求值过程的中间结果，是一种内部实现，也不对程序员直接开放。给了一些大致的自洽的数据结构来描述内部的机制，供设计JS引擎使用。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BF%BB%E8%AF%91/" rel="tag"># 翻译</a>
+              <a href="/tags/ECMA262/" rel="tag"># ECMA262</a>
+              <a href="/tags/%E8%A7%84%E8%8C%83/" rel="tag"># 规范</a>
+              <a href="/tags/%E6%80%BB%E8%A7%88/" rel="tag"># 总览</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/be1c11d1.html" rel="prev" title="ECMA-262规范第6节中Language Types翻译">
+      <i class="fa fa-chevron-left"></i> ECMA-262规范第6节中Language Types翻译
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/7c2664a3.html" rel="next" title="JS中的防抖与节流">
+      JS中的防抖与节流 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#翻译"><span class="nav-number">1.</span> <span class="nav-text">翻译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#规范类型"><span class="nav-number">1.1.</span> <span class="nav-text">规范类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#List-和-Record-规范类型"><span class="nav-number">1.1.1.</span> <span class="nav-text">List 和 Record 规范类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Set-和-Relation-规范类型"><span class="nav-number">1.1.2.</span> <span class="nav-text">Set 和 Relation 规范类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Completion-Record-规范类型"><span class="nav-number">1.1.3.</span> <span class="nav-text">Completion Record 规范类型</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Await"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">Await</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#Await-Fulfilled-函数"><span class="nav-number">1.1.3.1.1.</span> <span class="nav-text">Await Fulfilled 函数</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#Await-Rejected-函数"><span class="nav-number">1.1.3.1.2.</span> <span class="nav-text">Await Rejected 函数</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#NormalCompletion"><span class="nav-number">1.1.3.2.</span> <span class="nav-text">NormalCompletion</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ThrowCompletion"><span class="nav-number">1.1.3.3.</span> <span class="nav-text">ThrowCompletion</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#UpdateEmpty-completionRecord-value"><span class="nav-number">1.1.3.4.</span> <span class="nav-text">UpdateEmpty ( completionRecord, value )</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Reference-规范类型"><span class="nav-number">1.1.4.</span> <span class="nav-text">Reference 规范类型</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#GetBase-V"><span class="nav-number">1.1.4.1.</span> <span class="nav-text">GetBase ( V )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#GetReferencedName-V"><span class="nav-number">1.1.4.2.</span> <span class="nav-text">GetReferencedName ( V )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IsStrictReference-V"><span class="nav-number">1.1.4.3.</span> <span class="nav-text">IsStrictReference ( V )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#HasPrimitiveBase-V"><span class="nav-number">1.1.4.4.</span> <span class="nav-text">HasPrimitiveBase ( V )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IsPropertyReference-V"><span class="nav-number">1.1.4.5.</span> <span class="nav-text">IsPropertyReference ( V )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IsUnresolvableReference-V"><span class="nav-number">1.1.4.6.</span> <span class="nav-text">IsUnresolvableReference ( V )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IsSuperReference-V"><span class="nav-number">1.1.4.7.</span> <span class="nav-text">IsSuperReference ( V )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#GetValue-V"><span class="nav-number">1.1.4.8.</span> <span class="nav-text">GetValue ( V )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#PutValue-V-W"><span class="nav-number">1.1.4.9.</span> <span class="nav-text">PutValue ( V, W )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#GetThisValue-V"><span class="nav-number">1.1.4.10.</span> <span class="nav-text">GetThisValue ( V )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#InitializeReferencedBinding-V-W"><span class="nav-number">1.1.4.11.</span> <span class="nav-text">InitializeReferencedBinding ( V, W )</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#属性描述符规范类型"><span class="nav-number">1.1.5.</span> <span class="nav-text">属性描述符规范类型</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#IsAccessorDescriptor-Desc"><span class="nav-number">1.1.5.1.</span> <span class="nav-text">IsAccessorDescriptor ( Desc )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IsDataDescriptor-Desc"><span class="nav-number">1.1.5.2.</span> <span class="nav-text">IsDataDescriptor ( Desc )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#IsGenericDescriptor-Desc"><span class="nav-number">1.1.5.3.</span> <span class="nav-text">IsGenericDescriptor ( Desc )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#FromPropertyDescriptor-Desc"><span class="nav-number">1.1.5.4.</span> <span class="nav-text">FromPropertyDescriptor ( Desc )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ToPropertyDescriptor-Obj"><span class="nav-number">1.1.5.5.</span> <span class="nav-text">ToPropertyDescriptor ( Obj )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#CompletePropertyDescriptor-Desc"><span class="nav-number">1.1.5.6.</span> <span class="nav-text">CompletePropertyDescriptor ( Desc )</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#词法环境和环境Record规范类型"><span class="nav-number">1.1.6.</span> <span class="nav-text">词法环境和环境Record规范类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据块"><span class="nav-number">1.1.7.</span> <span class="nav-text">数据块</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#CreateByteDataBlock-size"><span class="nav-number">1.1.7.1.</span> <span class="nav-text">CreateByteDataBlock ( size )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#CreateSharedByteDataBlock-size"><span class="nav-number">1.1.7.2.</span> <span class="nav-text">CreateSharedByteDataBlock ( size )</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#CopyDataBlockBytes-toBlock-toIndex-fromBlock-fromIndex-count"><span class="nav-number">1.1.7.3.</span> <span class="nav-text">CopyDataBlockBytes ( toBlock, toIndex, fromBlock, fromIndex, count )</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '92bf5c88b74da0205cbf398253aa3af8',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

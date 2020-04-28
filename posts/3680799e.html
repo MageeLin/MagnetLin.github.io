@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="在 CSS 中，1px到底是多长，为什么是这个长度。百度谷歌搜索很久说法很不一致，最后才发现最标准的还是去看万维网联盟（World Wide Web Consortium，W3C）的CSS 标准和草案，总结以下一些概念。 像素像素是在印刷业和屏幕设备最基础的概念，一切的显示都从像素开始，循序渐进的理解 CSS 像素到底是什么。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于各种像素概念和前端长度单位的理解">
+<meta property="og:url" content="https://linjingyi.cn/posts/3680799e.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="在 CSS 中，1px到底是多长，为什么是这个长度。百度谷歌搜索很久说法很不一致，最后才发现最标准的还是去看万维网联盟（World Wide Web Consortium，W3C）的CSS 标准和草案，总结以下一些概念。 像素像素是在印刷业和屏幕设备最基础的概念，一切的显示都从像素开始，循序渐进的理解 CSS 像素到底是什么。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/3680799e/device-pixels.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/3680799e/pixel.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/3680799e/pixel1.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/3680799e/pixel2.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/3680799e/pixel2.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/3680799e/200.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/3680799e/200viewport.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/3680799e/w3c_logo-800x400.jpg">
+<meta property="article:published_time" content="2020-02-25T22:59:00.000Z">
+<meta property="article:modified_time" content="2020-02-25T22:59:00.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="CSS">
+<meta property="article:tag" content="像素">
+<meta property="article:tag" content="单位">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/3680799e/device-pixels.png">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/3680799e.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>关于各种像素概念和前端长度单位的理解 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/3680799e.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          关于各种像素概念和前端长度单位的理解
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-26 06:59:00" itemprop="dateCreated datePublished" datetime="2020-02-26T06:59:00+08:00">2020-02-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/CSS/" itemprop="url" rel="index">
+                    <span itemprop="name">CSS</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在 CSS 中，<code>1px</code>到底是多长，为什么是这个长度。百度谷歌搜索很久说法很不一致，最后才发现最标准的还是去看<a href="https://www.w3.org/" target="_blank" rel="external nofollow noopener noreferrer">万维网联盟</a>（World Wide Web Consortium，W3C）的<a href="https://www.w3.org/Style/CSS/" target="_blank" rel="external nofollow noopener noreferrer">CSS 标准和草案</a>，总结以下一些概念。</p>
+<h2 id="像素"><a href="#像素" class="headerlink" title="像素"></a>像素</h2><p>像素是在印刷业和屏幕设备最基础的概念，一切的显示都从像素开始，循序渐进的理解 CSS 像素到底是什么。</p>
+<a id="more"></a>
+
+<h3 id="物理像素-设备像素（Device-Pixel，DP）"><a href="#物理像素-设备像素（Device-Pixel，DP）" class="headerlink" title="物理像素=设备像素（Device Pixel，DP）"></a>物理像素=设备像素（Device Pixel，DP）</h3><p><code>物理像素和设备像素</code>是等同的概念，如下图所示，指的是一个设备屏幕上的有实体的物理像素点，是一个屏幕构成的基本单元。一个像素是屏幕的最小分辨实体，所以屏幕设备的<code>分辨率</code>也就是<code>dpXSize*dpYSize</code>（<code>dpXSize</code>为横向像素数，<code>dpYSize</code>为纵向像素数）。</p>
+<p><img src="/posts/3680799e/device-pixels.png" alt></p>
+<p>屏幕的一个像素又由 <code>RGB（红绿蓝）</code>三个子像素构成，如下图所示，每个颜色子像素有<code>[0, 2^8-1]</code> 总计 <code>256</code> 种不同强度，三个通道就能组成 <code>2^8×2^8×2^8-1</code> 总计 <code>2^24</code> 种颜色。</p>
+<p><img src="/posts/3680799e/pixel.jpg" alt></p>
+<p>每个像素都能表示 <code>2^24</code> 种颜色，所以一个屏幕就可以表示五彩斑斓的图像。</p>
+<h3 id="像素密度（Pixels-Per-Inch，PPI）"><a href="#像素密度（Pixels-Per-Inch，PPI）" class="headerlink" title="像素密度（Pixels Per Inch，PPI）"></a>像素密度（Pixels Per Inch，PPI）</h3><p><a href="https://en.wikipedia.org/wiki/Pixel_density" target="_blank" rel="external nofollow noopener noreferrer">像素密度</a>的英文名叫 <code>Pixels Per Inch</code>，简称 <code>PPI</code>，顾名思义就是一英寸长度中有多少个物理像素，是一个屏幕的生产出来以后的固有属性。<code>PPI</code> 越大，每英寸内的像素数就越多，画面就越精细。</p>
+<p>屏幕的长度 <code>length</code>、分辨率 <code>dpXSzie</code> 或 <code>dpYSize</code>、像素密度 <code>PPI</code> 有如下换算关系。</p>
+<ul>
+<li><code>dpXSize = lengthX × PPI</code></li>
+<li><code>dpYSize = lengthY × PPI</code></li>
+</ul>
+<p>注意 <code>length</code> 的单位是<code>英寸 Inch</code>。</p>
+<p>所以两个屏幕如果尺寸一样，<code>PPI</code> 大的分辨率一定也大；换句话说，两个屏幕分辨率一样，<code>PPI</code>大的屏幕尺寸一定小。</p>
+<h3 id="参考像素（Reference-Pixel，RP）"><a href="#参考像素（Reference-Pixel，RP）" class="headerlink" title="参考像素（Reference Pixel，RP）"></a>参考像素（Reference Pixel，RP）</h3><p><code>参考像素</code>英文名是 <code>Reference Pixel</code>，简称 <code>RP</code>，关于参考像素的定义可以参考<a href="https://drafts.csswg.org/css-values-3/#reference-pixel" target="_blank" rel="external nofollow noopener noreferrer">CSS 工作组的草案</a>。</p>
+<blockquote>
+<p>The reference pixel is the visual angle of one pixel on a device with a pixel density of 96dpi and a distance from the reader of an arm’s length. For a nominal arm’s length of 28 inches, the visual angle is therefore about 0.0213 degrees. For reading at arm’s length, 1px thus corresponds to about 0.26 mm (1/96 inch).</p>
+</blockquote>
+<p>很关键，翻译一下：</p>
+<blockquote>
+<p>参考像素是一个视觉角度，定义是站在一个手臂远的距离，观察像素密度为 96PPI 的设备中的 1 个像素的视觉角度。以一个名义上的手臂长度是 28 英寸来计算，得到的角度大小是 0.0213°。站在一个手臂远的地方观察，1 个参考像素的长度应相当于 0.26mm（1/96 英寸）。</p>
+</blockquote>
+<p>用下图更简明的解释参考像素，在 <code>0.0213°</code> 的视觉角度下观察，距离为 <code>71cm（28 英寸）</code>下的 <code>96PPI</code> 设备参考像素长度为 <code>0.26mm</code>；如果距离为 <code>3.5m（138 英寸）</code>，参考像素长度就应该等比计算为 <code>1.3mm</code>。</p>
+<p><img src="/posts/3680799e/pixel1.png" alt></p>
+<p>CSS 工作组这样定义的原因是觉得配合其他的标准时，阅读 <code>16 参考像素长度</code>的文字时体验感最佳。</p>
+<h3 id="CSS-像素（px）"><a href="#CSS-像素（px）" class="headerlink" title="CSS 像素（px）"></a>CSS 像素（px）</h3><p>有了前置的三个概念就可以介绍到底什么是 <code>CSS 像素</code>，也就是 <code>px</code>，CSS 工作组的<a href="https://drafts.csswg.org/css-values-3/#px" target="_blank" rel="external nofollow noopener noreferrer">草案</a>中是这样写的：</p>
+<blockquote>
+<p>For a CSS device, these dimensions are anchored either</p>
+<ol>
+<li>by relating the <a href="https://drafts.csswg.org/css-values-3/#physical-units" target="_blank" rel="external nofollow noopener noreferrer">physical units</a> to their physical measurements, or</li>
+<li>by relating the <a href="https://drafts.csswg.org/css-values-3/#px" target="_blank" rel="external nofollow noopener noreferrer">pixel unit</a> to the <a href="https://drafts.csswg.org/css-values-3/#reference-pixel" target="_blank" rel="external nofollow noopener noreferrer">reference pixel</a>.</li>
+</ol>
+<p>For print media at typical viewing distances, the anchor unit should be one of the standard physical units (inches, centimeters, etc). For screen media (including high-resolution devices), low-resolution devices, and devices with unusual viewing distances, it is recommended instead that the anchor unit be the pixel unit. For such devices it is recommended that the pixel unit refer to the whole number of device pixels that best approximates the reference pixel.</p>
+</blockquote>
+<p>翻译一下：</p>
+<blockquote>
+<p>对于一个 CSS 设备来说，这些维度必须要和下面这两点之一对标锚定</p>
+<ol>
+<li>衡量设备物理尺寸的物理单位</li>
+<li>参考像素的像素单位</li>
+</ol>
+<p>对于在典型的阅读距离印刷行业来说，CSS 锚定的单位应该是一个标准的物理单位（英寸、厘米等）。对于媒体屏幕（包括高分辨率屏幕设备）、低分辨率屏幕设备和具有不寻常阅读距离的设备来说，建议将 CSS 单位锚定为物理像素单元。对于这样的设备，物理像素单元指的是最接近<code>参考像素</code>的<code>物理像素数</code>。</p>
+</blockquote>
+<p>阅读完就很清楚明了，<code>CSS 像素</code>的长度其实就是最<code>接近</code>参考像素的物理像素数（整数），是一个<code>相对单位</code>！同样是在 <code>0.0213°</code> 的视觉角度下观察，距离为 <code>71cm（28 英寸）</code>下的屏幕设备，观察范围内的物理像素数就是该设备建议的 CSS 像素 <code>1px</code> 的长度。</p>
+<p>用草案里一张图片来表示，同样是 <code>1px</code>（<code>1</code> 个 CSS 像素长度），在左面的高分辨率屏幕下 <code>1 个 CSS 像素长度</code>相当于 <code>4</code> 个物理像素，而右面的普通低分辨率屏幕 <code>1px</code> 就代表 <code>1</code> 个物理像素。</p>
+<p><img src="/posts/3680799e/pixel2.png" alt></p>
+<h3 id="设备独立像素-逻辑像素（Device-independent-Pixel，DIP）"><a href="#设备独立像素-逻辑像素（Device-independent-Pixel，DIP）" class="headerlink" title="设备独立像素=逻辑像素（Device independent Pixel，DIP）"></a>设备独立像素=逻辑像素（Device independent Pixel，DIP）</h3><p><code>逻辑像素</code>又称设备独立像素（<code>Device independent Pixel</code>），简称 DIP。最简单的理解就是设备无关像素，或者与 <code>PPI</code> 无关的像素。放在前端的 JS 或者 CSS 里理解其实就是 CSS 像素，或者说 CSS 像素是逻辑像素的一种。</p>
+<h3 id="设备像素比（Device-Pixels-Ratio，DPR）"><a href="#设备像素比（Device-Pixels-Ratio，DPR）" class="headerlink" title="设备像素比（Device Pixels Ratio，DPR）"></a>设备像素比（Device Pixels Ratio，DPR）</h3><p><code>设备像素比</code>是设备像素数与对应的逻辑像素数的比值，再拿出这张图片，左边的高分屏的 <code>DPR</code> 为 <code>4</code>，右边普通屏的 <code>DPR</code> 为 <code>1</code>.</p>
+<p><img src="/posts/3680799e/pixel2.png" alt></p>
+<p>在浏览器中，<code>window.devicePixelRatio</code> 可以拿到当前设备的 <code>DPR</code>。</p>
+<h3 id="视窗（viewport）"><a href="#视窗（viewport）" class="headerlink" title="视窗（viewport）"></a>视窗（viewport）</h3><p>以 iPhone11 Pro 举例，设备像素数为 <code>1125×2436</code>，逻辑像素数为 <code>375×812</code>，<code>DPR</code> 为 <code>3</code>。写一个宽高为 <code>200px</code>、字体大小为 <code>16px</code> 的 <code>div</code>，结果如下：</p>
+<p><img src="/posts/3680799e/200.jpg" alt></p>
+<p>可以发现，文字几乎看不清，<code>div</code> 所占的比例也很小，说明这里的 <code>px</code> 使用的是设备像素，所以 <code>200px</code> 的宽高 和 <code>16px</code> 的文字 相对屏幕来说很小。</p>
+<p>给 head 标签中添加一个 <code>meta</code> 元信息标签，让 <code>px</code> 使用逻辑像素。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>结果如下图所示，可以发现，设置一个 <code>width=device-width</code>，可以让类似 IPhone 这种 <code>DPR</code> 不为 <code>1</code> 的高分屏使用逻辑像素来渲染，显示预想的正确宽高。</p>
+<p><img src="/posts/3680799e/200viewport.jpg" alt></p>
+<h2 id="几个长度单位"><a href="#几个长度单位" class="headerlink" title="几个长度单位"></a>几个长度单位</h2><p>除了常用的 <code>px</code> 和<code>%</code>，还有 <code>em</code>、<code>rem</code>、<code>vw</code>、<code>vh</code>、<code>vmax</code>、<code>vmin</code>，原文可见<a href="https://drafts.csswg.org/css-values-3/#viewport-relative-lengths" target="_blank" rel="external nofollow noopener noreferrer">CSS 工作组草案</a>。</p>
+<h3 id="px"><a href="#px" class="headerlink" title="px"></a>px</h3><p><code>px</code> 是上文介绍的 <code>CSS 像素</code>，作为长度单位来说就是：该长度有多少个 <code>CSS 像素</code>就是多少 <code>px</code>。一般浏览器默认的字体大小是 <code>16px</code>。</p>
+<h3 id><a href="#" class="headerlink" title="%"></a>%</h3><p>百分比符号的参照规则：</p>
+<ol>
+<li>普通定位，<code>%</code>参照的是父元素的对应属性；</li>
+<li><code>position: absolute</code>，<code>%</code>参照的是定位后的父元素的对应属性；</li>
+<li><code>position: fixed</code>，<code>%</code>参照的是 <code>viewport</code>（可视窗口）；</li>
+</ol>
+<p>后两种很容易理解，毕竟脱离了普通<code>文档流</code>，肯定以新文档流的父元素做对应。</p>
+<h3 id="em"><a href="#em" class="headerlink" title="em"></a>em</h3><p><a href="https://drafts.csswg.org/css-values-3/#em" target="_blank" rel="external nofollow noopener noreferrer">草案原文</a>如下:</p>
+<blockquote>
+<p>Equal to the computed value of the <a href="https://drafts.csswg.org/css-fonts-3/#propdef-font-size" target="_blank" rel="external nofollow noopener noreferrer">font-size</a> property of the element on which it is used.</p>
+</blockquote>
+<blockquote>
+<p><code>em</code> 单位的大小相当于所在元素的 font-size 属性大小。</p>
+</blockquote>
+<p>详细的说，<code>em</code> 优先参照的自己的字体大小 <code>font-size</code>、次之参照父元素的字体大小，如果没有就一直继承到 <code>body</code>。比如父元素设置 <code>font-size: 10px；</code>，那么 <code>1em=10px</code>，<code>1.6em</code> 就是 <code>16px</code>。</p>
+<h3 id="rem"><a href="#rem" class="headerlink" title="rem"></a>rem</h3><p><a href="https://drafts.csswg.org/css-values-3/#rem" target="_blank" rel="external nofollow noopener noreferrer">草案原文</a>如下：</p>
+<blockquote>
+<p>Equal to the computed value of <a href="https://drafts.csswg.org/css-fonts-3/#propdef-font-size" target="_blank" rel="external nofollow noopener noreferrer">font-size</a> on the root element.</p>
+<p>If used in the <a href="https://drafts.csswg.org/css-fonts-3/#propdef-font-size" target="_blank" rel="external nofollow noopener noreferrer">font-size</a> property of the root element, or in a document with no root element, 1rem is equal to the initial value of the font-size property.</p>
+</blockquote>
+<blockquote>
+<p>rem 单位的大小相当于根元素的 font-size 属性大小。</p>
+<p>如果如果在根元素的 font-size 属性中使用，或者 document 中没有根元素，1rem 相当于 font-size 初始值的大小。</p>
+</blockquote>
+<p><code>rem</code> 与 <code>em</code> 的区别就是多了一个 <code>root</code>，所以 <code>rem</code> 是以根元素 html 的 <code>font-size</code> 为参照，避免了中间多层 <code>em</code> 的混乱。比如根元素 <code>font-size: 16px</code>，如果想得到 <code>10px</code>的大小，就用 <code>10/16=0.625rem</code>。</p>
+<h3 id="vw-和-vh"><a href="#vw-和-vh" class="headerlink" title="vw 和 vh"></a>vw 和 vh</h3><p><a href="https://drafts.csswg.org/css-values-3/#vw" target="_blank" rel="external nofollow noopener noreferrer">草案原文</a>如下：</p>
+<blockquote>
+<p><code>vw</code> unit Equal to 1% of the width of the initial containing block.</p>
+<p><code>vh</code> unit Equal to 1% of the height of the initial containing block.</p>
+</blockquote>
+<blockquote>
+<p><code>vw</code> 单位大小相当于初始包含块（不含滚动条的视窗）宽度的 1%。</p>
+<p><code>vh</code> 单位大小相当于初始包含块（不含滚动条的视窗）高度的 1%。</p>
+</blockquote>
+<p><code>vw</code>、<code>vh</code> 就是 viewport width、viewport height 的意思，这两个单位只与视窗高宽有关系，<code>1</code>单位 <code>vw</code> 或 <code>vh</code> 是视窗高度或宽度的 <code>1%</code>。</p>
+<h3 id="vmax-和-vmin"><a href="#vmax-和-vmin" class="headerlink" title="vmax 和 vmin"></a>vmax 和 vmin</h3><p><a href="https://drafts.csswg.org/css-values-3/#vmin" target="_blank" rel="external nofollow noopener noreferrer">草案原文</a>如下：</p>
+<blockquote>
+<p><code>vmin</code> unit Equal to the smaller of <a href="https://drafts.csswg.org/css-values-3/#vw" target="_blank" rel="external nofollow noopener noreferrer">vw</a> or <a href="https://drafts.csswg.org/css-values-3/#vh" target="_blank" rel="external nofollow noopener noreferrer">vh</a>.</p>
+<p><code>vmax</code> unit Equal to the larger of <a href="https://drafts.csswg.org/css-values-3/#vw" target="_blank" rel="external nofollow noopener noreferrer">vw</a> or <a href="https://drafts.csswg.org/css-values-3/#vh" target="_blank" rel="external nofollow noopener noreferrer">vh</a>.</p>
+</blockquote>
+<blockquote>
+<p><code>vmin</code> 单位大小相当于 <code>vw</code> 和 <code>vh</code> 中较小的那个。</p>
+<p><code>vmax</code> 单位大小相当于 <code>vw</code> 和 <code>vh</code> 中较大的那个。</p>
+</blockquote>
+<p>有了 <code>vh</code> 和 <code>vw</code> 的铺垫，<code>vmax</code> 和 <code>vmin</code> 就比较清晰了，<code>vmax = max(vh, vw)，vmin = min(vh, vw)</code>。</p>
+<p>使用这两个单位有一个很明显的好处，如果给一个块级元素的赋予了 <code>vmax</code> 或 <code>vmin</code> 做单位的宽高，当视窗被缩放时，这个块级元素既会跟随视窗一起缩放，又不会改变块级元素的宽高比导致内容畸形。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>CSS 遇事不懂，最标准的答案还是规范和草案！<a href="https://www.w3.org/Style/CSS/" target="_blank" rel="external nofollow noopener noreferrer">https://www.w3.org/Style/CSS/</a><br><img src="/posts/3680799e/w3c_logo-800x400.jpg" alt></p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/CSS/" rel="tag"># CSS</a>
+              <a href="/tags/%E5%83%8F%E7%B4%A0/" rel="tag"># 像素</a>
+              <a href="/tags/%E5%8D%95%E4%BD%8D/" rel="tag"># 单位</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/4a90030.html" rel="prev" title="ECharts旭日图及轮播效果实现">
+      <i class="fa fa-chevron-left"></i> ECharts旭日图及轮播效果实现
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/ef0a6799.html" rel="next" title="CSS数学表达式calc()的规范草案翻译">
+      CSS数学表达式calc()的规范草案翻译 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#像素"><span class="nav-number">1.</span> <span class="nav-text">像素</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#物理像素-设备像素（Device-Pixel，DP）"><span class="nav-number">1.1.</span> <span class="nav-text">物理像素&#x3D;设备像素（Device Pixel，DP）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#像素密度（Pixels-Per-Inch，PPI）"><span class="nav-number">1.2.</span> <span class="nav-text">像素密度（Pixels Per Inch，PPI）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考像素（Reference-Pixel，RP）"><span class="nav-number">1.3.</span> <span class="nav-text">参考像素（Reference Pixel，RP）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CSS-像素（px）"><span class="nav-number">1.4.</span> <span class="nav-text">CSS 像素（px）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设备独立像素-逻辑像素（Device-independent-Pixel，DIP）"><span class="nav-number">1.5.</span> <span class="nav-text">设备独立像素&#x3D;逻辑像素（Device independent Pixel，DIP）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设备像素比（Device-Pixels-Ratio，DPR）"><span class="nav-number">1.6.</span> <span class="nav-text">设备像素比（Device Pixels Ratio，DPR）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#视窗（viewport）"><span class="nav-number">1.7.</span> <span class="nav-text">视窗（viewport）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#几个长度单位"><span class="nav-number">2.</span> <span class="nav-text">几个长度单位</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#px"><span class="nav-number">2.1.</span> <span class="nav-text">px</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#"><span class="nav-number">2.2.</span> <span class="nav-text">%</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#em"><span class="nav-number">2.3.</span> <span class="nav-text">em</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rem"><span class="nav-number">2.4.</span> <span class="nav-text">rem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vw-和-vh"><span class="nav-number">2.5.</span> <span class="nav-text">vw 和 vh</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vmax-和-vmin"><span class="nav-number">2.6.</span> <span class="nav-text">vmax 和 vmin</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '31d763972202c62fd8a78d192971f0f2',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

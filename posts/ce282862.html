@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="按照课程顺序，应该先分析Dynamic Data这个demo，对应如下：  官网实例：Dynamic Data  跟我学OpenLayers——基础实例讲解：12 渲染器机制的使用 &gt; 实例80.动态点的效果">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenLayers6实例分析：Dynamic Data（动态数据）">
+<meta property="og:url" content="https://linjingyi.cn/posts/ce282862.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="按照课程顺序，应该先分析Dynamic Data这个demo，对应如下：  官网实例：Dynamic Data  跟我学OpenLayers——基础实例讲解：12 渲染器机制的使用 &gt; 实例80.动态点的效果">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/ce282862/style.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ce282862/postrender.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ce282862/getVectorContext.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ce282862/getVectorContext_github.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ce282862/vectorContext.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ce282862/left.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ce282862/right.jpg">
+<meta property="article:published_time" content="2020-01-19T11:34:03.000Z">
+<meta property="article:modified_time" content="2020-01-19T11:34:03.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="OpenLayers">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="地图">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/ce282862/style.jpg">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/ce282862.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>OpenLayers6实例分析：Dynamic Data（动态数据） | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/ce282862.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          OpenLayers6实例分析：Dynamic Data（动态数据）
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-01-19 19:34:03" itemprop="dateCreated datePublished" datetime="2020-01-19T19:34:03+08:00">2020-01-19</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9C%B0%E5%9B%BE/" itemprop="url" rel="index">
+                    <span itemprop="name">地图</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>按照课程顺序，应该先分析Dynamic Data这个demo，对应如下：</p>
+<ul>
+<li><p><a href="https://openlayers.org/en/latest/examples/dynamic-data.html" target="_blank" rel="external nofollow noopener noreferrer">官网实例</a>：Dynamic Data</p>
+</li>
+<li><p><a href="https://ke.qq.com/course/449937" target="_blank" rel="external nofollow noopener noreferrer">跟我学OpenLayers——基础实例讲解</a>：12 渲染器机制的使用 &gt; 实例80.动态点的效果</p>
+<a id="more"></a>
+
+</li>
+</ul>
+<h2 id="定义基本结构"><a href="#定义基本结构" class="headerlink" title="定义基本结构"></a>定义基本结构</h2><p>先把地图基本结构展示出来：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"stylesheet"</span>       <span class="attr">href</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css"</span> <span class="attr">type</span>=<span class="string">"text/css"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Dynamic Data(动态数据)<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">        html,</span><br><span class="line">        body,</span><br><span class="line"><span class="css">        <span class="selector-class">.map</span> &#123;</span></span><br><span class="line">            height: 100%;</span><br><span class="line">            width: 100%;</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">class</span>=<span class="string">"map"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 定义一个使用OSM源的瓦片图层</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> tileLayer = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">            source: <span class="keyword">new</span> ol.source.OSM()</span></span><br><span class="line">        &#125;);</span><br><span class="line"><span class="actionscript">        <span class="comment">// 初始化地图</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">            layers: [tileLayer],</span><br><span class="line"><span class="actionscript">            target: <span class="string">'map'</span>,</span></span><br><span class="line"><span class="actionscript">            view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line">                center: [0, 0],</span><br><span class="line">                zoom: 2</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="定义圆圈样式"><a href="#定义圆圈样式" class="headerlink" title="定义圆圈样式"></a>定义圆圈样式</h2><p>接下来是定义几种不同的样式，如下图所示，普通圆点的边框为红色，填充为黄色，打头第一个圆点的边框为蓝色，填充为黑色。</p>
+<p><img src="/posts/ce282862/style.jpg" alt></p>
+<p>通过ol.style来定义这几种不同的样式：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// imageStyle：每个普通圆</span></span><br><span class="line"><span class="comment">// headInnerImageStyle：第一个的圆的内圈</span></span><br><span class="line"><span class="comment">// headOuterImageStyle：第一个圆的外圈</span></span><br><span class="line"><span class="keyword">let</span> imageStyle = <span class="keyword">new</span> ol.style.Style(&#123;</span><br><span class="line">    image: <span class="keyword">new</span> ol.style.Circle(&#123;</span><br><span class="line">        radius: <span class="number">5</span>,</span><br><span class="line">        fill: <span class="keyword">new</span> ol.style.Fill(&#123; <span class="attr">color</span>: <span class="string">'yellow'</span> &#125;),</span><br><span class="line">        stroke: <span class="keyword">new</span> ol.style.Stroke(&#123; <span class="attr">color</span>: <span class="string">'red'</span>, <span class="attr">width</span>: <span class="number">1</span> &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> headInnerImageStyle = <span class="keyword">new</span> ol.style.Style(&#123;</span><br><span class="line">    image: <span class="keyword">new</span> ol.style.Circle(&#123;</span><br><span class="line">        radius: <span class="number">2</span>,</span><br><span class="line">        fill: <span class="keyword">new</span> ol.style.Fill(&#123; <span class="attr">color</span>: <span class="string">'blue'</span> &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> headOuterImageStyle = <span class="keyword">new</span> ol.style.Style(&#123;</span><br><span class="line">    image: <span class="keyword">new</span> ol.style.Circle(&#123;</span><br><span class="line">        radius: <span class="number">5</span>,</span><br><span class="line">        fill: <span class="keyword">new</span> ol.style.Fill(&#123; <span class="attr">color</span>: <span class="string">'black'</span> &#125;)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="postrender事件"><a href="#postrender事件" class="headerlink" title="postrender事件"></a>postrender事件</h2><h3 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h3><hr>
+<p>在实例中不断运动的动画是利用<code>ol.layer.Tile</code>的<code>postrender</code>事件回调来完成的，通过官网查询我们可以发现<code>ol.layer.Tile</code>有如下几个事件：</p>
+<p><img src="/posts/ce282862/postrender.jpg" alt></p>
+<p>如标红所示，<a href="https://openlayers.org/en/latest/apidoc/module-ol_render_Event-RenderEvent.html#event:postrender" target="_blank" rel="external nofollow noopener noreferrer">postrender</a>事件是在layer渲染完成后触发，并且带有矢量上下文，所以是可以利用矢量上下文来自由绘制Canvas的。</p>
+<h3 id="矢量上下文"><a href="#矢量上下文" class="headerlink" title="矢量上下文"></a>矢量上下文</h3><p>在OpenLayers6中，<a href="https://openlayers.org/en/latest/apidoc/module-ol_render.html#.getVectorContext" target="_blank" rel="external nofollow noopener noreferrer">ol.render.getVectorContext()</a>是可以获取事件的矢量上下文的，API和源码如下图所示：</p>
+<hr>
+<p><img src="/posts/ce282862/getVectorContext.jpg" alt title="OpenLayers官方API"></p>
+<hr>
+<p><img src="/posts/ce282862/getVectorContext_github.jpg" alt></p>
+<hr>
+<p>很明显可以得知，输入参数是个event，得到的是矢量上下文，也就是一个<a href="https://openlayers.org/en/latest/apidoc/module-ol_render_canvas_Immediate-CanvasImmediateRenderer.html" target="_blank" rel="external nofollow noopener noreferrer">CanvasImmediateRenderer</a>对象。该对象有四个方法<code>drawCircle</code>、<code>drawFeature</code> 、<code>drawGeometry</code> 、<code>setStyle</code>：</p>
+<hr>
+<p><img src="/posts/ce282862/vectorContext.jpg" alt></p>
+<hr>
+<p>在这个demo中利用到了最后的两个方法<code>drawGeometry</code>和<code>setStyle</code>，熟悉Canvas的同学们应该都知道，Canvas在绘制时需要先设置绘制的各种参数，再进行绘制，该对象中的这几个方法的思路与Canvas很相似，所以再demo中是先<code>setStyle</code>，后给全部圆点<code>drawGeometry</code>，然后再<code>setStyle</code>，再单独给第一个点<code>drawGeometry</code>。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">tileLayer.on(<span class="string">'postrender'</span>, event =&gt; &#123;</span><br><span class="line">    <span class="comment">// 获取矢量上下文和当前帧</span></span><br><span class="line">    <span class="keyword">let</span> vectorContext = ol.render.getVectorContext(event);</span><br><span class="line">    <span class="keyword">let</span> frameState = event.frameState;</span><br><span class="line">    <span class="comment">// 省略</span></span><br><span class="line">    <span class="comment">// 中间省略圆点位置计算过程</span></span><br><span class="line">    <span class="comment">// 省略</span></span><br><span class="line">    vectorContext.setStyle(imageStyle);</span><br><span class="line">    vectorContext.drawGeometry(<span class="keyword">new</span> ol.geom.MultiPoint(coordinates));</span><br><span class="line">    <span class="comment">// 单独给取出第一个点</span></span><br><span class="line">    <span class="keyword">let</span> headPoint = <span class="keyword">new</span> ol.geom.Point(coordinates[coordinates.length - <span class="number">1</span>]);</span><br><span class="line">    vectorContext.setStyle(headOuterImageStyle);</span><br><span class="line">    vectorContext.drawGeometry(headPoint);</span><br><span class="line">    vectorContext.setStyle(headInnerImageStyle);</span><br><span class="line">    vectorContext.drawGeometry(headPoint);</span><br><span class="line">    map.render();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="render"><a href="#render" class="headerlink" title="render"></a>render</h3><p>在绘制完成以后，调取<code>map</code>对象的<code>render</code>方法，绘制下一帧。同样当下一帧绘制完成以后，又会触发    <code>postrender</code>的事件继续绘制然后<code>render</code>。由于每一帧的<code>frameState.time</code>不同，所以圆点的位置也不同，最终实现了动画的效果。</p>
+<h2 id="圆点位置计算"><a href="#圆点位置计算" class="headerlink" title="圆点位置计算"></a>圆点位置计算</h2><p>前面写的都是OpenLayers相关的内容，在圆点位置计算方面，就是一个纯数学过程了。如下所示，最开始是先定义了几个变量。在这几个变量中，最关键的是<code>theta</code>，它代表的是当前帧的第一个点的弧度，说起来比较拗口，其实是先用<code>event.frameState.time</code>求出当前帧的时间戳，然后除以<code>omegaTheta</code>（旋转一个周期的时间长度），得到的就是当前帧是第多少个周期，再乘<code>2 * Math.PI</code>，就得到了当前帧的弧度。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> n = <span class="number">200</span>; <span class="comment">// 旋转点的个数</span></span><br><span class="line"><span class="keyword">const</span> omegaTheta = <span class="number">60000</span>; <span class="comment">// 旋转一个周期用的时间，ms</span></span><br><span class="line"><span class="comment">// 几个长度 m</span></span><br><span class="line"><span class="keyword">const</span> R = <span class="number">7e6</span>; <span class="comment">// 类似公转</span></span><br><span class="line"><span class="keyword">const</span> r = <span class="number">2e6</span>; <span class="comment">// 类似自转</span></span><br><span class="line"><span class="keyword">const</span> p = <span class="number">2e6</span>; <span class="comment">// 一个基本长度常量</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> theta = <span class="number">2</span> * <span class="built_in">Math</span>.PI * frameState.time / omegaTheta; <span class="comment">// 计算当前帧弧度</span></span><br><span class="line"><span class="keyword">let</span> coordinates = []; <span class="comment">// 存放每个点位置的数组</span></span><br></pre></td></tr></table></figure>
+
+<p>在demo代码中的数组是像下面这样循环出来的，首先t不难理解，<code>theta</code>是当前帧的弧度，加上<code>2 * Math.PI * i / n</code>以后，也就是每一个点都偏移一定的弧度，形成一条连线。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">    <span class="keyword">let</span> t = theta + <span class="number">2</span> * <span class="built_in">Math</span>.PI * i / n;</span><br><span class="line">    <span class="keyword">let</span> x = (R + r) * <span class="built_in">Math</span>.cos(t) + p * <span class="built_in">Math</span>.cos((R + r) * t / r);</span><br><span class="line">    <span class="keyword">let</span> y = (R + r) * <span class="built_in">Math</span>.sin(t) + p * <span class="built_in">Math</span>.sin((R + r) * t / r);</span><br><span class="line">    coordinates.push([x, y]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这一块代码最难理解的地方是<code>x</code>和<code>y</code>，所以可以把他分开来理解，先只取<code>x</code>和<code>y</code>的前半部分：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">    <span class="keyword">let</span> t = theta + <span class="number">2</span> * <span class="built_in">Math</span>.PI * i / n;</span><br><span class="line">    <span class="keyword">let</span> x = (R + r) * <span class="built_in">Math</span>.cos(t); <span class="comment">// 只保留前半部分</span></span><br><span class="line">    <span class="keyword">let</span> y = (R + r) * <span class="built_in">Math</span>.sin(t); <span class="comment">// 只保留前半部分</span></span><br><span class="line">    coordinates.push([x, y]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结果的到的图片如下所示，可以发现，圆点排列组合成了一个很大的圆，类似于一种公转的效果：</p>
+<p><img src="/posts/ce282862/left.jpg" alt></p>
+<p>接下来，再只取<code>x</code>和<code>y</code>的后半部分:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">    <span class="keyword">let</span> t = theta + <span class="number">2</span> * <span class="built_in">Math</span>.PI * i / n;</span><br><span class="line">    <span class="keyword">let</span> x = p * <span class="built_in">Math</span>.cos((R + r) * t / r); <span class="comment">// 只保留后半部分</span></span><br><span class="line">    <span class="keyword">let</span> y = p * <span class="built_in">Math</span>.sin((R + r) * t / r); <span class="comment">// 只保留后半部分</span></span><br><span class="line">    coordinates.push([x, y]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>得到的结果如下所示，跟保留前半部分不同的是，圆点虽然也排列成了圆圈，但是半径比较小，类似于一种自转的效果。所以当两者一结合，就会组合出demo中所示的混乱旋转的效果。<br><img src="/posts/ce282862/right.jpg" alt></p>
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><p>最后贴出代码：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">"stylesheet"</span></span></span><br><span class="line"><span class="tag">        <span class="attr">href</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css"</span> <span class="attr">type</span>=<span class="string">"text/css"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Dynamic Data(动态数据)<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">        html,</span><br><span class="line">        body,</span><br><span class="line"><span class="css">        <span class="selector-class">.map</span> &#123;</span></span><br><span class="line">            height: 100%;</span><br><span class="line">            width: 100%;</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">class</span>=<span class="string">"map"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 定义一个使用OSM源的瓦片图层</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> tileLayer = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">            source: <span class="keyword">new</span> ol.source.OSM()</span></span><br><span class="line">        &#125;);</span><br><span class="line"><span class="actionscript">        <span class="comment">// 初始化地图</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">            layers: [tileLayer],</span><br><span class="line"><span class="actionscript">            target: <span class="string">'map'</span>,</span></span><br><span class="line"><span class="actionscript">            view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line">                center: [0, 0],</span><br><span class="line">                zoom: 2</span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;);</span><br><span class="line"><span class="actionscript">        <span class="comment">// 定义几种不同的样式</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// imageStyle：每个普通圆</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// headInnerImageStyle：开头的圆的内圈</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// headOuterImageStyle：开头圆的外圈</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> imageStyle = <span class="keyword">new</span> ol.style.Style(&#123;</span></span><br><span class="line"><span class="actionscript">            image: <span class="keyword">new</span> ol.style.Circle(&#123;</span></span><br><span class="line">                radius: 5,</span><br><span class="line"><span class="actionscript">                fill: <span class="keyword">new</span> ol.style.Fill(&#123; color: <span class="string">'yellow'</span> &#125;),</span></span><br><span class="line"><span class="actionscript">                stroke: <span class="keyword">new</span> ol.style.Stroke(&#123; color: <span class="string">'red'</span>, width: <span class="number">1</span> &#125;)</span></span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> headInnerImageStyle = <span class="keyword">new</span> ol.style.Style(&#123;</span></span><br><span class="line"><span class="actionscript">            image: <span class="keyword">new</span> ol.style.Circle(&#123;</span></span><br><span class="line">                radius: 2,</span><br><span class="line"><span class="actionscript">                fill: <span class="keyword">new</span> ol.style.Fill(&#123; color: <span class="string">'blue'</span> &#125;)</span></span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> headOuterImageStyle = <span class="keyword">new</span> ol.style.Style(&#123;</span></span><br><span class="line"><span class="actionscript">            image: <span class="keyword">new</span> ol.style.Circle(&#123;</span></span><br><span class="line">                radius: 5,</span><br><span class="line"><span class="actionscript">                fill: <span class="keyword">new</span> ol.style.Fill(&#123; color: <span class="string">'black'</span> &#125;)</span></span><br><span class="line">            &#125;)</span><br><span class="line">        &#125;);</span><br><span class="line"><span class="actionscript">        <span class="comment">// 定义几个常量</span></span></span><br><span class="line"><span class="actionscript">        <span class="keyword">const</span> n = <span class="number">200</span>; <span class="comment">// 200个点</span></span></span><br><span class="line"><span class="actionscript">        <span class="keyword">const</span> omegaTheta = <span class="number">60000</span>; <span class="comment">// 旋转时间，ms</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 几个长度 m</span></span></span><br><span class="line"><span class="actionscript">        <span class="keyword">const</span> R = <span class="number">7e6</span>;</span></span><br><span class="line"><span class="actionscript">        <span class="keyword">const</span> r = <span class="number">2e6</span>;</span></span><br><span class="line"><span class="actionscript">        <span class="keyword">const</span> p = <span class="number">2e6</span>;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 回调</span></span></span><br><span class="line"><span class="actionscript">        tileLayer.on(<span class="string">'postrender'</span>, event =&gt; &#123;</span></span><br><span class="line"><span class="actionscript">            <span class="comment">// 获取矢量上下文和当前帧</span></span></span><br><span class="line"><span class="javascript">            <span class="keyword">let</span> vectorContext = ol.render.getVectorContext(event);</span></span><br><span class="line"><span class="javascript">            <span class="keyword">let</span> frameState = event.frameState;</span></span><br><span class="line"><span class="javascript">            <span class="keyword">let</span> theta = <span class="number">2</span> * <span class="built_in">Math</span>.PI * frameState.time / omegaTheta;</span></span><br><span class="line"><span class="javascript">            <span class="built_in">console</span>.log(frameState.time, theta)</span></span><br><span class="line"><span class="javascript">            <span class="keyword">let</span> coordinates = [];</span></span><br><span class="line"><span class="javascript">            <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span></span><br><span class="line"><span class="javascript">                <span class="keyword">let</span> t = theta + <span class="number">2</span> * <span class="built_in">Math</span>.PI * i / n;</span></span><br><span class="line"><span class="javascript">                <span class="keyword">let</span> x = (R + r) * <span class="built_in">Math</span>.cos(t) + p * <span class="built_in">Math</span>.cos((R + r) * t / r);</span></span><br><span class="line"><span class="javascript">                <span class="keyword">let</span> y = (R + r) * <span class="built_in">Math</span>.sin(t) + p * <span class="built_in">Math</span>.sin((R + r) * t / r);</span></span><br><span class="line"><span class="actionscript">                <span class="comment">// var x = (R + r) * Math.cos(t)</span></span></span><br><span class="line"><span class="actionscript">                <span class="comment">// var y = (R + r) * Math.sin(t)</span></span></span><br><span class="line"><span class="actionscript">                <span class="comment">// var x = p * Math.cos((R + r) * t / r);</span></span></span><br><span class="line"><span class="actionscript">                <span class="comment">// var y = p * Math.sin((R + r) * t / r);</span></span></span><br><span class="line">                coordinates.push([x, y]);</span><br><span class="line">            &#125;</span><br><span class="line">            vectorContext.setStyle(imageStyle);</span><br><span class="line"><span class="actionscript">            vectorContext.drawGeometry(<span class="keyword">new</span> ol.geom.MultiPoint(coordinates));</span></span><br><span class="line"><span class="javascript">            <span class="keyword">let</span> headPoint = <span class="keyword">new</span> ol.geom.Point(coordinates[coordinates.length - <span class="number">1</span>]);</span></span><br><span class="line">            vectorContext.setStyle(headOuterImageStyle);</span><br><span class="line">            vectorContext.drawGeometry(headPoint);</span><br><span class="line">            vectorContext.setStyle(headInnerImageStyle);</span><br><span class="line">            vectorContext.drawGeometry(headPoint);</span><br><span class="line">            map.render();</span><br><span class="line">        &#125;);</span><br><span class="line">        map.render();</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenLayers/" rel="tag"># OpenLayers</a>
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/%E5%9C%B0%E5%9B%BE/" rel="tag"># 地图</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/afca5f67.html" rel="prev" title="OpenLayers6实例分析：简介">
+      <i class="fa fa-chevron-left"></i> OpenLayers6实例分析：简介
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/911be51e.html" rel="next" title="OpenLayers6实例分析：Custom Animation（水波扩散）">
+      OpenLayers6实例分析：Custom Animation（水波扩散） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#定义基本结构"><span class="nav-number">1.</span> <span class="nav-text">定义基本结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义圆圈样式"><span class="nav-number">2.</span> <span class="nav-text">定义圆圈样式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#postrender事件"><span class="nav-number">3.</span> <span class="nav-text">postrender事件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#事件"><span class="nav-number">3.1.</span> <span class="nav-text">事件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#矢量上下文"><span class="nav-number">3.2.</span> <span class="nav-text">矢量上下文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#render"><span class="nav-number">3.3.</span> <span class="nav-text">render</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#圆点位置计算"><span class="nav-number">4.</span> <span class="nav-text">圆点位置计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#源码"><span class="nav-number">5.</span> <span class="nav-text">源码</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '3da4213d57203390a1bcf67a71de65a4',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

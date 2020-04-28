@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="翻译 ECMA-262 规范，也就是 ECMAScript 的规范的第四节 Overview，重新梳理 JS 中的一些基本概念，最后理解一下在 ECMAScript 中 property 和 attribute 的区别。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ECMA-262规范第4节Overview翻译">
+<meta property="og:url" content="https://linjingyi.cn/posts/23f9220f.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="翻译 ECMA-262 规范，也就是 ECMAScript 的规范的第四节 Overview，重新梳理 JS 中的一些基本概念，最后理解一下在 ECMAScript 中 property 和 attribute 的区别。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/23f9220f/figure-1.png">
+<meta property="article:published_time" content="2020-03-11T22:56:29.000Z">
+<meta property="article:modified_time" content="2020-03-11T22:56:29.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="翻译">
+<meta property="article:tag" content="ECMA262">
+<meta property="article:tag" content="规范">
+<meta property="article:tag" content="总览">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/23f9220f/figure-1.png">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/23f9220f.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>ECMA-262规范第4节Overview翻译 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/23f9220f.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          ECMA-262规范第4节Overview翻译
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-03-12 06:56:29" itemprop="dateCreated datePublished" datetime="2020-03-12T06:56:29+08:00">2020-03-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/" itemprop="url" rel="index">
+                    <span itemprop="name">JS</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E8%A7%84%E8%8C%83/" itemprop="url" rel="index">
+                    <span itemprop="name">规范</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>翻译 ECMA-262 规范，也就是 ECMAScript 的规范的<a href="http://www.ecma-international.org/ecma-262/#sec-overview" target="_blank" rel="external nofollow noopener noreferrer">第四节 Overview</a>，重新梳理 JS 中的一些基本概念，最后理解一下在 ECMAScript 中 <code>property</code> 和 <code>attribute</code> 的区别。</p>
+<a id="more"></a>
+
+<h2 id="翻译"><a href="#翻译" class="headerlink" title="翻译"></a>翻译</h2><p>本章节包含 ECMAScript 语言的非规范性概述。</p>
+<p>EcmaScript 是一种面向对象程序设计语言，用于在宿主环境中执行计算和操作计算对象。 这里定义的 ECMAScript 并不打算在计算上完全自我实现; 实际上，本规范中没有关于外部数据输入或计算结果输出的规定。 相反，预计 ECMAScript 程序的计算环境将不仅提供本规范中描述的对象和其他工具，而且还提供某些特定环境的对象，这些对象的描述和行为超出了本规范的范围，只是表明它们可能提供可以访问的特定属性和可以从 ECMAScript 程序调用的特定函数。</p>
+<p>最初设计 ECMAScript 时是作为一个脚本语言，但现在已经被广泛用作多用途的编程语言。脚本语言时用来操作、定制和自动化现有系统工具的编程语言。 在这样的系统中，有用的功能已经可以通过用户界面实现，而脚本语言控制是一种将这种功能暴露给程序控制的机制。 通过这种方式，现有的系统被认为提供了一个由对象和工具组成的宿主环境，这就完成了脚本语言的功能。专业程序员和非专业程序员都可以使用脚本语言。</p>
+<p>EcmaScript 最初被设计为一个 Web 脚本语言，提供一种机制来在浏览器中使 Web 页面更生动，并作为基于 Web 的客户机-服务器架构的一部分执行服务器计算。 EcmaScript 现在用于为各种宿主环境提供核心脚本功能。 因此，本文档中还指定了除了特定的宿主环境之外的核心语言。</p>
+<p>使用 ECMAScript 已经超越了简单的脚本，现在它被用于许多不同环境和尺度的全方位编程任务。 随着 ECMAScript 使用的扩展，它提供的特性和工具也随之扩展。 现在 ECMAScript 是一个功能齐全的通用编程语言。</p>
+<p>Ecmascript 的一些工具类似于其他编程语言中使用的工具; 特别是 c、 Java、 Self 和 Scheme，如下所述:</p>
+<p>ISO/IEC 9899:1996, Programming Languages – C.</p>
+<p>Gosling, James, Bill Joy and Guy Steele. The Java™ Language Specification. Addison Wesley Publishing Co., 1996.</p>
+<p>Ungar, David, and Smith, Randall B. Self: The Power of Simplicity. OOPSLA ‘87 Conference Proceedings, pp. 227-241, Orlando, FL, October 1987.</p>
+<p>IEEE Standard for the Scheme Programming Language. IEEE Std 1178-1990.</p>
+<h3 id="Web-脚本"><a href="#Web-脚本" class="headerlink" title="Web 脚本"></a>Web 脚本</h3><p>Web 浏览器为客户端计算提供了 ECMAScript 宿主环境，例如，表示窗口、菜单、弹出窗口、对话框、文本区、锚、框架、历史记录、 cookies 和输入 / 输出的对象。 此外，宿主环境提供了一种方法来附加脚本代码的事件，如改变焦点，页面和图像加载，卸载，错误和中止，选择，表单提交和鼠标操作。 脚本代码出现在 HTML 中，显示的页面是用户界面元素以及固定和计算文本和图像的组合。 脚本代码是针对用户交互的，不需要主程序。</p>
+<p>Web 服务器为服务器端计算提供了不同的宿主环境，包括表示请求、客户端和文件的对象，以及锁定和共享数据的机制。 通过同时使用浏览器端和服务器端脚本，可以在客户端和服务器之间分配计算，同时为 Web 应用程序提供定制的用户界面。</p>
+<p>每个支持 ECMAScript 的 Web 浏览器和服务器都提供自己的完成 ECMAScript 执行的宿主环境。</p>
+<h3 id="ECMAScript-概述"><a href="#ECMAScript-概述" class="headerlink" title="ECMAScript 概述"></a>ECMAScript 概述</h3><p>下面是 ECMAScript 的一个非正式概述————并不是所有的部分都被描述了。 这个概述不是标准的一部分。</p>
+<p>EcmaScript 是基于对象的: 基本语言和宿主工具由对象提供，ECMAScript 程序是一个通信对象集群。 在 ECMAScript 中，对象是由零个或多个 property 组成的集合，每个 property 都具有决定如何使用每个 property 的 attribute ——例如，当 property 的 Writable 属性设置为 false 时，任何已执行 ECMAScript 代码为属性分配不同值的尝试都将失败。 属性是容纳其他对象、基本类型值或函数的容器。 基本类型值是下列内置类型之一的成员: Undefined、 Null、 Boolean、 Number、 String 和 Symbol; 对象是内置类型 Object 的成员; 函数是可调用对象。函数通过一个叫方法的属性与对象联系起来。</p>
+<p>Ecmascript 定义了一组内置对象，这些对象完善了 ECMAScript 实体的定义。 这些内置对象包括全局对象; 对语言语义有重要意义的对象，包括 Object、 Function、 Boolean、 Symbol 和各种 Error 对象; 表示和操作数值(包括 Math、 Number 和 Date)的对象; 文本处理对象 String 和 RegExp; 包括 Array 和 9 种不同类型的类型数组(其元素都具有特定的数值数据表示)的索引值集合对象; 包括 Map 和 Set 对象的键值对集合; 支持结构化数据(包括 JSON 对象、 ArrayBuffer、 sharedarbuffer 和 DataView)的对象; 支持抽象化控制(包括 generator 函数和 Promise 对象)的对象; 以及包括 Proxy 和 Reflect 对象在内的反射对象。</p>
+<p>Ecmascript 还定义了一组内置操作符。 运算符包括各种一元运算符、乘法运算符、加法运算符、位移运算符、关系运算符、相等运算符、二元位运算符、二元逻辑运算符、赋值运算符和逗号运算符。</p>
+<p>大型 ECMAScript 程序支持模块功能，这些模块允许程序被划分为多个语句和声明序列。 每个模块都明确指出它使用的声明需要由其他模块提供，以及哪些声明可供其他模块使用。</p>
+<p>语法有意地模仿 Java 语法。 但 Ecmascript 语法比较宽松，可以作为一个易于使用的脚本语言。 例如，变量不需要声明其类型，属性也不需要与类型关联，已定义的函数不需要在调用它们之前以文本形式显示其声明。</p>
+<h4 id="对象"><a href="#对象" class="headerlink" title="对象"></a>对象</h4><p>尽管 ECMAScript 包含定义类的语法，但是 ECMAScript 对象并不像 c++ 、Smalltalk 或 Java 中的对象那样基于类。 而是可以通过各种方式创建对象，包括通过文字符号或通过构造函数创建对象，然后执行代码，通过为其属性分配初始值来初始化所有或部分对象。 每个构造函数都有一个名为“ prototype”的属性，用于实现基于原型的继承和共享属性。 对象是通过在 new 表达式中使用构造函数创建的; 例如，new Date (2009,11)创建一个新的 Date 对象。 在不使用 new 的情况下调用构造函数会产生依赖于构造函数的结果。 例如，Date ()生成当前日期和时间的字符串表示形式，而不是对象。</p>
+<p>构造函数创建的每个对象都对其构造函数的“prototype”属性的值有一个隐式引用(称为对象的 prototype)。 此外，一个原型可能对其自身的原型有一个非空的隐式引用，以此类推，这就是所谓的原型链。当引用对象中的属性时，该引用指向该原型链中包含属性的第一个对象中的该名称属性。 换句话说，首先检查当前对象是否具有这样的属性; 如果该对象包含指定的属性，那就是引用所指向的属性; 如果该对象不包含指定的属性，则接下来检查该对象的原型，以此类推。</p>
+<p><img src="/posts/23f9220f/figure-1.png" alt></p>
+<center>图1：对象/原型关系</center>
+
+<p>一般情况下，在基于类的面向对象语言中，状态由实例承载，方法由类承载，只继承结构和行为。 在 ECMAScript 中，状态和方法由对象承载，而结构、行为和状态都是继承的。</p>
+<p>所有不直接包含其原型包含的特定属性的对象都共享该属性及其值。 图 1 说明了这一点:</p>
+<p>CF 是一个构造函数(也是一个对象)。 使用 new 表达式创建了五个对象: cf1、 cf2、 cf3、 cf4 和 cf5。 每个对象都包含名为 q1 和 q2 的属性。 虚线表示隐含的原型关系; 例如，cf3 的原型是 CFp。 构造函数 CF 本身有两个属性，名为 P1 和 P2，CFp、 cf1、 cf2、 cf3、 cf4 或 cf5 不能看到这两个属性。 Cfp 中命名为 CFP1 的属性由 cf1、 cf2、 cf3、 cf4 和 cf5 共享(但不由 CF 共享) ，CFp 隐式原型链中发现的任何未命名为 q1、 q2 或 CFP1 的属性也是如此。 注意，CF 和 CFp 之间没有隐式原型链。</p>
+<p>与大多数基于类的对象语言不同，属性可以通过为对象赋值来动态地添加到对象中。 也就是说，构造函数不需要为所构造的对象的所有或任何属性命名或赋值。 在上面的图中，可以为 cf1、 cf2、 cf3、 cf4 和 cf5 添加一个新的共享属性，方法就是是为 CFp 中的属性分配一个新值。</p>
+<p>虽然 ECMAScript 对象本质上并不是基于类的，但是基于构造函数、原型对象和方法的公共模式来定义抽象类通常比较方便。 Ecmascript 内置对象本身遵循类似的模式。 从 ECMAScript 2015 开始，ECMAScript 语言包含了语法 class 定义，允许程序员精确定义符合内置对象所使用的类似抽象类模式的对象。</p>
+<h4 id="Ecmascript-的严格模式"><a href="#Ecmascript-的严格模式" class="headerlink" title="Ecmascript 的严格模式"></a>Ecmascript 的严格模式</h4><p>Ecmascript 语言认识到了一些用户可能希望能够限制一些特性。 他们这样希望可能是出于安全考虑，或者避免他们认为某些特性容易出错，或者为了增强的错误检查，或者出于他们选择的其他原因。 为了支持这种限制，ECMAScript 定义了该语言的一个严格变体。 该语言的严格变体排除了常规 ECMAScript 语言的一些特定的语法和语义特征，并修改了一些特征的详细语义。 严格变体还指定了额外的错误条件，抛出错误异常来报告。</p>
+<p>Ecmascript 的严格变体通常被称为语言的严格模式。 严格模式的选择和严格模式的语法和语义的使用是在各个 ECMAScript 源文本单元级别上显式地进行的。 由于严格模式是在语法源文本单元级别选择的，因此严格模式只该源文本单元施加局部限制。在多个源文本单元之间共同运行 ECMAScript 时， 严格模式不在任何方面限制或修改其他单元的语义。 一个完整的 ECMAScript 程序可以由严格模式和非严格模式的 ECMAScript 源文本单元共同组成。 在这种情况下，严格模式仅在执行定义了严格模式的源文本单元的代码时应用。</p>
+<p>为了符合这个规范，ECMAScript 实现时必须同时实现不受限制的 ECMAScript 语言和 ECMAScript 语言的严格变体。 此外，实现必须支持将不受限制和严格模式的源文本单元组合到单个复合程序中。</p>
+<h3 id="术语和定义"><a href="#术语和定义" class="headerlink" title="术语和定义"></a>术语和定义</h3><p>就本文件而言，适用以下术语和定义。</p>
+<h4 id="type"><a href="#type" class="headerlink" title="type"></a>type</h4><p>本规范种第 6 节中定义的数据集合。</p>
+<h4 id="primitive-value"><a href="#primitive-value" class="headerlink" title="primitive value"></a>primitive value</h4><p>第 6 节中 Undefined、 Null、 Boolean、 Number、 Symbol 或 String 类型之一的成员。</p>
+<h4 id="object"><a href="#object" class="headerlink" title="object"></a>object</h4><p>Object 类型的成员。</p>
+<blockquote>
+<p>注意：对象是属性的集合，并且只有一个原型对象。原型可能是空值。</p>
+</blockquote>
+<h4 id="constructor-NaN"><a href="#constructor-NaN" class="headerlink" title="constructor"></a>constructor</h4><p>创建和初始化对象的函数对象。</p>
+<blockquote>
+<p>注意：构造函数的原型属性的值是用于实现继承和共享属性的原型对象。</p>
+</blockquote>
+<h4 id="prototype"><a href="#prototype" class="headerlink" title="prototype"></a>prototype</h4><p>为其他对象提供共享属性的对象</p>
+<blockquote>
+<p>注意：当构造函数创建一个对象时，该对象隐式引用构造函数的原型属性，用来解析属性。 构造函数的原型属性可以被程序表达式 constructor.prototype 引用，添加到对象原型的属性通过继承的方式被共享原型的所有对象共享。 或者可以使用 Object.create 内置函数显式的指定的原型来创建新对象。</p>
+</blockquote>
+<h4 id="ordinary-object"><a href="#ordinary-object" class="headerlink" title="ordinary object"></a>ordinary object</h4><p>该对象具有必须由所有对象支持的基本内部方法的默认表现。</p>
+<h4 id="exotic-object"><a href="#exotic-object" class="headerlink" title="exotic object"></a>exotic object</h4><p>该对象不完全具备所有基本内部方法的默认表现。</p>
+<h4 id="standard-object"><a href="#standard-object" class="headerlink" title="standard object"></a>standard object</h4><p>语义由本规范定义的对象。</p>
+<h4 id="built-in-object"><a href="#built-in-object" class="headerlink" title="built-in object"></a>built-in object</h4><p>由 ECMAScript 的实现来指定和提供对象。</p>
+<h4 id="undefined-value"><a href="#undefined-value" class="headerlink" title="undefined value"></a>undefined value</h4><p>当变量没有被赋值时使用的原始值。</p>
+<h4 id="Undefined-type"><a href="#Undefined-type" class="headerlink" title="Undefined type"></a>Undefined type</h4><p>该类型唯一的值是 undefined。</p>
+<h4 id="null-value"><a href="#null-value" class="headerlink" title="null value"></a>null value</h4><p>表示任何对象值的故意缺失的原始值。</p>
+<h4 id="Null-type"><a href="#Null-type" class="headerlink" title="Null type"></a>Null type</h4><p>类型，其唯一值为 null</p>
+<h4 id="Boolean-value"><a href="#Boolean-value" class="headerlink" title="Boolean value"></a>Boolean value</h4><p>Boolean 类型的成员。</p>
+<blockquote>
+<p>注意：只有两个 Boolean 类型的值，true 和 false。</p>
+</blockquote>
+<h4 id="Boolean-type"><a href="#Boolean-type" class="headerlink" title="Boolean type"></a>Boolean type</h4><p>类型，由原始值 true 和 false 组成。</p>
+<h4 id="Boolean-object"><a href="#Boolean-object" class="headerlink" title="Boolean object"></a>Boolean object</h4><p>Object 类型的成员，它是标准内置 Boolean 构造函数的实例</p>
+<blockquote>
+<p>注意：在 new 表达式中使用 Boolean 构造函数创建 Boolean 对象，并提供一个 Boolean 值作为参数。 结果对象有一个内部槽，其值为 Boolean 值。 Boolean 对象可以强制为 Boolean 值。</p>
+</blockquote>
+<h4 id="String-value"><a href="#String-value" class="headerlink" title="String value"></a>String value</h4><p>原始值，是由任意个 16 位无符号整数值组成的有限有序序列。</p>
+<blockquote>
+<p>注意：String 值是 String 类型的成员。 序列中的每个整数值通常表示单个 16 位 UTF-16 文本单元。 但是，ECMAScript 没有对这些值设置任何限制或要求，除非它们必须是 16 位无符号整数。</p>
+</blockquote>
+<h4 id="String-type"><a href="#String-type" class="headerlink" title="String type"></a>String type</h4><p>所有可能的字符串值的集合</p>
+<h4 id="String-object"><a href="#String-object" class="headerlink" title="String object"></a>String object</h4><p>Object 类型的成员，它是标准内置 String 构造函数的实例</p>
+<blockquote>
+<p>注意：通过在 new 表达式中使用 String 构造函数创建 String 对象，并提供 String 值作为参数。 结果对象有一个内部槽，其值为 String 值。 通过像 function 章节那样调用 String 构造函数 ，可以将 String 对象强制为 String 值。</p>
+</blockquote>
+<h4 id="Number-value"><a href="#Number-value" class="headerlink" title="Number value"></a>Number value</h4><p>与双精度 64 位二进制格式 IEEE 754-2008 值对应的原始值</p>
+<blockquote>
+<p>注意：Number 值是 Number 类型的成员，是数字的直接表示形式。</p>
+</blockquote>
+<h4 id="Number-type"><a href="#Number-type" class="headerlink" title="Number type"></a>Number type</h4><p>所有可能的 Number 值的集合，包括特殊的“ not-a-Number”(NaN)值、正无穷大和负无穷大。</p>
+<h4 id="Number-object"><a href="#Number-object" class="headerlink" title="Number object"></a>Number object</h4><p>Object 类型的成员，它是标准内置 Number 构造函数的实例</p>
+<blockquote>
+<p>注意：在 new 表达式中使用 Number 构造函数创建 Number 对象，并提供一个数值作为参数。 结果对象具有一个内部槽，其值为数字值。 通过像 function 章节那样调用 Number 构造函数 ，可以将 Number 对象强制转换为一个数值。</p>
+</blockquote>
+<h4 id="Infinity"><a href="#Infinity" class="headerlink" title="Infinity"></a>Infinity</h4><p>正无穷大的数值</p>
+<h4 id="NaN"><a href="#NaN" class="headerlink" title="NaN"></a>NaN</h4><p>是 IEEE 754-2008 中“Not-a-Number”值的数字值。</p>
+<h4 id="Symbol-value"><a href="#Symbol-value" class="headerlink" title="Symbol value"></a>Symbol value</h4><p>表示唯一的非字符串的 Object 属性键的原始值。</p>
+<h4 id="Symbol-type"><a href="#Symbol-type" class="headerlink" title="Symbol type"></a>Symbol type</h4><p>所有可能的 Symbol 值的集合</p>
+<h4 id="Symbol-object"><a href="#Symbol-object" class="headerlink" title="Symbol object"></a>Symbol object</h4><p>Object 类型的成员，该成员是标准内置 Symbol 构造函数的实例。</p>
+<h4 id="function"><a href="#function" class="headerlink" title="function"></a>function</h4><p>可以作为子程序调用的 Object 类型的成员。</p>
+<blockquote>
+<p>注意：除了属性之外，函数还包含可执行代码和状态，这些代码和状态决定了函数被调用时的行为。 函数的代码不一定是用 ECMAScript 编写的。</p>
+</blockquote>
+<h4 id="built-in-function"><a href="#built-in-function" class="headerlink" title="built-in function"></a>built-in function</h4><p>该函数是一个内置对象。</p>
+<blockquote>
+<p>注意：内置函数的示例包括 parseInt 和 Math.exp。 实现时可以提供本规范中没有描述的与实现相关的内置函数。</p>
+</blockquote>
+<h4 id="property"><a href="#property" class="headerlink" title="property"></a>property</h4><p>对象的一部分，具有关联的键(String 值或 Symbol 值)和值。</p>
+<blockquote>
+<p>注意：根据 property 的形式，值可以直接表示为数据值(原始值、对象或函数对象) ，也可以通过一对访问器函数间接表示。</p>
+</blockquote>
+<h4 id="method"><a href="#method" class="headerlink" title="method"></a>method</h4><p>是一个函数，这个函数也是是 property 的值。</p>
+<blockquote>
+<p>注意：当一个函数作为一个对象的方法被调用时，这个对象作为 this 值传递给函数。</p>
+</blockquote>
+<h4 id="built-in-method"><a href="#built-in-method" class="headerlink" title="built-in method"></a>built-in method</h4><p>方法，是一个内置函数。</p>
+<blockquote>
+<p>注意：本规范定义了标准的内置方法，ECMAScript 实现时可以指定并提供其他内置方法。</p>
+</blockquote>
+<h4 id="attribute"><a href="#attribute" class="headerlink" title="attribute"></a>attribute</h4><p>internal value that defines some characteristic of a property</p>
+<p>内部值，定义 一个 property 的某些特征。</p>
+<h4 id="own-property"><a href="#own-property" class="headerlink" title="own property"></a>own property</h4><p>直接包含在其对象中的属性。</p>
+<h4 id="inherited-property"><a href="#inherited-property" class="headerlink" title="inherited property"></a>inherited property</h4><p>对象的属性，但是不是对象本身的属性，而是对象原型的属性(自身的或继承的)。</p>
+<h3 id="本规范的结构"><a href="#本规范的结构" class="headerlink" title="本规范的结构"></a>本规范的结构</h3><p>本规范的剩余部分结构如下:</p>
+<p>第 5 条定义了整个规范中使用的符号约定。</p>
+<p>6-9 条定义 操作 ECMAScript 程序的执行环境。</p>
+<p>10-16 条定义了实际的 ECMAScript 编程语言，包括它的语法编码和所有语言特性的执行语义。</p>
+<p>17-26 条定义 ECMAScript 标准库。 它们包括所有标准对象的定义，这些对象可供 ECMAScript 程序在执行时使用。</p>
+<p>第 27 条描述了支持 SharedArrayBuffer 内存访问的内存一致性模型和 Atomics 对象的方法。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在本节中有一句话，这句话中同时出现了 <code>property</code> 和 <code>attribute</code>，都可以翻译为“<code>属性</code>”：</p>
+<blockquote>
+<p>In ECMAScript, an object is a collection of zero or more <code>properties</code> each with <code>attributes</code> that determine how each <code>property</code> can be used—for example, when the Writable <code>attribute</code> for a <code>property</code> is set to false, any attempt by executed ECMAScript code to assign a different value to the <code>property</code> fails.</p>
+</blockquote>
+<p>翻译：</p>
+<blockquote>
+<p>在 ECMAScript 中，对象是由零个或多个 <code>property</code> 组成的集合，每个 <code>property</code> 都具有决定如何使用每个 <code>property</code> 的 <code>attribute</code> ——例如，当 <code>property</code> 的 <code>Writable</code> <code>attribute</code> 设置为 <code>false</code> 时，任何为 <code>property</code> 分配不同值的 ECMAScript 代码执行的尝试都将失败。</p>
+</blockquote>
+<p>再看规范中的定义：</p>
+<blockquote>
+<p><code>property</code>:<br>对象的一部分，具有关联的键(String 值或 Symbol 值)和值。<br>注意：根据 property 的形式，值可以直接表示为数据值(原始值、对象或函数对象) ，也可以通过一对访问器函数间接表示。</p>
+</blockquote>
+<blockquote>
+<p><code>attribute</code>：<br>内部值，定义 一个 property 的某些特征。</p>
+</blockquote>
+<p>综合起来，我的理解是 <code>property</code> 是一个对象中的键值对，而 <code>attribute</code> 则是给该 <code>property</code> 设置的一些属性，比如 <code>configurable</code> 或 <code>writable</code> 之类。举个例子：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Object</span>.defineProperty(obj, <span class="string">'name'</span>, &#123;</span><br><span class="line">	writable: <span class="literal">false</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>此时 <code>property</code> 应该是 <code>obj</code> 中的 <code>name</code> 键值对，而 <code>attribute</code> 是 <code>writable</code> 键值对，用来设置 <code>name</code> 键值对不可写。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%BF%BB%E8%AF%91/" rel="tag"># 翻译</a>
+              <a href="/tags/ECMA262/" rel="tag"># ECMA262</a>
+              <a href="/tags/%E8%A7%84%E8%8C%83/" rel="tag"># 规范</a>
+              <a href="/tags/%E6%80%BB%E8%A7%88/" rel="tag"># 总览</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/3c176ac8.html" rel="prev" title="OpenLayers6中对feature的点击事件">
+      <i class="fa fa-chevron-left"></i> OpenLayers6中对feature的点击事件
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/be1c11d1.html" rel="next" title="ECMA-262规范第6节中Language Types翻译">
+      ECMA-262规范第6节中Language Types翻译 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#翻译"><span class="nav-number">1.</span> <span class="nav-text">翻译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Web-脚本"><span class="nav-number">1.1.</span> <span class="nav-text">Web 脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ECMAScript-概述"><span class="nav-number">1.2.</span> <span class="nav-text">ECMAScript 概述</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#对象"><span class="nav-number">1.2.1.</span> <span class="nav-text">对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Ecmascript-的严格模式"><span class="nav-number">1.2.2.</span> <span class="nav-text">Ecmascript 的严格模式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#术语和定义"><span class="nav-number">1.3.</span> <span class="nav-text">术语和定义</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#type"><span class="nav-number">1.3.1.</span> <span class="nav-text">type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#primitive-value"><span class="nav-number">1.3.2.</span> <span class="nav-text">primitive value</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#object"><span class="nav-number">1.3.3.</span> <span class="nav-text">object</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#constructor-NaN"><span class="nav-number">1.3.4.</span> <span class="nav-text">constructor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#prototype"><span class="nav-number">1.3.5.</span> <span class="nav-text">prototype</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ordinary-object"><span class="nav-number">1.3.6.</span> <span class="nav-text">ordinary object</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#exotic-object"><span class="nav-number">1.3.7.</span> <span class="nav-text">exotic object</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#standard-object"><span class="nav-number">1.3.8.</span> <span class="nav-text">standard object</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#built-in-object"><span class="nav-number">1.3.9.</span> <span class="nav-text">built-in object</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#undefined-value"><span class="nav-number">1.3.10.</span> <span class="nav-text">undefined value</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Undefined-type"><span class="nav-number">1.3.11.</span> <span class="nav-text">Undefined type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#null-value"><span class="nav-number">1.3.12.</span> <span class="nav-text">null value</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Null-type"><span class="nav-number">1.3.13.</span> <span class="nav-text">Null type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Boolean-value"><span class="nav-number">1.3.14.</span> <span class="nav-text">Boolean value</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Boolean-type"><span class="nav-number">1.3.15.</span> <span class="nav-text">Boolean type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Boolean-object"><span class="nav-number">1.3.16.</span> <span class="nav-text">Boolean object</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#String-value"><span class="nav-number">1.3.17.</span> <span class="nav-text">String value</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#String-type"><span class="nav-number">1.3.18.</span> <span class="nav-text">String type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#String-object"><span class="nav-number">1.3.19.</span> <span class="nav-text">String object</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Number-value"><span class="nav-number">1.3.20.</span> <span class="nav-text">Number value</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Number-type"><span class="nav-number">1.3.21.</span> <span class="nav-text">Number type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Number-object"><span class="nav-number">1.3.22.</span> <span class="nav-text">Number object</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Infinity"><span class="nav-number">1.3.23.</span> <span class="nav-text">Infinity</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#NaN"><span class="nav-number">1.3.24.</span> <span class="nav-text">NaN</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Symbol-value"><span class="nav-number">1.3.25.</span> <span class="nav-text">Symbol value</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Symbol-type"><span class="nav-number">1.3.26.</span> <span class="nav-text">Symbol type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Symbol-object"><span class="nav-number">1.3.27.</span> <span class="nav-text">Symbol object</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#function"><span class="nav-number">1.3.28.</span> <span class="nav-text">function</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#built-in-function"><span class="nav-number">1.3.29.</span> <span class="nav-text">built-in function</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#property"><span class="nav-number">1.3.30.</span> <span class="nav-text">property</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#method"><span class="nav-number">1.3.31.</span> <span class="nav-text">method</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#built-in-method"><span class="nav-number">1.3.32.</span> <span class="nav-text">built-in method</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#attribute"><span class="nav-number">1.3.33.</span> <span class="nav-text">attribute</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#own-property"><span class="nav-number">1.3.34.</span> <span class="nav-text">own property</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#inherited-property"><span class="nav-number">1.3.35.</span> <span class="nav-text">inherited property</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本规范的结构"><span class="nav-number">1.4.</span> <span class="nav-text">本规范的结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '95c6d75f10b3145cb5bdc18b8e268ee9',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

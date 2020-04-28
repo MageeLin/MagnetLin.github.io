@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="最近稍微研究了下 canvas 滤镜在 OpenLayers 中的应用，发现自己照猫画虎可以做出滤镜效果，但是最关键的 kernel 这个卷积核却一点都不了解，参考wiki深入学习一下写一篇笔记。 简介卷积核（kernel），也叫卷积矩阵（convolution matrix）或者掩膜（mask），本质上是一个非常小的矩阵，最常用的是 3×3 矩阵。主要是利用核与图像之间进行卷积运算来实现图像处理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="图像处理中的卷积核kernel">
+<meta property="og:url" content="https://linjingyi.cn/posts/9f68952.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="最近稍微研究了下 canvas 滤镜在 OpenLayers 中的应用，发现自己照猫画虎可以做出滤镜效果，但是最关键的 kernel 这个卷积核却一点都不了解，参考wiki深入学习一下写一篇笔记。 简介卷积核（kernel），也叫卷积矩阵（convolution matrix）或者掩膜（mask），本质上是一个非常小的矩阵，最常用的是 3×3 矩阵。主要是利用核与图像之间进行卷积运算来实现图像处理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/convolution.svg">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/conexample.svg">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/%E5%8D%B7%E7%A7%AF.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/%E5%85%A8%E5%9B%BE%E5%8D%B7%E7%A7%AF.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/Vd-Orig.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/Vd-Orig.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/Vd-Edge1.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/Vd-Edge2.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/Vd-Edge3.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/Vd-Sharp.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/Vd-Blur2.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/Gaussian_2d.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/Vd-Blur1.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/Vd-Blur_Gaussian_5x5.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9f68952/UnsharpMask.gif">
+<meta property="article:published_time" content="2020-02-20T23:26:13.000Z">
+<meta property="article:modified_time" content="2020-02-20T23:26:13.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="图像处理">
+<meta property="article:tag" content="卷积核">
+<meta property="article:tag" content="kernel">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/9f68952/convolution.svg">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/9f68952.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>图像处理中的卷积核kernel | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/9f68952.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          图像处理中的卷积核kernel
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-21 07:26:13" itemprop="dateCreated datePublished" datetime="2020-02-21T07:26:13+08:00">2020-02-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" itemprop="url" rel="index">
+                    <span itemprop="name">图像处理</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近稍微研究了下 canvas 滤镜在 OpenLayers 中的应用，发现自己照猫画虎可以做出滤镜效果，但是最关键的 <code>kernel</code> 这个<code>卷积核</code>却一点都不了解，参考<a href="https://en.wikipedia.org/wiki/Kernel_(image_processing)#Convolution" target="_blank" rel="external nofollow noopener noreferrer">wiki</a>深入学习一下写一篇笔记。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p><code>卷积核</code>（<code>kernel</code>），也叫<code>卷积矩阵</code>（<code>convolution matrix</code>）或者<code>掩膜</code>（<code>mask</code>），本质上是一个非常小的矩阵，最常用的是 <code>3×3</code> 矩阵。主要是利用核与图像之间进行卷积运算来实现图像处理，能做出模糊、锐化、凹凸、边缘检测等效果。</p>
+<a id="more"></a>
+
+<h2 id="卷积运算"><a href="#卷积运算" class="headerlink" title="卷积运算"></a>卷积运算</h2><p><code>卷积</code>在通俗上理解是把原始矩阵中的每一个元素，都与其相邻的元素根据<code>卷积核</code>的<code>权重分布</code>做<code>加权平均</code>，卷积运算的公式如下：<br><img src="/posts/9f68952/convolution.svg" alt="convolution"></p>
+<p>其中，<code>g(x,y)</code>是被处理后的矩阵，<code>w</code> 是卷积核，<code>f(x,y)</code>是原始矩阵，<code>-a≤s≤a</code> 并且 <code>-b≤t≤b</code>。<br>以下示例就是卷积的通俗理解，第一个矩阵是<code>卷积核</code>（其中的每个元素都是<code>权重</code>），第二个矩阵是<code>被处理的矩阵</code>，这里的*并不是真正矩阵运算中的*，而是将卷积核中的<code>行和列都反转</code>再*，将计算得到的加权结果赋值给<code>[2, 2]</code>位置处，一次运算就完成了。<br><img src="/posts/9f68952/conexample.svg" alt="convolution example"><br>用一张图片更容易说明这个过程：<br><img src="/posts/9f68952/%E5%8D%B7%E7%A7%AF.png" alt><br>将一个比较大的原始矩阵的<code>每一个位置处</code>都根据核进行上述的运算，就得到整个原始矩阵的加权平均结果，也就是原始矩阵卷积运算后的结果。</p>
+<h2 id="将卷积运算应用到图像矩阵"><a href="#将卷积运算应用到图像矩阵" class="headerlink" title="将卷积运算应用到图像矩阵"></a>将卷积运算应用到图像矩阵</h2><p>对于一个普通的 <code>8 位 RGB 位图</code>来举例，是由<code>像素点矩阵</code>组成的，每个像素点都有 <code>r（red）、g（green）、b（blue）</code>三个属性，每个属性的区间为<code>[0, 2^8-1]</code>也就是<code>[0, 255]</code>。</p>
+<p>所以对于 <code>r、g、b</code> 任何一个通道来说，都是一个单纯的 <code>xSize × ySize</code> 的矩阵（<code>xSize</code>、<code>ySize</code> 是图片的横向和纵向的<code>像素点数</code>），就可以使用 <code>kernel 卷积核</code>对其进行<code>全图卷积运算</code>，实现图像的滤镜处理效果，如下所示：</p>
+<p><img src="/posts/9f68952/%E5%85%A8%E5%9B%BE%E5%8D%B7%E7%A7%AF.png" alt></p>
+<p>以下示例中图片来自维基百科<a href="https://en.wikipedia.org/wiki/Kernel_(image_processing)#Convolution" target="_blank" rel="external nofollow noopener noreferrer">wiki</a>，原图如下所示：<br><img src="/posts/9f68952/Vd-Orig.png" alt></p>
+<h3 id="恒等（Identity）"><a href="#恒等（Identity）" class="headerlink" title="恒等（Identity）"></a>恒等（Identity）</h3><p><code>identity 恒等卷积核</code>如下所示，</p>
+<p>$$<br>\left[<br>  \begin{matrix}<br>  0 &amp; 0 &amp; 0 \\<br>  0 &amp; 1 &amp; 0 \\<br>  0 &amp; 0 &amp; 0 \\<br>  \end{matrix}<br>\right]<br>$$</p>
+<p><img src="/posts/9f68952/Vd-Orig.png" alt></p>
+<p>在 <code>identity 卷积核</code>中，只有<code>中心位置[2, 2]</code>位置处的权重为 <code>1</code>，其余均为 <code>0</code>，所以在进行卷积运算加权后时，像素只与自己本身位置进行了运算，最后返回的还是原像素的值，所以图像处理后是<code>不变</code>的。</p>
+<h3 id="边缘检测（Edge-detection）"><a href="#边缘检测（Edge-detection）" class="headerlink" title="边缘检测（Edge detection）"></a>边缘检测（Edge detection）</h3><p><code>edge detction（边缘检测）</code>对图像识别中的特征提取是非常有作用的，边缘检测卷积核都有一个共同点，就是能够突出图片矩阵中<code>变化剧烈</code>的位置。矩阵如下所示，三种边缘检测核的效果是越来越明显，主要原因就是<code>加强</code>了卷积核中<code>[2, 2]</code>位置处与周围元素的<code>区别</code>，图片中变化剧烈位置的在加权后，数值大的更大，数值小的更小，形成了边缘检测效果。</p>
+<p>$$<br>\left[<br>  \begin{matrix}<br>  1 &amp; 0 &amp; -1 \\<br>  0 &amp; 0 &amp; 0 \\<br>  -1 &amp; 0 &amp; 1 \\<br>  \end{matrix}<br>\right]<br>$$</p>
+<p><img src="/posts/9f68952/Vd-Edge1.png" alt></p>
+<p>$$<br>\left[<br>  \begin{matrix}<br>  0 &amp; 1 &amp; 0 \\<br>  1 &amp; -4 &amp; 1 \\<br>  0 &amp; 1 &amp; 0 \\<br>  \end{matrix}<br>\right]<br>$$</p>
+<p><img src="/posts/9f68952/Vd-Edge2.png" alt></p>
+<p>$$<br>\left[<br>  \begin{matrix}<br>  -1 &amp; -1 &amp; -1 \\<br>  -1 &amp; 8 &amp; -1 \\<br>  -1 &amp; -1 &amp; -1 \\<br>  \end{matrix}<br>\right]<br>$$</p>
+<p><img src="/posts/9f68952/Vd-Edge3.png" alt></p>
+<p>比对三个核，第一个核中的权重<code>左上往右下</code>都是 <code>1、0、1</code>，而<code>右上往左下</code>是<code>-1、0、-1</code>，在进行卷积运算时，<code>对角方向</code>的边缘更容易识别出来；第二个核中，权重<code>从左往右</code>是 <code>1、-4、1</code>,从<code>上往下</code>也是 <code>1、-4、1</code>，所以<code>水平和垂直</code>方向的边缘更容易识别出来；第三个核中权重<code>水平垂直和对角</code>都是<code>-1、8、-1</code>，所以<code>水平和倾斜</code>的边缘都容易识别。</p>
+<h3 id="锐化-Sharpen"><a href="#锐化-Sharpen" class="headerlink" title="锐化(Sharpen)"></a>锐化(Sharpen)</h3><p>锐化的本质还是利用的边缘检测的原理，放大<code>[2, 2]位置</code>与周围元素的权重的区别。与边缘检测权重和为 <code>0</code> 相比，锐化卷积核中所有权重加起来后的值为 <code>1</code>。当权重和大于 <code>1</code> 时，会整体使图片<code>变亮</code>，小于 <code>1</code> 会<code>变暗</code>，等于 <code>1</code> 就会保留<code>原始亮度</code>，所以锐化卷积核保留了原始图形的亮度，而上述的三个边缘检测核使图像变暗。</p>
+<p>$$<br>\left[<br>  \begin{matrix}<br>  0 &amp; -1 &amp; 0 \\<br>  -1 &amp; 5 &amp; -1 \\<br>  0 &amp; -1 &amp; 0 \\<br>  \end{matrix}<br>\right]<br>$$</p>
+<p><img src="/posts/9f68952/Vd-Sharp.png" alt></p>
+<h3 id="盒模糊（Box-blur）"><a href="#盒模糊（Box-blur）" class="headerlink" title="盒模糊（Box blur）"></a>盒模糊（Box blur）</h3><p>在盒模糊卷积核中，所有位置的权重均为 <code>1/9</code>，所以<code>[2, 2]位置处</code>的元素值会以一个<code>相同权重</code>与周围变得更<code>相似</code>，达到<code>均匀模糊</code>的效果</p>
+<p>$$<br>\frac{1}{9}<br>\left[<br>  \begin{matrix}<br>  1 &amp; 1 &amp; 1 \\<br>  1 &amp; 1 &amp; 1 \\<br>  1 &amp; 1 &amp; 1 \\<br>  \end{matrix}<br>\right]<br>$$</p>
+<p><img src="/posts/9f68952/Vd-Blur2.png" alt></p>
+<h3 id="高斯模糊（Gaussian-blur）"><a href="#高斯模糊（Gaussian-blur）" class="headerlink" title="高斯模糊（Gaussian blur）"></a>高斯模糊（Gaussian blur）</h3><p><code>高斯模糊卷积核</code>依赖的是<code>高斯函数</code>，所以卷积核的值是围绕着<code>中心点</code>分布的，离中心点越近，贡献也就越大，所以权重值就越高，<code>二维区域高斯曲线图</code>如下：</p>
+<p><img src="/posts/9f68952/Gaussian_2d.png" alt></p>
+<h4 id="3×3"><a href="#3×3" class="headerlink" title="3×3"></a>3×3</h4><p>首先列出一个 <code>3×3</code> 的高斯模糊卷积核，<code>中心点</code>权重为 <code>4</code>，离得最近的<code>上下左右</code>权重都是 <code>2</code>，稍远一点的<code>对角位置</code>贡献的权重都是 <code>1</code>，最后除以<code>权重和 16</code>，矩阵和效果如下所示：</p>
+<p>$$<br>\frac{1}{16}<br>\left[<br>  \begin{matrix}<br>  1 &amp; 2 &amp; 1 \\<br>  2 &amp; 4 &amp; 2 \\<br>  1 &amp; 2 &amp; 1 \\<br>  \end{matrix}<br>\right]<br>$$</p>
+<p><img src="/posts/9f68952/Vd-Blur1.png" alt></p>
+<p>可以发现，因为权重更加<code>聚焦</code>到<code>中心点</code>位置，高斯模糊的效果相比盒模糊要更清晰一些。</p>
+<h4 id="5×5"><a href="#5×5" class="headerlink" title="5×5"></a>5×5</h4><p>再列出 <code>5×5</code> 的高斯模糊卷积核，和 <code>3×3</code> 类似，以<code>中心点画圆</code>，离圆心越<code>远</code>权重越<code>小</code>，最后除以<code>权重和 256</code>，矩阵和效果图如下：</p>
+<p>$$<br>\frac{1}{256}<br>\left[<br>  \begin{matrix}<br>  1 &amp; 4 &amp; 6 &amp; 4 &amp; 1 \\<br>  4 &amp; 16 &amp; 24 &amp; 16 &amp; 4 \\<br>  6 &amp; 24 &amp; 36 &amp; 24 &amp; 6 \\<br>  4 &amp; 16 &amp; 24 &amp; 16 &amp; 4 \\<br>  1 &amp; 4 &amp; 6 &amp; 4 &amp; 1 \\<br>  \end{matrix}<br>\right]<br>$$</p>
+<p><img src="/posts/9f68952/Vd-Blur_Gaussian_5x5.png" alt><br>与 <code>3×3</code> 的高斯模糊对比，由于距离中心点<code>更远</code>的位置也贡献了<code>权重</code>，所以 <code>5×5</code> 要更模糊一些。</p>
+<h3 id="反锐化掩膜（Unsharp-masking）"><a href="#反锐化掩膜（Unsharp-masking）" class="headerlink" title="反锐化掩膜（Unsharp masking）"></a>反锐化掩膜（Unsharp masking）</h3><p><code>反锐化掩膜</code>与 <code>5 阶高斯模糊</code>的卷积核，所有位置都取<code>相反数</code>，中间位置取值 <code>476（-36+256+256）</code>，其实还是达到一种<code>锐化</code>的效果，卷积核如下所示：</p>
+<p>$$<br>-\frac{1}{256}<br>\left[<br>  \begin{matrix}<br>  1 &amp; 4 &amp; 6 &amp; 4 &amp; 1 \\<br>  4 &amp; 16 &amp; 24 &amp; 16 &amp; 4 \\<br>  6 &amp; 24 &amp; -476 &amp; 24 &amp; 6 \\<br>  4 &amp; 16 &amp; 24 &amp; 16 &amp; 4 \\<br>  1 &amp; 4 &amp; 6 &amp; 4 &amp; 1 \\<br>  \end{matrix}<br>\right]<br>$$</p>
+<p>实现原理如下图所示：<br><img src="/posts/9f68952/UnsharpMask.gif" alt></p>
+<ul>
+<li>第一步：正常的<code>原始信号</code>，在本文中也就是<code>原始图像矩阵</code>。</li>
+<li>第二步：进行<code>模糊</code>处理，本文中进行 <code>5 阶高斯模糊</code>。</li>
+<li>第三步：使用原始信号<code>减去</code>模糊后的信号，取得<code>差值</code>，本文中就是 <code>36</code>。</li>
+<li>第四步：给原始信号<code>反向</code>加上<code>差值</code>，本文中就是<code>-36+256+256</code>，完成了对原始图像的<code>锐化</code>。</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>无限感慨，对不起王老师，对不起曾老师！这就是本科不认真学<code>数字信号处理</code>、硕士一知半解的处理<code>物探数据</code>的下场。竟然等工作以后才明白，这里的卷积核不就是滤波器吗！研究前端竟然研究到地球物理头上去了 T.T！</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" rel="tag"># 图像处理</a>
+              <a href="/tags/%E5%8D%B7%E7%A7%AF%E6%A0%B8/" rel="tag"># 卷积核</a>
+              <a href="/tags/kernel/" rel="tag"># kernel</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/a3cc2dcd.html" rel="prev" title="OpenLayers6实例分析：GeoJSON">
+      <i class="fa fa-chevron-left"></i> OpenLayers6实例分析：GeoJSON
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/8bd9ee4.html" rel="next" title="OpenLayers6实例分析：Image Filters（滤镜效果）">
+      OpenLayers6实例分析：Image Filters（滤镜效果） <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#卷积运算"><span class="nav-number">2.</span> <span class="nav-text">卷积运算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#将卷积运算应用到图像矩阵"><span class="nav-number">3.</span> <span class="nav-text">将卷积运算应用到图像矩阵</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#恒等（Identity）"><span class="nav-number">3.1.</span> <span class="nav-text">恒等（Identity）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#边缘检测（Edge-detection）"><span class="nav-number">3.2.</span> <span class="nav-text">边缘检测（Edge detection）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#锐化-Sharpen"><span class="nav-number">3.3.</span> <span class="nav-text">锐化(Sharpen)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#盒模糊（Box-blur）"><span class="nav-number">3.4.</span> <span class="nav-text">盒模糊（Box blur）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#高斯模糊（Gaussian-blur）"><span class="nav-number">3.5.</span> <span class="nav-text">高斯模糊（Gaussian blur）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3×3"><span class="nav-number">3.5.1.</span> <span class="nav-text">3×3</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5×5"><span class="nav-number">3.5.2.</span> <span class="nav-text">5×5</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#反锐化掩膜（Unsharp-masking）"><span class="nav-number">3.6.</span> <span class="nav-text">反锐化掩膜（Unsharp masking）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: 'ccc0ebf792d8ea62c04d497b67e6342e',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

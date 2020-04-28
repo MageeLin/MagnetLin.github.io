@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="最近使用了 sunburst 旭日图，但 ECharts 的配置项实在是太多，边学习便记录。以官网 gallery 中的推荐 demo——2018 豆瓣中国大陆影视剧评分排行——为例，分析 sunburst 旭日图类型的实现，修改了原 demo 的一些错误和冗余，并给图表添加自定义的动态轮播效果，效果如下所示：      div#container {     width: 100%;     h">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ECharts旭日图及轮播效果实现">
+<meta property="og:url" content="https://linjingyi.cn/posts/4a90030.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="最近使用了 sunburst 旭日图，但 ECharts 的配置项实在是太多，边学习便记录。以官网 gallery 中的推荐 demo——2018 豆瓣中国大陆影视剧评分排行——为例，分析 sunburst 旭日图类型的实现，修改了原 demo 的一些错误和冗余，并给图表添加自定义的动态轮播效果，效果如下所示：      div#container {     width: 100%;     h">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-02-23T23:25:15.000Z">
+<meta property="article:modified_time" content="2020-02-23T23:25:15.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="前端">
+<meta property="article:tag" content="ECharts">
+<meta property="article:tag" content="旭日图">
+<meta property="article:tag" content="sunburst">
+<meta property="article:tag" content="轮播">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/4a90030.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>ECharts旭日图及轮播效果实现 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/4a90030.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          ECharts旭日图及轮播效果实现
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-24 07:25:15" itemprop="dateCreated datePublished" datetime="2020-02-24T07:25:15+08:00">2020-02-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/ECharts/" itemprop="url" rel="index">
+                    <span itemprop="name">ECharts</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>最近使用了 <code>sunburst 旭日图</code>，但 ECharts 的配置项实在是太多，边学习便记录。以<a href="https://gallery.echartsjs.com/explore.html#sort=rank~timeframe=all~author=all" target="_blank" rel="external nofollow noopener noreferrer">官网 gallery</a> 中的推荐 demo——<a href="https://gallery.echartsjs.com/editor.html?c=xeAESd00vq" target="_blank" rel="external nofollow noopener noreferrer">2018 豆瓣中国大陆影视剧评分排行</a>——为例，分析 <code>sunburst 旭日图</code>类型的实现，修改了原 demo 的一些错误和冗余，并给图表添加自定义的动态<code>轮播</code>效果，效果如下所示：</p>
+<style>
+    div#container {
+    width: 100%;
+    height: 800px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    background: #2e2733;
+    }
+    div#detail-container {
+    width: 100%;
+    height: 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    }
+    div#detail-container .kind {
+    color: #ffae57;
+    }
+    div#detail-container .title {
+    color: #ff7853;
+    font-size: 120%;
+    font-weight: bold;
+    }
+    div#echarts-container {
+    width: 100%;
+    height: 100%;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/echarts@4.6.0/dist/echarts.min.js"></script>
+<div id="container">
+    <div id="detail-container"></div>
+    <div id="echarts-container"></div>
+</div>
+<script type="text/javascript">
+     // 基于准备好的dom，初始化echarts实例
+      let chartSunburst = echarts.init(
+        document.getElementById("echarts-container")
+      );
+      // 指定图表的配置项和数据
+      // 颜色序列
+      const colors = ["#FFAE57", "#FF7853", "#EA5151", "#CC3F57", "#9A2555"];
+      // 背景颜色
+      const bgColor = "#2E2733";
+      // 给不同星级分配不同颜色
+      let itemStyle = {
+        star5: {
+          color: colors[0]
+        },
+        star4: {
+          color: colors[1]
+        },
+        star3: {
+          color: colors[2]
+        },
+        star2: {
+          color: colors[3]
+        },
+        star1: {
+          color: colors[4]
+        }
+      };
+      // sunburst 旭日图树状数据
+      // https://www.echartsjs.com/zh/option.html#series-sunburst.data
+      let data = [
+        {
+          name: "电视剧",
+          itemStyle: {
+            // normal: {
+            color: colors[1]
+            // }
+          },
+          children: [
+            {
+              name: "现代",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "大江大河"
+                    },
+                    {
+                      name: "疯人院"
+                    },
+                    {
+                      name: "天坑鹰猎"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "SCI谜案集"
+                    },
+                    {
+                      name: "古董局中局"
+                    },
+                    {
+                      name: "乡村爱情协奏曲"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "上海女子图鉴"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "古装",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "天盛长歌"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "小戏骨：水浒传"
+                    },
+                    {
+                      name: "香蜜沉沉烬如霜"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "知否知否应是绿肥红瘦"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          name: "电影",
+          itemStyle: {
+            color: colors[2]
+          },
+          children: [
+            {
+              name: "喜剧",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "我不是药神"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "无名之辈"
+                    },
+                    {
+                      name: "阿浪的远方"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "一出好戏"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "剧情",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "无双"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "大象席地而坐"
+                    },
+                    {
+                      name: "风中有朵雨做的云"
+                    },
+                    {
+                      name: "过春天"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "无问西东"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "爱情",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "江湖儿女"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "地球最后的夜晚"
+                    },
+                    {
+                      name: "你好之华"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆"
+                },
+                {
+                  name: "2☆",
+                  children: [
+                    {
+                      name: "后来的我们"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "动作",
+              children: [
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "红海行动"
+                    },
+                    {
+                      name: "影"
+                    },
+                    {
+                      name: "动物世界"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "动画",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "夜思"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "切尔诺贝利之春"
+                    },
+                    {
+                      name: "女他"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "风雨咒"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "惊悚",
+              children: [
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "灵魂摆渡·黄泉"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "武侠",
+              children: [
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "夺命剑之风云再起"
+                    }
+                  ]
+                },
+                {
+                  name: "2☆",
+                  children: [
+                    {
+                      name: "狄仁杰之四大天王"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ];
+      // 循环处理数据，为了给不同的星级做区分
+      for (let j = 0; j < data.length; ++j) {
+        let level1 = data[j].children;
+        // level1中继续循环
+        for (let i = 0; i < level1.length; ++i) {
+          let block = level1[i].children;
+          for (let star = 0; star < block.length; ++star) {
+            // 定义了一个立即执行匿名函数，修改bookScoreId并从itemStyle数组返回对应的style
+            // 对demo进行了优化，直接拼凑字符串从itemStyle中取对应颜色
+            style = itemStyle["star" + parseInt(block[star].name)];
+            // 给不同星级文字label设置不同的颜色，并添加一个downplay不相关文本透明度0.5
+            block[star].label = {
+              color: style.color,
+              // 似乎不生效，没有这个api
+              downplay: {
+                opacity: 0.5
+              }
+            };
+            // 如果该星级下有书，就继续对下级循环
+            if (block[star].children) {
+              // 继续给星级下级分配相同颜色
+              style = {
+                opacity: 1,
+                color: style.color
+              };
+              // 循环
+              block[star].children.forEach(book => {
+                // 同一星级下的每本书value都设为1，用于平分扇形
+                book.value = 1;
+                book.itemStyle = style;
+                book.label = {
+                  color: style.color
+                };
+              });
+            }
+          }
+          level1[i].itemStyle = {
+            color: data[j].itemStyle.color
+          };
+        }
+      }
+      let option = {
+        backgroundColor: bgColor,
+        // 设置调色盘颜色
+        // https://www.echartsjs.com/zh/option.html#color
+        color: colors,
+        // https://www.echartsjs.com/zh/option.html#series-sunburst
+        series: [
+          {
+            // 旭日图
+            type: "sunburst",
+            // 中心位置
+            center: ["50%", "50%"],
+            // 数据来源
+            data: data,
+            // 排序时，如果是第一层深度，靠value排序，其余情况dataIndex排序
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.sort
+            sort: (a, b) => {
+              if (a.depth === 1) {
+                return b.getValue() - a.getValue();
+              } else {
+                return a.dataIndex - b.dataIndex;
+              }
+            },
+            // 每一个标签样式
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.label
+            label: {
+              // 径向旋转
+              rotate: "radial",
+              color: bgColor,
+              opacity: 0.9
+            },
+            // 每一项的样式
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.itemStyle
+            itemStyle: {
+              borderColor: bgColor,
+              borderWidth: 2,
+              opacity: 0.9
+            },
+            // 未选中的样式
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.downplay
+            downplay: {
+              itemStyle: {
+                opacity: 0.7
+              },
+              label: {
+                opacity: 0.7
+              }
+            },
+            // 选中的样式
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.highlight
+            highlight: {
+              itemStyle: {
+                opacity: 1,
+              },
+              label: {
+                opacity: 1,
+              }
+            },
+            // 给每个级别单独设置
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.levels
+            levels: [
+              // 这个空对象其实是第0级
+              {},
+              // 第1级
+              {
+                // r0时内半径，r是外半径
+                r0: 0,
+                r: 40,
+                label: {
+                  rotate: 0
+                }
+              },
+              // 第2级
+              {
+                r0: 40,
+                r: 105,
+              },
+              // 第3级
+              {
+                r0: 115,
+                r: 140,
+                // 单独给第三圈设置了边框样式和背景样式
+                itemStyle: {
+                  shadowBlur: 2,
+                  shadowColor: colors[2],
+                  color: "transparent"
+                },
+                // 给该层设置切向旋转
+                label: {
+                  rotate: "tangential",
+                  fontSize: 10,
+                  color: colors[0]
+                }
+              },
+              // 第4级
+              {
+                r0: 140,
+                r: 145,
+                itemStyle: {
+                  // 烟雾状的blur
+                  shadowBlur: 80,
+                  shadowColor: colors[0]
+                },
+                label: {
+                  // 最外圈把标签设置到了最外层
+                  position: "outside",
+                  textShadowBlur: 5,
+                  textShadowColor: "#333"
+                }
+              }
+            ]
+          }
+        ]
+      };
+      // 使用刚指定的配置项和数据显示图表。
+      chartSunburst.setOption(option);
+      // 下面是轮播效果
+      // 首先把整个树状结构的数据扁平化，形成一个由level1、2、3、4组成的数组
+      let dataArrSorted = [];
+      data.forEach(level1 => {
+        if (level1.children) {
+          level1.children.forEach(level2 => {
+            if (level2.children) {
+              level2.children.forEach(level3 => {
+                if (level3.children) {
+                  level3.children.forEach(level4 => {
+                    dataArrSorted.push({
+                      level1: level1.name,
+                      level2: level2.name,
+                      level3: level3.name,
+                      level4: level4.name
+                    });
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+      // https://www.echartsjs.com/zh/api.html#echartsInstance.on
+      // 监听chartSunburst的highlight事件，在回调函数中拿到params组成一个dom片段插入
+      chartSunburst.on("highlight", params => {
+        document.querySelector(
+          "#detail-container"
+        ).innerHTML = `<p class="kind">${params.level1} > ${params.level2} > ${params.level3}</p><p class="title">${params.level4}</p>`;
+      });
+      // 设置一个定时器，每2秒派发一个highlight事件，name是level4，再把整个dataArrSorted[i]对象解构进去发送
+      // https://www.echartsjs.com/zh/api.html#action.highlight
+      i = 0;
+      const key = setInterval(() => {
+        if (i < dataArrSorted.length) {
+          chartSunburst.dispatchAction({
+            type: "highlight",
+            name: dataArrSorted[i].level4,
+            ...dataArrSorted[i]
+          });
+        } else {
+          // 当循环完成，清除定时器
+          clearInterval(key);
+        }
+        i++;
+      }, 2000);
+</script>
+
+<a id="more"></a>
+
+<h2 id="基本结构"><a href="#基本结构" class="headerlink" title="基本结构"></a>基本结构</h2><h3 id="引入-ECharts"><a href="#引入-ECharts" class="headerlink" title="引入 ECharts"></a>引入 ECharts</h3><p>首先，参照 ECharts 官方入门引导——<a href="https://www.echartsjs.com/zh/tutorial.html#5%20%E5%88%86%E9%92%9F%E4%B8%8A%E6%89%8B%20ECharts" target="_blank" rel="external nofollow noopener noreferrer">5 分钟上手 ECharts</a>，通过<a href="https://www.jsdelivr.com/package/npm/echarts" target="_blank" rel="external nofollow noopener noreferrer">jsDelivr</a> CDN 方式引入 <code>echarts.min.js</code>。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/npm/echarts@4.6.0/dist/echarts.min.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="页面结构"><a href="#页面结构" class="headerlink" title="页面结构"></a>页面结构</h3><p>其次，构建基础的 HTML 标签和 CSS。为了实现轮播，对原 demo 进行了修改，布局使用的是 CSS3 的<a href="http://www.ruanyifeng.com/blog/2015/07/flex-grammar.html" target="_blank" rel="external nofollow noopener noreferrer">Flex 布局</a>，将页面分成上下两部分，<code>div#detail-container</code> 部分存放轮播内容，<code>div#echarts-container</code> 部分存放旭日图图表。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">  html,</span><br><span class="line">  body &#123;</span><br><span class="line">    width: 100%;</span><br><span class="line">    height: 100%;</span><br><span class="line">    margin: 0;</span><br><span class="line">    padding: 0;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="css">  <span class="selector-tag">div</span><span class="selector-id">#container</span> &#123;</span></span><br><span class="line">    width: 100%;</span><br><span class="line">    height: 100%;</span><br><span class="line">    display: flex;</span><br><span class="line">    flex-direction: column;</span><br><span class="line">    justify-content: flex-start;</span><br><span class="line">    align-items: center;</span><br><span class="line"><span class="css">    <span class="selector-tag">background</span>: <span class="selector-id">#2e2733</span>;</span></span><br><span class="line">  &#125;</span><br><span class="line"><span class="css">  <span class="selector-tag">div</span><span class="selector-id">#detail-container</span> &#123;</span></span><br><span class="line">    width: 100%;</span><br><span class="line">    height: 20%;</span><br><span class="line">    display: flex;</span><br><span class="line">    flex-direction: column;</span><br><span class="line">    justify-content: center;</span><br><span class="line">    align-items: center;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="css">  <span class="selector-tag">div</span><span class="selector-id">#detail-container</span> <span class="selector-class">.kind</span> &#123;</span></span><br><span class="line"><span class="css">    <span class="selector-tag">color</span>: <span class="selector-id">#ffae57</span>;</span></span><br><span class="line">  &#125;</span><br><span class="line"><span class="css">  <span class="selector-tag">div</span><span class="selector-id">#detail-container</span> <span class="selector-class">.title</span> &#123;</span></span><br><span class="line"><span class="css">    <span class="selector-tag">color</span>: <span class="selector-id">#ff7853</span>;</span></span><br><span class="line">    font-size: 120%;</span><br><span class="line">    font-weight: bold;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="css">  <span class="selector-tag">div</span><span class="selector-id">#echarts-container</span> &#123;</span></span><br><span class="line">    width: 100%;</span><br><span class="line">    height: 100%;</span><br><span class="line">  &#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"container"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"detail-container"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"echarts-container"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="ECharts-API"><a href="#ECharts-API" class="headerlink" title="ECharts API"></a>ECharts API</h3><p>接着参照入门引导，将 EChart <code>init</code> <a href="https://www.echartsjs.com/zh/api.html#echarts.init" target="_blank" rel="external nofollow noopener noreferrer">实例化</a>并 <code>setOption</code><a href="https://www.echartsjs.com/zh/api.html#echartsInstance.setOption" target="_blank" rel="external nofollow noopener noreferrer">设定配置项</a>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 基于准备好的dom，初始化echarts实例</span></span><br><span class="line"><span class="keyword">let</span> chartSunburst = echarts.init(<span class="built_in">document</span>.getElementById(<span class="string">'echarts-container'</span>));</span><br><span class="line"><span class="comment">// 指定图表的配置项和数据</span></span><br><span class="line"><span class="keyword">let</span> option = &#123;</span><br><span class="line">  <span class="comment">// ...配置项内容</span></span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 使用刚指定的配置项和数据显示图表。</span></span><br><span class="line">chartSunburst.setOption(option);</span><br></pre></td></tr></table></figure>
+
+<h2 id="旭日图配置"><a href="#旭日图配置" class="headerlink" title="旭日图配置"></a>旭日图配置</h2><p>ECharts 是一个配置式的库，API 的文档内容比较短，而所有的图表的配置项非常之长。配置项是 ECharts 的核心。</p>
+<h3 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h3><h4 id="颜色"><a href="#颜色" class="headerlink" title="颜色"></a>颜色</h4><p><code>colors</code> 主要是给后续代码做取色用，同时也是配置项中的<a href="https://www.echartsjs.com/zh/option.html#color" target="_blank" rel="external nofollow noopener noreferrer">调色盘颜色列表</a>，如果图表没有设置颜色，则会依次循环从该列表中取颜色作为系列颜色。</p>
+<p><code>itemStyle</code> 中给影视剧星级从 <code>1</code> 到 <code>5</code> 都分配了不同的颜色。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 颜色序列</span></span><br><span class="line"><span class="keyword">const</span> colors = [<span class="string">'#FFAE57'</span>, <span class="string">'#FF7853'</span>, <span class="string">'#EA5151'</span>, <span class="string">'#CC3F57'</span>, <span class="string">'#9A2555'</span>];</span><br><span class="line"><span class="comment">// 背景颜色</span></span><br><span class="line"><span class="keyword">const</span> bgColor = <span class="string">'#2E2733'</span>;</span><br><span class="line"><span class="comment">// 给不同星级分配不同颜色</span></span><br><span class="line"><span class="keyword">let</span> itemStyle = &#123;</span><br><span class="line">  star5: &#123;</span><br><span class="line">    color: colors[<span class="number">0</span>]</span><br><span class="line">  &#125;,</span><br><span class="line">  star4: &#123;</span><br><span class="line">    color: colors[<span class="number">1</span>]</span><br><span class="line">  &#125;,</span><br><span class="line">  star3: &#123;</span><br><span class="line">    color: colors[<span class="number">2</span>]</span><br><span class="line">  &#125;,</span><br><span class="line">  star2: &#123;</span><br><span class="line">    color: colors[<span class="number">3</span>]</span><br><span class="line">  &#125;,</span><br><span class="line">  star1: &#123;</span><br><span class="line">    color: colors[<span class="number">4</span>]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h4 id="原数据"><a href="#原数据" class="headerlink" title="原数据"></a>原数据</h4><p><code>sunburst 旭日图</code>类型的数据应该是<a href="https://www.echartsjs.com/zh/option.html#series-sunburst.data" target="_blank" rel="external nofollow noopener noreferrer">树状</a>的，每一级都含有一个 <code>name</code> 属性作为标签名，可选一个 <code>value（值）</code>、<code>itemStyle（数据样式配置项）</code>、<code>label（标签配置项）</code>，如果不是最后一级，都应该有一个 <code>children（子树）</code>。</p>
+<p>代码所示数据举例，级别为<code>电视剧 &gt; 现代 &gt; 5☆ &gt; 大江大河</code>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// sunburst 旭日图树状数据</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> data = [</span><br><span class="line">  &#123;</span><br><span class="line">    name: <span class="string">'电视剧'</span>,</span><br><span class="line">    itemStyle: &#123;</span><br><span class="line">      <span class="comment">// normal: &#123;</span></span><br><span class="line">      color: colors[<span class="number">1</span>]</span><br><span class="line">      <span class="comment">// &#125;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    children: [</span><br><span class="line">      &#123;</span><br><span class="line">        name: <span class="string">'现代'</span>,</span><br><span class="line">        children: [</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'5☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'大江大河'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'疯人院'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'天坑鹰猎'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'4☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'SCI谜案集'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'古董局中局'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'乡村爱情协奏曲'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'3☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'上海女子图鉴'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        name: <span class="string">'古装'</span>,</span><br><span class="line">        children: [</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'5☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'天盛长歌'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'4☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'小戏骨：水浒传'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'香蜜沉沉烬如霜'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'3☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'知否知否应是绿肥红瘦'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;,</span><br><span class="line">  &#123;</span><br><span class="line">    name: <span class="string">'电影'</span>,</span><br><span class="line">    itemStyle: &#123;</span><br><span class="line">      color: colors[<span class="number">2</span>]</span><br><span class="line">    &#125;,</span><br><span class="line">    children: [</span><br><span class="line">      &#123;</span><br><span class="line">        name: <span class="string">'喜剧'</span>,</span><br><span class="line">        children: [</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'5☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'我不是药神'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'4☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'无名之辈'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'阿浪的远方'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'3☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'一出好戏'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        name: <span class="string">'剧情'</span>,</span><br><span class="line">        children: [</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'5☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'无双'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'4☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'大象席地而坐'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'风中有朵雨做的云'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'过春天'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'3☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'无问西东'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        name: <span class="string">'爱情'</span>,</span><br><span class="line">        children: [</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'5☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'江湖儿女'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'4☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'地球最后的夜晚'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'你好之华'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'3☆'</span></span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'2☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'后来的我们'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        name: <span class="string">'动作'</span>,</span><br><span class="line">        children: [</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'4☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'红海行动'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'影'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'动物世界'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        name: <span class="string">'动画'</span>,</span><br><span class="line">        children: [</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'5☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'夜思'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'4☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'切尔诺贝利之春'</span></span><br><span class="line">              &#125;,</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'女他'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'3☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'风雨咒'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        name: <span class="string">'惊悚'</span>,</span><br><span class="line">        children: [</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'4☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'灵魂摆渡·黄泉'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        name: <span class="string">'武侠'</span>,</span><br><span class="line">        children: [</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'3☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'夺命剑之风云再起'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;,</span><br><span class="line">          &#123;</span><br><span class="line">            name: <span class="string">'2☆'</span>,</span><br><span class="line">            children: [</span><br><span class="line">              &#123;</span><br><span class="line">                name: <span class="string">'狄仁杰之四大天王'</span></span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">];</span><br></pre></td></tr></table></figure>
+
+<h4 id="处理数据"><a href="#处理数据" class="headerlink" title="处理数据"></a>处理数据</h4><p>上述的原始数据缺少了必填项，每个叶子节点处的 <code>name</code> 必须配有一个 <code>value</code>，有 <code>value</code> 才能给其分配一个<code>弧度</code>；其次，demo 作者想把<code>不同星级</code>的影视剧使用不同颜色区分开，所以还需要给星级节点和叶子节点都设置一个 <code>itemStyle</code>。下述代码就是四层循环实现这两个目的。</p>
+<p>需要注意的地方：</p>
+<ul>
+<li>第一，修改了 <code>style</code> 属性，从原 demo 的<code>立即执行函数</code>改为了更简单的<code>拼凑字符串</code>直接取色；</li>
+<li>第二，去除了 <code>label</code> 下的 <code>downplay</code>，原作者应该是想给标签设置 <code>downplay</code>，但是根据配置项手册这样是<code>不生效</code>的；</li>
+<li>第三，去除了 <code>bookScore</code> 和 <code>bookScoreId</code> 相关的内容，我猜作者可能是想用这两个属性来给<code>非叶子节点</code>配置 <code>value</code>，后来发现不是必需的，就没有写完。</li>
+</ul>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 循环处理数据，为了给不同的星级做区分</span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> j = <span class="number">0</span>; j &lt; data.length; ++j) &#123;</span><br><span class="line">  <span class="comment">// level1是电视剧分类下古装、现代这个级别的数组</span></span><br><span class="line">  <span class="comment">// [</span></span><br><span class="line">  <span class="comment">//   &#123;</span></span><br><span class="line">  <span class="comment">//     name: "现代",</span></span><br><span class="line">  <span class="comment">//     children: [...]</span></span><br><span class="line">  <span class="comment">//   &#125;,</span></span><br><span class="line">  <span class="comment">//   &#123;</span></span><br><span class="line">  <span class="comment">//     name: "古装",</span></span><br><span class="line">  <span class="comment">//     children: [...]</span></span><br><span class="line">  <span class="comment">//   &#125;</span></span><br><span class="line">  <span class="comment">// ];</span></span><br><span class="line">  <span class="keyword">let</span> level1 = data[j].children;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// level1中继续循环</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; level1.length; ++i) &#123;</span><br><span class="line">    <span class="comment">// block是现代分类下的5☆4☆2☆级别的数组</span></span><br><span class="line">    <span class="comment">// [</span></span><br><span class="line">    <span class="comment">//   &#123;</span></span><br><span class="line">    <span class="comment">//     name: "5☆",</span></span><br><span class="line">    <span class="comment">//     children: [</span></span><br><span class="line">    <span class="comment">//       &#123;</span></span><br><span class="line">    <span class="comment">//         name: "大江大河"</span></span><br><span class="line">    <span class="comment">//       &#125;,</span></span><br><span class="line">    <span class="comment">//       &#123;</span></span><br><span class="line">    <span class="comment">//         name: "疯人院"</span></span><br><span class="line">    <span class="comment">//       &#125;,</span></span><br><span class="line">    <span class="comment">//       &#123;</span></span><br><span class="line">    <span class="comment">//         name: "天坑鹰猎"</span></span><br><span class="line">    <span class="comment">//       &#125;</span></span><br><span class="line">    <span class="comment">//     ]</span></span><br><span class="line">    <span class="comment">//   &#125;,</span></span><br><span class="line">    <span class="comment">//   &#123;</span></span><br><span class="line">    <span class="comment">//     name: "4☆",</span></span><br><span class="line">    <span class="comment">//     children: [</span></span><br><span class="line">    <span class="comment">//       &#123;</span></span><br><span class="line">    <span class="comment">//         name: "SCI谜案集"</span></span><br><span class="line">    <span class="comment">//       &#125;,</span></span><br><span class="line">    <span class="comment">//       &#123;</span></span><br><span class="line">    <span class="comment">//         name: "古董局中局"</span></span><br><span class="line">    <span class="comment">//       &#125;,</span></span><br><span class="line">    <span class="comment">//       &#123;</span></span><br><span class="line">    <span class="comment">//         name: "乡村爱情协奏曲"</span></span><br><span class="line">    <span class="comment">//       &#125;</span></span><br><span class="line">    <span class="comment">//     ]</span></span><br><span class="line">    <span class="comment">//   &#125;,</span></span><br><span class="line">    <span class="comment">//   &#123;</span></span><br><span class="line">    <span class="comment">//     name: "3☆",</span></span><br><span class="line">    <span class="comment">//     children: [</span></span><br><span class="line">    <span class="comment">//       &#123;</span></span><br><span class="line">    <span class="comment">//         name: "上海女子图鉴"</span></span><br><span class="line">    <span class="comment">//       &#125;</span></span><br><span class="line">    <span class="comment">//     ]</span></span><br><span class="line">    <span class="comment">//   &#125;</span></span><br><span class="line">    <span class="comment">// ];</span></span><br><span class="line">    <span class="keyword">let</span> block = level1[i].children;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> star = <span class="number">0</span>; star &lt; block.length; ++star) &#123;</span><br><span class="line">      <span class="comment">// 对demo进行了优化，直接拼凑字符串从itemStyle中取对应颜色</span></span><br><span class="line">      style = itemStyle[<span class="string">'star'</span> + <span class="built_in">parseInt</span>(block[star].name)];</span><br><span class="line">      <span class="comment">// 给不同星级文字label设置不同的颜色</span></span><br><span class="line">      block[star].label = &#123;</span><br><span class="line">        color: style.color</span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="comment">// 如果该星级下有影视剧，就继续对下级循环</span></span><br><span class="line">      <span class="keyword">if</span> (block[star].children) &#123;</span><br><span class="line">        <span class="comment">// 继续给星级下级分配相同颜色</span></span><br><span class="line">        style = &#123;</span><br><span class="line">          opacity: <span class="number">1</span>,</span><br><span class="line">          color: style.color</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="comment">// 循环</span></span><br><span class="line">        block[star].children.forEach(<span class="function"><span class="params">book</span> =&gt;</span> &#123;</span><br><span class="line">          <span class="comment">// 同一星级下的每个影视剧value都设为1，用于平分扇形</span></span><br><span class="line">          book.value = <span class="number">1</span>;</span><br><span class="line">          book.itemStyle = style;</span><br><span class="line">          book.label = &#123;</span><br><span class="line">            color: style.color</span><br><span class="line">          &#125;;</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    level1[i].itemStyle = &#123;</span><br><span class="line">      color: data[j].itemStyle.color</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="option-配置"><a href="#option-配置" class="headerlink" title="option 配置"></a>option 配置</h3><p><code>option</code> 的配置才是 ECharts 的核心，在这个 demo 中，大部分的<code>配置项</code>都可以根据名字一眼看懂，把主要的几个<code>配置项</code>的文档列出来：</p>
+<ul>
+<li>color（调色盘）：<a href="https://www.echartsjs.com/zh/option.html#color" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#color</a></li>
+<li>series（图表类型）：<a href="https://www.echartsjs.com/zh/option.html#series-sunburst" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-sunburst</a></li>
+<li>sort（数据排序）：<a href="https://www.echartsjs.com/zh/option.html#series-sunburst.sort" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-sunburst.sort</a></li>
+<li>label（标签样式）：<a href="https://www.echartsjs.com/zh/option.html#series-sunburst.label" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-sunburst.label</a></li>
+<li>itemStyle（数据样式）：<a href="https://www.echartsjs.com/zh/option.html#series-sunburst.itemStyle" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-sunburst.itemStyle</a></li>
+<li>downplay（未选中项样式）：<a href="https://www.echartsjs.com/zh/option.html#series-sunburst.downplay" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-sunburst.downplay</a></li>
+<li>highlight（选中项样式）：<a href="https://www.echartsjs.com/zh/option.html#series-sunburst.highlight" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-sunburst.highlight</a></li>
+<li>levels（不同级别的样式）：<a href="https://www.echartsjs.com/zh/option.html#series-sunburst.levels" target="_blank" rel="external nofollow noopener noreferrer">https://www.echartsjs.com/zh/option.html#series-sunburst.levels</a></li>
+</ul>
+<p>代码如下，需要注意的一点是，在旭日图中如果几个配置项对某一项样式<code>同时</code>做出了配置，那么优先级是：<code>downplay 或 highlight &gt; data &gt; levels &gt; series</code>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> option = &#123;</span><br><span class="line">  backgroundColor: bgColor,</span><br><span class="line">  <span class="comment">// 设置调色盘颜色</span></span><br><span class="line">  <span class="comment">// https://www.echartsjs.com/zh/option.html#color</span></span><br><span class="line">  color: colors,</span><br><span class="line">  <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst</span></span><br><span class="line">  series: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="comment">// 旭日图</span></span><br><span class="line">      type: <span class="string">'sunburst'</span>,</span><br><span class="line">      <span class="comment">// 中心位置</span></span><br><span class="line">      center: [<span class="string">'50%'</span>, <span class="string">'50%'</span>],</span><br><span class="line">      <span class="comment">// 数据来源</span></span><br><span class="line">      data: data,</span><br><span class="line">      <span class="comment">// 排序时，如果是第一层深度，靠value排序，其余情况dataIndex排序</span></span><br><span class="line">      <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.sort</span></span><br><span class="line">      sort: <span class="function">(<span class="params">a, b</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (a.depth === <span class="number">1</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> b.getValue() - a.getValue();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="keyword">return</span> a.dataIndex - b.dataIndex;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="comment">// 每一个标签样式</span></span><br><span class="line">      <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.label</span></span><br><span class="line">      label: &#123;</span><br><span class="line">        <span class="comment">// 径向旋转</span></span><br><span class="line">        rotate: <span class="string">'radial'</span>,</span><br><span class="line">        color: bgColor,</span><br><span class="line">        opacity: <span class="number">0.9</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="comment">// 每一项的样式</span></span><br><span class="line">      <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.itemStyle</span></span><br><span class="line">      itemStyle: &#123;</span><br><span class="line">        borderColor: bgColor,</span><br><span class="line">        borderWidth: <span class="number">2</span>,</span><br><span class="line">        opacity: <span class="number">0.9</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="comment">// 未选中的样式</span></span><br><span class="line">      <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.downplay</span></span><br><span class="line">      downplay: &#123;</span><br><span class="line">        itemStyle: &#123;</span><br><span class="line">          opacity: <span class="number">0.7</span></span><br><span class="line">        &#125;,</span><br><span class="line">        label: &#123;</span><br><span class="line">          opacity: <span class="number">0.7</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="comment">// 选中的样式</span></span><br><span class="line">      <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.highlight</span></span><br><span class="line">      highlight: &#123;</span><br><span class="line">        itemStyle: &#123;</span><br><span class="line">          opacity: <span class="number">1</span></span><br><span class="line">        &#125;,</span><br><span class="line">        label: &#123;</span><br><span class="line">          opacity: <span class="number">1</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="comment">// 给每个级别单独设置</span></span><br><span class="line">      <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.levels</span></span><br><span class="line">      levels: [</span><br><span class="line">        <span class="comment">// 这个空对象其实是第0级</span></span><br><span class="line">        &#123;&#125;,</span><br><span class="line">        <span class="comment">// 第1级</span></span><br><span class="line">        &#123;</span><br><span class="line">          <span class="comment">// r0时内半径，r是外半径</span></span><br><span class="line">          r0: <span class="number">0</span>,</span><br><span class="line">          r: <span class="number">40</span>,</span><br><span class="line">          label: &#123;</span><br><span class="line">            rotate: <span class="number">0</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="comment">// 第2级</span></span><br><span class="line">        &#123;</span><br><span class="line">          r0: <span class="number">40</span>,</span><br><span class="line">          r: <span class="number">105</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="comment">// 第3级</span></span><br><span class="line">        &#123;</span><br><span class="line">          r0: <span class="number">115</span>,</span><br><span class="line">          r: <span class="number">140</span>,</span><br><span class="line">          <span class="comment">// 单独给第三圈设置了边框样式和背景样式</span></span><br><span class="line">          itemStyle: &#123;</span><br><span class="line">            shadowBlur: <span class="number">2</span>,</span><br><span class="line">            shadowColor: colors[<span class="number">2</span>],</span><br><span class="line">            color: <span class="string">'transparent'</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="comment">// 给该层设置切向旋转</span></span><br><span class="line">          label: &#123;</span><br><span class="line">            rotate: <span class="string">'tangential'</span>,</span><br><span class="line">            fontSize: <span class="number">10</span>,</span><br><span class="line">            color: colors[<span class="number">0</span>]</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="comment">// 第4级</span></span><br><span class="line">        &#123;</span><br><span class="line">          r0: <span class="number">140</span>,</span><br><span class="line">          r: <span class="number">145</span>,</span><br><span class="line">          itemStyle: &#123;</span><br><span class="line">            <span class="comment">// 烟雾状的blur</span></span><br><span class="line">            shadowBlur: <span class="number">80</span>,</span><br><span class="line">            shadowColor: colors[<span class="number">0</span>]</span><br><span class="line">          &#125;,</span><br><span class="line">          label: &#123;</span><br><span class="line">            <span class="comment">// 最外圈把标签设置到了最外层</span></span><br><span class="line">            position: <span class="string">'outside'</span>,</span><br><span class="line">            textShadowBlur: <span class="number">5</span>,</span><br><span class="line">            textShadowColor: <span class="string">'#333'</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      ]</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="轮播效果"><a href="#轮播效果" class="headerlink" title="轮播效果"></a>轮播效果</h2><p>经过上述已经能实现原 demo 的样式，在这里继续给 demo 添加<code>轮播</code>效果。</p>
+<h3 id="数据扁平化"><a href="#数据扁平化" class="headerlink" title="数据扁平化"></a>数据扁平化</h3><p>因为定时器按固定时间间隔遍历对象的叶子节点很麻烦，所以在这里先把数据四层循环由对象<code>扁平化</code>为数组。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 首先把整个树状结构的数据扁平化，形成一个由level1、2、3、4组成的数组</span></span><br><span class="line"><span class="keyword">let</span> dataArrSorted = [];</span><br><span class="line">data.forEach(<span class="function"><span class="params">level1</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (level1.children) &#123;</span><br><span class="line">    level1.children.forEach(<span class="function"><span class="params">level2</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (level2.children) &#123;</span><br><span class="line">        level2.children.forEach(<span class="function"><span class="params">level3</span> =&gt;</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (level3.children) &#123;</span><br><span class="line">            level3.children.forEach(<span class="function"><span class="params">level4</span> =&gt;</span> &#123;</span><br><span class="line">              dataArrSorted.push(&#123;</span><br><span class="line">                level1: level1.name,</span><br><span class="line">                level2: level2.name,</span><br><span class="line">                level3: level3.name,</span><br><span class="line">                level4: level4.name</span><br><span class="line">              &#125;);</span><br><span class="line">            &#125;);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="添加事件监听"><a href="#添加事件监听" class="headerlink" title="添加事件监听"></a>添加事件监听</h3><p><a href="https://www.echartsjs.com/zh/api.html#echartsInstance.on" target="_blank" rel="external nofollow noopener noreferrer">监听</a>Echarts 的旭日图实例 <code>chartSunburst</code> 上的 <code>highlight 事件</code>，并把回调的参数拼凑 <code>dom</code> 片段插入 <code>body</code>。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 监听chartSunburst的highlight事件，在回调函数中拿到params组成一个dom片段插入</span></span><br><span class="line">chartSunburst.on(<span class="string">'highlight'</span>, params =&gt; &#123;</span><br><span class="line">  <span class="built_in">document</span>.querySelector(</span><br><span class="line">    <span class="string">'#detail-container'</span></span><br><span class="line">  ).innerHTML = <span class="string">`&lt;p class="kind"&gt;<span class="subst">$&#123;params.level1&#125;</span> &gt; <span class="subst">$&#123;params.level2&#125;</span> &gt; <span class="subst">$&#123;params.level3&#125;</span>&lt;/p&gt;&lt;p class="title"&gt;<span class="subst">$&#123;params.level4&#125;</span>&lt;/p&gt;`</span>;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="定时器派发事件"><a href="#定时器派发事件" class="headerlink" title="定时器派发事件"></a>定时器派发事件</h3><p>使用 <code>setInterval</code> 定时器，每两秒<a href="https://www.echartsjs.com/zh/api.html#action.highlight" target="_blank" rel="external nofollow noopener noreferrer">派发</a>一个 <code>highlight 事件</code>，<code>name</code> 取 <code>dataArrSorted[i].level4</code>，并把整个 <code>dataArrSorted[i]</code>解构成<code>参数</code>传出。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设置一个定时器，每2秒派发一个highlight事件，name是level4，再把整个dataArrSorted[i]对象解构进去发送</span></span><br><span class="line">i = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">const</span> key = setInterval(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (i &lt; dataArrSorted.length) &#123;</span><br><span class="line">    chartSunburst.dispatchAction(&#123;</span><br><span class="line">      type: <span class="string">'highlight'</span>,</span><br><span class="line">      name: dataArrSorted[i].level4,</span><br><span class="line">      ...dataArrSorted[i]</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 当循环完成，清除定时器</span></span><br><span class="line">    clearInterval(key);</span><br><span class="line">  &#125;</span><br><span class="line">  i++;</span><br><span class="line">&#125;, <span class="number">2000</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="全部代码"><a href="#全部代码" class="headerlink" title="全部代码"></a>全部代码</h2><p>全部代码如下所示：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br><span class="line">296</span><br><span class="line">297</span><br><span class="line">298</span><br><span class="line">299</span><br><span class="line">300</span><br><span class="line">301</span><br><span class="line">302</span><br><span class="line">303</span><br><span class="line">304</span><br><span class="line">305</span><br><span class="line">306</span><br><span class="line">307</span><br><span class="line">308</span><br><span class="line">309</span><br><span class="line">310</span><br><span class="line">311</span><br><span class="line">312</span><br><span class="line">313</span><br><span class="line">314</span><br><span class="line">315</span><br><span class="line">316</span><br><span class="line">317</span><br><span class="line">318</span><br><span class="line">319</span><br><span class="line">320</span><br><span class="line">321</span><br><span class="line">322</span><br><span class="line">323</span><br><span class="line">324</span><br><span class="line">325</span><br><span class="line">326</span><br><span class="line">327</span><br><span class="line">328</span><br><span class="line">329</span><br><span class="line">330</span><br><span class="line">331</span><br><span class="line">332</span><br><span class="line">333</span><br><span class="line">334</span><br><span class="line">335</span><br><span class="line">336</span><br><span class="line">337</span><br><span class="line">338</span><br><span class="line">339</span><br><span class="line">340</span><br><span class="line">341</span><br><span class="line">342</span><br><span class="line">343</span><br><span class="line">344</span><br><span class="line">345</span><br><span class="line">346</span><br><span class="line">347</span><br><span class="line">348</span><br><span class="line">349</span><br><span class="line">350</span><br><span class="line">351</span><br><span class="line">352</span><br><span class="line">353</span><br><span class="line">354</span><br><span class="line">355</span><br><span class="line">356</span><br><span class="line">357</span><br><span class="line">358</span><br><span class="line">359</span><br><span class="line">360</span><br><span class="line">361</span><br><span class="line">362</span><br><span class="line">363</span><br><span class="line">364</span><br><span class="line">365</span><br><span class="line">366</span><br><span class="line">367</span><br><span class="line">368</span><br><span class="line">369</span><br><span class="line">370</span><br><span class="line">371</span><br><span class="line">372</span><br><span class="line">373</span><br><span class="line">374</span><br><span class="line">375</span><br><span class="line">376</span><br><span class="line">377</span><br><span class="line">378</span><br><span class="line">379</span><br><span class="line">380</span><br><span class="line">381</span><br><span class="line">382</span><br><span class="line">383</span><br><span class="line">384</span><br><span class="line">385</span><br><span class="line">386</span><br><span class="line">387</span><br><span class="line">388</span><br><span class="line">389</span><br><span class="line">390</span><br><span class="line">391</span><br><span class="line">392</span><br><span class="line">393</span><br><span class="line">394</span><br><span class="line">395</span><br><span class="line">396</span><br><span class="line">397</span><br><span class="line">398</span><br><span class="line">399</span><br><span class="line">400</span><br><span class="line">401</span><br><span class="line">402</span><br><span class="line">403</span><br><span class="line">404</span><br><span class="line">405</span><br><span class="line">406</span><br><span class="line">407</span><br><span class="line">408</span><br><span class="line">409</span><br><span class="line">410</span><br><span class="line">411</span><br><span class="line">412</span><br><span class="line">413</span><br><span class="line">414</span><br><span class="line">415</span><br><span class="line">416</span><br><span class="line">417</span><br><span class="line">418</span><br><span class="line">419</span><br><span class="line">420</span><br><span class="line">421</span><br><span class="line">422</span><br><span class="line">423</span><br><span class="line">424</span><br><span class="line">425</span><br><span class="line">426</span><br><span class="line">427</span><br><span class="line">428</span><br><span class="line">429</span><br><span class="line">430</span><br><span class="line">431</span><br><span class="line">432</span><br><span class="line">433</span><br><span class="line">434</span><br><span class="line">435</span><br><span class="line">436</span><br><span class="line">437</span><br><span class="line">438</span><br><span class="line">439</span><br><span class="line">440</span><br><span class="line">441</span><br><span class="line">442</span><br><span class="line">443</span><br><span class="line">444</span><br><span class="line">445</span><br><span class="line">446</span><br><span class="line">447</span><br><span class="line">448</span><br><span class="line">449</span><br><span class="line">450</span><br><span class="line">451</span><br><span class="line">452</span><br><span class="line">453</span><br><span class="line">454</span><br><span class="line">455</span><br><span class="line">456</span><br><span class="line">457</span><br><span class="line">458</span><br><span class="line">459</span><br><span class="line">460</span><br><span class="line">461</span><br><span class="line">462</span><br><span class="line">463</span><br><span class="line">464</span><br><span class="line">465</span><br><span class="line">466</span><br><span class="line">467</span><br><span class="line">468</span><br><span class="line">469</span><br><span class="line">470</span><br><span class="line">471</span><br><span class="line">472</span><br><span class="line">473</span><br><span class="line">474</span><br><span class="line">475</span><br><span class="line">476</span><br><span class="line">477</span><br><span class="line">478</span><br><span class="line">479</span><br><span class="line">480</span><br><span class="line">481</span><br><span class="line">482</span><br><span class="line">483</span><br><span class="line">484</span><br><span class="line">485</span><br><span class="line">486</span><br><span class="line">487</span><br><span class="line">488</span><br><span class="line">489</span><br><span class="line">490</span><br><span class="line">491</span><br><span class="line">492</span><br><span class="line">493</span><br><span class="line">494</span><br><span class="line">495</span><br><span class="line">496</span><br><span class="line">497</span><br><span class="line">498</span><br><span class="line">499</span><br><span class="line">500</span><br><span class="line">501</span><br><span class="line">502</span><br><span class="line">503</span><br><span class="line">504</span><br><span class="line">505</span><br><span class="line">506</span><br><span class="line">507</span><br><span class="line">508</span><br><span class="line">509</span><br><span class="line">510</span><br><span class="line">511</span><br><span class="line">512</span><br><span class="line">513</span><br><span class="line">514</span><br><span class="line">515</span><br><span class="line">516</span><br><span class="line">517</span><br><span class="line">518</span><br><span class="line">519</span><br><span class="line">520</span><br><span class="line">521</span><br><span class="line">522</span><br><span class="line">523</span><br><span class="line">524</span><br><span class="line">525</span><br><span class="line">526</span><br><span class="line">527</span><br><span class="line">528</span><br><span class="line">529</span><br><span class="line">530</span><br><span class="line">531</span><br><span class="line">532</span><br><span class="line">533</span><br><span class="line">534</span><br><span class="line">535</span><br><span class="line">536</span><br><span class="line">537</span><br><span class="line">538</span><br><span class="line">539</span><br><span class="line">540</span><br><span class="line">541</span><br><span class="line">542</span><br><span class="line">543</span><br><span class="line">544</span><br><span class="line">545</span><br><span class="line">546</span><br><span class="line">547</span><br><span class="line">548</span><br><span class="line">549</span><br><span class="line">550</span><br><span class="line">551</span><br><span class="line">552</span><br><span class="line">553</span><br><span class="line">554</span><br><span class="line">555</span><br><span class="line">556</span><br><span class="line">557</span><br><span class="line">558</span><br><span class="line">559</span><br><span class="line">560</span><br><span class="line">561</span><br><span class="line">562</span><br><span class="line">563</span><br><span class="line">564</span><br><span class="line">565</span><br><span class="line">566</span><br><span class="line">567</span><br><span class="line">568</span><br><span class="line">569</span><br><span class="line">570</span><br><span class="line">571</span><br><span class="line">572</span><br><span class="line">573</span><br><span class="line">574</span><br><span class="line">575</span><br><span class="line">576</span><br><span class="line">577</span><br><span class="line">578</span><br><span class="line">579</span><br><span class="line">580</span><br><span class="line">581</span><br><span class="line">582</span><br><span class="line">583</span><br><span class="line">584</span><br><span class="line">585</span><br><span class="line">586</span><br><span class="line">587</span><br><span class="line">588</span><br><span class="line">589</span><br><span class="line">590</span><br><span class="line">591</span><br><span class="line">592</span><br><span class="line">593</span><br><span class="line">594</span><br><span class="line">595</span><br><span class="line">596</span><br><span class="line">597</span><br><span class="line">598</span><br><span class="line">599</span><br><span class="line">600</span><br><span class="line">601</span><br><span class="line">602</span><br><span class="line">603</span><br><span class="line">604</span><br><span class="line">605</span><br><span class="line">606</span><br><span class="line">607</span><br><span class="line">608</span><br><span class="line">609</span><br><span class="line">610</span><br><span class="line">611</span><br><span class="line">612</span><br><span class="line">613</span><br><span class="line">614</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">"en"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/npm/echarts@4.6.0/dist/echarts.min.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>echarts sunburst旭日图轮播<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body &#123;</span><br><span class="line">        width: 100%;</span><br><span class="line">        height: 100%;</span><br><span class="line">        margin: 0;</span><br><span class="line">        padding: 0;</span><br><span class="line">      &#125;</span><br><span class="line"><span class="css">      <span class="selector-tag">div</span><span class="selector-id">#container</span> &#123;</span></span><br><span class="line">        width: 100%;</span><br><span class="line">        height: 100%;</span><br><span class="line">        display: flex;</span><br><span class="line">        flex-direction: column;</span><br><span class="line">        justify-content: flex-start;</span><br><span class="line">        align-items: center;</span><br><span class="line"><span class="css">        <span class="selector-tag">background</span>: <span class="selector-id">#2e2733</span>;</span></span><br><span class="line">      &#125;</span><br><span class="line"><span class="css">      <span class="selector-tag">div</span><span class="selector-id">#detail-container</span> &#123;</span></span><br><span class="line">        width: 100%;</span><br><span class="line">        height: 20%;</span><br><span class="line">        display: flex;</span><br><span class="line">        flex-direction: column;</span><br><span class="line">        justify-content: center;</span><br><span class="line">        align-items: center;</span><br><span class="line">      &#125;</span><br><span class="line"><span class="css">      <span class="selector-tag">div</span><span class="selector-id">#detail-container</span> <span class="selector-class">.kind</span> &#123;</span></span><br><span class="line"><span class="css">        <span class="selector-tag">color</span>: <span class="selector-id">#ffae57</span>;</span></span><br><span class="line">      &#125;</span><br><span class="line"><span class="css">      <span class="selector-tag">div</span><span class="selector-id">#detail-container</span> <span class="selector-class">.title</span> &#123;</span></span><br><span class="line"><span class="css">        <span class="selector-tag">color</span>: <span class="selector-id">#ff7853</span>;</span></span><br><span class="line">        font-size: 120%;</span><br><span class="line">        font-weight: bold;</span><br><span class="line">      &#125;</span><br><span class="line"><span class="css">      <span class="selector-tag">div</span><span class="selector-id">#echarts-container</span> &#123;</span></span><br><span class="line">        width: 100%;</span><br><span class="line">        height: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"container"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"detail-container"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"echarts-container"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 基于准备好的dom，初始化echarts实例</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> chartSunburst = echarts.init(</span></span><br><span class="line"><span class="javascript">        <span class="built_in">document</span>.getElementById(<span class="string">'echarts-container'</span>)</span></span><br><span class="line">      );</span><br><span class="line"><span class="actionscript">      <span class="comment">// 指定图表的配置项和数据</span></span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 颜色序列</span></span></span><br><span class="line"><span class="actionscript">      <span class="keyword">const</span> colors = [<span class="string">'#FFAE57'</span>, <span class="string">'#FF7853'</span>, <span class="string">'#EA5151'</span>, <span class="string">'#CC3F57'</span>, <span class="string">'#9A2555'</span>];</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 背景颜色</span></span></span><br><span class="line"><span class="actionscript">      <span class="keyword">const</span> bgColor = <span class="string">'#2E2733'</span>;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 给不同星级分配不同颜色</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> itemStyle = &#123;</span></span><br><span class="line">        star5: &#123;</span><br><span class="line">          color: colors[0]</span><br><span class="line">        &#125;,</span><br><span class="line">        star4: &#123;</span><br><span class="line">          color: colors[1]</span><br><span class="line">        &#125;,</span><br><span class="line">        star3: &#123;</span><br><span class="line">          color: colors[2]</span><br><span class="line">        &#125;,</span><br><span class="line">        star2: &#123;</span><br><span class="line">          color: colors[3]</span><br><span class="line">        &#125;,</span><br><span class="line">        star1: &#123;</span><br><span class="line">          color: colors[4]</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;;</span><br><span class="line"><span class="actionscript">      <span class="comment">// sunburst 旭日图树状数据</span></span></span><br><span class="line"><span class="actionscript">      <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.data</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> data = [</span></span><br><span class="line">        &#123;</span><br><span class="line"><span class="actionscript">          name: <span class="string">'电视剧'</span>,</span></span><br><span class="line">          itemStyle: &#123;</span><br><span class="line"><span class="actionscript">            <span class="comment">// normal: &#123;</span></span></span><br><span class="line">            color: colors[1]</span><br><span class="line"><span class="actionscript">            <span class="comment">// &#125;</span></span></span><br><span class="line">          &#125;,</span><br><span class="line">          children: [</span><br><span class="line">            &#123;</span><br><span class="line"><span class="actionscript">              name: <span class="string">'现代'</span>,</span></span><br><span class="line">              children: [</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'5☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'大江大河'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'疯人院'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'天坑鹰猎'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'4☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'SCI谜案集'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'古董局中局'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'乡村爱情协奏曲'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'3☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'上海女子图鉴'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;</span><br><span class="line">              ]</span><br><span class="line">            &#125;,</span><br><span class="line">            &#123;</span><br><span class="line"><span class="actionscript">              name: <span class="string">'古装'</span>,</span></span><br><span class="line">              children: [</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'5☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'天盛长歌'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'4☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'小戏骨：水浒传'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'香蜜沉沉烬如霜'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'3☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'知否知否应是绿肥红瘦'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;</span><br><span class="line">              ]</span><br><span class="line">            &#125;</span><br><span class="line">          ]</span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line"><span class="actionscript">          name: <span class="string">'电影'</span>,</span></span><br><span class="line">          itemStyle: &#123;</span><br><span class="line">            color: colors[2]</span><br><span class="line">          &#125;,</span><br><span class="line">          children: [</span><br><span class="line">            &#123;</span><br><span class="line"><span class="actionscript">              name: <span class="string">'喜剧'</span>,</span></span><br><span class="line">              children: [</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'5☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'我不是药神'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'4☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'无名之辈'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'阿浪的远方'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'3☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'一出好戏'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;</span><br><span class="line">              ]</span><br><span class="line">            &#125;,</span><br><span class="line">            &#123;</span><br><span class="line"><span class="actionscript">              name: <span class="string">'剧情'</span>,</span></span><br><span class="line">              children: [</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'5☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'无双'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'4☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'大象席地而坐'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'风中有朵雨做的云'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'过春天'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'3☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'无问西东'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;</span><br><span class="line">              ]</span><br><span class="line">            &#125;,</span><br><span class="line">            &#123;</span><br><span class="line"><span class="actionscript">              name: <span class="string">'爱情'</span>,</span></span><br><span class="line">              children: [</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'5☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'江湖儿女'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'4☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'地球最后的夜晚'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'你好之华'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'3☆'</span></span></span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'2☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'后来的我们'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;</span><br><span class="line">              ]</span><br><span class="line">            &#125;,</span><br><span class="line">            &#123;</span><br><span class="line"><span class="actionscript">              name: <span class="string">'动作'</span>,</span></span><br><span class="line">              children: [</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'4☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'红海行动'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'影'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'动物世界'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;</span><br><span class="line">              ]</span><br><span class="line">            &#125;,</span><br><span class="line">            &#123;</span><br><span class="line"><span class="actionscript">              name: <span class="string">'动画'</span>,</span></span><br><span class="line">              children: [</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'5☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'夜思'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'4☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'切尔诺贝利之春'</span></span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'女他'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'3☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'风雨咒'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;</span><br><span class="line">              ]</span><br><span class="line">            &#125;,</span><br><span class="line">            &#123;</span><br><span class="line"><span class="actionscript">              name: <span class="string">'惊悚'</span>,</span></span><br><span class="line">              children: [</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'4☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'灵魂摆渡·黄泉'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;</span><br><span class="line">              ]</span><br><span class="line">            &#125;,</span><br><span class="line">            &#123;</span><br><span class="line"><span class="actionscript">              name: <span class="string">'武侠'</span>,</span></span><br><span class="line">              children: [</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'3☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'夺命剑之风云再起'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;,</span><br><span class="line">                &#123;</span><br><span class="line"><span class="actionscript">                  name: <span class="string">'2☆'</span>,</span></span><br><span class="line">                  children: [</span><br><span class="line">                    &#123;</span><br><span class="line"><span class="actionscript">                      name: <span class="string">'狄仁杰之四大天王'</span></span></span><br><span class="line">                    &#125;</span><br><span class="line">                  ]</span><br><span class="line">                &#125;</span><br><span class="line">              ]</span><br><span class="line">            &#125;</span><br><span class="line">          ]</span><br><span class="line">        &#125;</span><br><span class="line">      ];</span><br><span class="line"><span class="actionscript">      <span class="comment">// 循环处理数据，为了给不同的星级做区分</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">for</span> (<span class="keyword">let</span> j = <span class="number">0</span>; j &lt; data.length; ++j) &#123;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// level1是电视剧分类下古装、现代这个级别的数组</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// [</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">//   &#123;</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">//     name: "现代",</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">//     children: [...]</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">//   &#125;,</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">//   &#123;</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">//     name: "古装",</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">//     children: [...]</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">//   &#125;</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// ];</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> level1 = data[j].children;</span></span><br><span class="line"></span><br><span class="line"><span class="actionscript">        <span class="comment">// level1中继续循环</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; level1.length; ++i) &#123;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// block是现代分类下的5☆4☆2☆级别的数组</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">// [</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//   &#123;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//     name: "5☆",</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//     children: [</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#123;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//         name: "大江大河"</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#125;,</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#123;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//         name: "疯人院"</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#125;,</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#123;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//         name: "天坑鹰猎"</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#125;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//     ]</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//   &#125;,</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//   &#123;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//     name: "4☆",</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//     children: [</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#123;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//         name: "SCI谜案集"</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#125;,</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#123;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//         name: "古董局中局"</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#125;,</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#123;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//         name: "乡村爱情协奏曲"</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#125;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//     ]</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//   &#125;,</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//   &#123;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//     name: "3☆",</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//     children: [</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#123;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//         name: "上海女子图鉴"</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//       &#125;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//     ]</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">//   &#125;</span></span></span><br><span class="line"><span class="actionscript">          <span class="comment">// ];</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> block = level1[i].children;</span></span><br><span class="line"></span><br><span class="line"><span class="javascript">          <span class="keyword">for</span> (<span class="keyword">let</span> star = <span class="number">0</span>; star &lt; block.length; ++star) &#123;</span></span><br><span class="line"><span class="actionscript">            <span class="comment">// 对demo进行了优化，直接拼凑字符串从itemStyle中取对应颜色</span></span></span><br><span class="line"><span class="javascript">            style = itemStyle[<span class="string">'star'</span> + <span class="built_in">parseInt</span>(block[star].name)];</span></span><br><span class="line"><span class="actionscript">            <span class="comment">// 给不同星级文字label设置不同的颜色</span></span></span><br><span class="line">            block[star].label = &#123;</span><br><span class="line">              color: style.color</span><br><span class="line">            &#125;;</span><br><span class="line"><span class="actionscript">            <span class="comment">// 如果该星级下有影视剧，就继续对下级循环</span></span></span><br><span class="line">            if (block[star].children) &#123;</span><br><span class="line"><span class="actionscript">              <span class="comment">// 继续给星级下级分配相同颜色</span></span></span><br><span class="line">              style = &#123;</span><br><span class="line">                opacity: 1,</span><br><span class="line">                color: style.color</span><br><span class="line">              &#125;;</span><br><span class="line"><span class="actionscript">              <span class="comment">// 循环</span></span></span><br><span class="line"><span class="javascript">              block[star].children.forEach(<span class="function"><span class="params">book</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="actionscript">                <span class="comment">// 同一星级下的每个影视剧value都设为1，用于平分扇形</span></span></span><br><span class="line">                book.value = 1;</span><br><span class="line">                book.itemStyle = style;</span><br><span class="line">                book.label = &#123;</span><br><span class="line">                  color: style.color</span><br><span class="line">                &#125;;</span><br><span class="line">              &#125;);</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          level1[i].itemStyle = &#123;</span><br><span class="line">            color: data[j].itemStyle.color</span><br><span class="line">          &#125;;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> option = &#123;</span></span><br><span class="line">        backgroundColor: bgColor,</span><br><span class="line"><span class="actionscript">        <span class="comment">// 设置调色盘颜色</span></span></span><br><span class="line"><span class="actionscript">        <span class="comment">// https://www.echartsjs.com/zh/option.html#color</span></span></span><br><span class="line">        color: colors,</span><br><span class="line"><span class="actionscript">        <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst</span></span></span><br><span class="line">        series: [</span><br><span class="line">          &#123;</span><br><span class="line"><span class="actionscript">            <span class="comment">// 旭日图</span></span></span><br><span class="line"><span class="actionscript">            type: <span class="string">'sunburst'</span>,</span></span><br><span class="line"><span class="actionscript">            <span class="comment">// 中心位置</span></span></span><br><span class="line"><span class="actionscript">            center: [<span class="string">'50%'</span>, <span class="string">'50%'</span>],</span></span><br><span class="line"><span class="actionscript">            <span class="comment">// 数据来源</span></span></span><br><span class="line">            data: data,</span><br><span class="line"><span class="actionscript">            <span class="comment">// 排序时，如果是第一层深度，靠value排序，其余情况dataIndex排序</span></span></span><br><span class="line"><span class="actionscript">            <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.sort</span></span></span><br><span class="line"><span class="javascript">            sort: <span class="function">(<span class="params">a, b</span>) =&gt;</span> &#123;</span></span><br><span class="line">              if (a.depth === 1) &#123;</span><br><span class="line"><span class="actionscript">                <span class="keyword">return</span> b.getValue() - a.getValue();</span></span><br><span class="line"><span class="actionscript">              &#125; <span class="keyword">else</span> &#123;</span></span><br><span class="line"><span class="actionscript">                <span class="keyword">return</span> a.dataIndex - b.dataIndex;</span></span><br><span class="line">              &#125;</span><br><span class="line">            &#125;,</span><br><span class="line"><span class="actionscript">            <span class="comment">// 每一个标签样式</span></span></span><br><span class="line"><span class="actionscript">            <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.label</span></span></span><br><span class="line">            label: &#123;</span><br><span class="line"><span class="actionscript">              <span class="comment">// 径向旋转</span></span></span><br><span class="line"><span class="actionscript">              rotate: <span class="string">'radial'</span>,</span></span><br><span class="line">              color: bgColor,</span><br><span class="line">              opacity: 0.9</span><br><span class="line">            &#125;,</span><br><span class="line"><span class="actionscript">            <span class="comment">// 每一项的样式</span></span></span><br><span class="line"><span class="actionscript">            <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.itemStyle</span></span></span><br><span class="line">            itemStyle: &#123;</span><br><span class="line">              borderColor: bgColor,</span><br><span class="line">              borderWidth: 2,</span><br><span class="line">              opacity: 0.9</span><br><span class="line">            &#125;,</span><br><span class="line"><span class="actionscript">            <span class="comment">// 未选中的样式</span></span></span><br><span class="line"><span class="actionscript">            <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.downplay</span></span></span><br><span class="line">            downplay: &#123;</span><br><span class="line">              itemStyle: &#123;</span><br><span class="line">                opacity: 0.7</span><br><span class="line">              &#125;,</span><br><span class="line">              label: &#123;</span><br><span class="line">                opacity: 0.7</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;,</span><br><span class="line"><span class="actionscript">            <span class="comment">// 选中的样式</span></span></span><br><span class="line"><span class="actionscript">            <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.highlight</span></span></span><br><span class="line">            highlight: &#123;</span><br><span class="line">              itemStyle: &#123;</span><br><span class="line">                opacity: 1</span><br><span class="line">              &#125;,</span><br><span class="line">              label: &#123;</span><br><span class="line">                opacity: 1</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;,</span><br><span class="line"><span class="actionscript">            <span class="comment">// 给每个级别单独设置</span></span></span><br><span class="line"><span class="actionscript">            <span class="comment">// https://www.echartsjs.com/zh/option.html#series-sunburst.levels</span></span></span><br><span class="line">            levels: [</span><br><span class="line"><span class="actionscript">              <span class="comment">// 这个空对象其实是第0级</span></span></span><br><span class="line">              &#123;&#125;,</span><br><span class="line"><span class="actionscript">              <span class="comment">// 第1级</span></span></span><br><span class="line">              &#123;</span><br><span class="line"><span class="actionscript">                <span class="comment">// r0时内半径，r是外半径</span></span></span><br><span class="line">                r0: 0,</span><br><span class="line">                r: 40,</span><br><span class="line">                label: &#123;</span><br><span class="line">                  rotate: 0</span><br><span class="line">                &#125;</span><br><span class="line">              &#125;,</span><br><span class="line"><span class="actionscript">              <span class="comment">// 第2级</span></span></span><br><span class="line">              &#123;</span><br><span class="line">                r0: 40,</span><br><span class="line">                r: 105</span><br><span class="line">              &#125;,</span><br><span class="line"><span class="actionscript">              <span class="comment">// 第3级</span></span></span><br><span class="line">              &#123;</span><br><span class="line">                r0: 115,</span><br><span class="line">                r: 140,</span><br><span class="line"><span class="actionscript">                <span class="comment">// 单独给第三圈设置了边框样式和背景样式</span></span></span><br><span class="line">                itemStyle: &#123;</span><br><span class="line">                  shadowBlur: 2,</span><br><span class="line">                  shadowColor: colors[2],</span><br><span class="line"><span class="actionscript">                  color: <span class="string">'transparent'</span></span></span><br><span class="line">                &#125;,</span><br><span class="line"><span class="actionscript">                <span class="comment">// 给该层设置切向旋转</span></span></span><br><span class="line">                label: &#123;</span><br><span class="line"><span class="actionscript">                  rotate: <span class="string">'tangential'</span>,</span></span><br><span class="line">                  fontSize: 10,</span><br><span class="line">                  color: colors[0]</span><br><span class="line">                &#125;</span><br><span class="line">              &#125;,</span><br><span class="line"><span class="actionscript">              <span class="comment">// 第4级</span></span></span><br><span class="line">              &#123;</span><br><span class="line">                r0: 140,</span><br><span class="line">                r: 145,</span><br><span class="line">                itemStyle: &#123;</span><br><span class="line"><span class="actionscript">                  <span class="comment">// 烟雾状的blur</span></span></span><br><span class="line">                  shadowBlur: 80,</span><br><span class="line">                  shadowColor: colors[0]</span><br><span class="line">                &#125;,</span><br><span class="line">                label: &#123;</span><br><span class="line"><span class="actionscript">                  <span class="comment">// 最外圈把标签设置到了最外层</span></span></span><br><span class="line"><span class="actionscript">                  position: <span class="string">'outside'</span>,</span></span><br><span class="line">                  textShadowBlur: 5,</span><br><span class="line"><span class="actionscript">                  textShadowColor: <span class="string">'#333'</span></span></span><br><span class="line">                &#125;</span><br><span class="line">              &#125;</span><br><span class="line">            ]</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;;</span><br><span class="line"><span class="actionscript">      <span class="comment">// 使用刚指定的配置项和数据显示图表。</span></span></span><br><span class="line">      chartSunburst.setOption(option);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 下面是轮播效果</span></span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 首先把整个树状结构的数据扁平化，形成一个由level1、2、3、4组成的数组</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> dataArrSorted = [];</span></span><br><span class="line"><span class="javascript">      data.forEach(<span class="function"><span class="params">level1</span> =&gt;</span> &#123;</span></span><br><span class="line">        if (level1.children) &#123;</span><br><span class="line"><span class="javascript">          level1.children.forEach(<span class="function"><span class="params">level2</span> =&gt;</span> &#123;</span></span><br><span class="line">            if (level2.children) &#123;</span><br><span class="line"><span class="javascript">              level2.children.forEach(<span class="function"><span class="params">level3</span> =&gt;</span> &#123;</span></span><br><span class="line">                if (level3.children) &#123;</span><br><span class="line"><span class="javascript">                  level3.children.forEach(<span class="function"><span class="params">level4</span> =&gt;</span> &#123;</span></span><br><span class="line">                    dataArrSorted.push(&#123;</span><br><span class="line">                      level1: level1.name,</span><br><span class="line">                      level2: level2.name,</span><br><span class="line">                      level3: level3.name,</span><br><span class="line">                      level4: level4.name</span><br><span class="line">                    &#125;);</span><br><span class="line">                  &#125;);</span><br><span class="line">                &#125;</span><br><span class="line">              &#125;);</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// https://www.echartsjs.com/zh/api.html#echartsInstance.on</span></span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 监听chartSunburst的highlight事件，在回调函数中拿到params组成一个dom片段插入</span></span></span><br><span class="line"><span class="actionscript">      chartSunburst.on(<span class="string">'highlight'</span>, params =&gt; &#123;</span></span><br><span class="line"><span class="javascript">        <span class="built_in">document</span>.querySelector(</span></span><br><span class="line"><span class="actionscript">          <span class="string">'#detail-container'</span></span></span><br><span class="line"><span class="handlebars"><span class="xml">        ).innerHTML = `<span class="tag">&lt;<span class="name">p</span> <span class="attr">class</span>=<span class="string">"kind"</span>&gt;</span>$&#123;params.level1&#125; &gt; $&#123;params.level2&#125; &gt; $&#123;params.level3&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span><span class="tag">&lt;<span class="name">p</span> <span class="attr">class</span>=<span class="string">"title"</span>&gt;</span>$&#123;params.level4&#125;<span class="tag">&lt;/<span class="name">p</span>&gt;</span>`;</span></span></span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 设置一个定时器，每2秒派发一个highlight事件，name是level4，再把整个dataArrSorted[i]对象解构进去发送</span></span></span><br><span class="line"><span class="actionscript">      <span class="comment">// https://www.echartsjs.com/zh/api.html#action.highlight</span></span></span><br><span class="line">      i = 0;</span><br><span class="line"><span class="javascript">      <span class="keyword">const</span> key = setInterval(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span></span><br><span class="line">        if (i &lt; dataArrSorted.length) &#123;</span><br><span class="line">          chartSunburst.dispatchAction(&#123;</span><br><span class="line"><span class="actionscript">            type: <span class="string">'highlight'</span>,</span></span><br><span class="line">            name: dataArrSorted[i].level4,</span><br><span class="line">            ...dataArrSorted[i]</span><br><span class="line">          &#125;);</span><br><span class="line"><span class="actionscript">        &#125; <span class="keyword">else</span> &#123;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 当循环完成，清除定时器</span></span></span><br><span class="line">          clearInterval(key);</span><br><span class="line">        &#125;</span><br><span class="line">        i++;</span><br><span class="line">      &#125;, 2000);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag"># 前端</a>
+              <a href="/tags/ECharts/" rel="tag"># ECharts</a>
+              <a href="/tags/%E6%97%AD%E6%97%A5%E5%9B%BE/" rel="tag"># 旭日图</a>
+              <a href="/tags/sunburst/" rel="tag"># sunburst</a>
+              <a href="/tags/%E8%BD%AE%E6%92%AD/" rel="tag"># 轮播</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/8bd9ee4.html" rel="prev" title="OpenLayers6实例分析：Image Filters（滤镜效果）">
+      <i class="fa fa-chevron-left"></i> OpenLayers6实例分析：Image Filters（滤镜效果）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/3680799e.html" rel="next" title="关于各种像素概念和前端长度单位的理解">
+      关于各种像素概念和前端长度单位的理解 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本结构"><span class="nav-number">1.</span> <span class="nav-text">基本结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#引入-ECharts"><span class="nav-number">1.1.</span> <span class="nav-text">引入 ECharts</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#页面结构"><span class="nav-number">1.2.</span> <span class="nav-text">页面结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ECharts-API"><span class="nav-number">1.3.</span> <span class="nav-text">ECharts API</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#旭日图配置"><span class="nav-number">2.</span> <span class="nav-text">旭日图配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#准备工作"><span class="nav-number">2.1.</span> <span class="nav-text">准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#颜色"><span class="nav-number">2.1.1.</span> <span class="nav-text">颜色</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#原数据"><span class="nav-number">2.1.2.</span> <span class="nav-text">原数据</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#处理数据"><span class="nav-number">2.1.3.</span> <span class="nav-text">处理数据</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#option-配置"><span class="nav-number">2.2.</span> <span class="nav-text">option 配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#轮播效果"><span class="nav-number">3.</span> <span class="nav-text">轮播效果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据扁平化"><span class="nav-number">3.1.</span> <span class="nav-text">数据扁平化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加事件监听"><span class="nav-number">3.2.</span> <span class="nav-text">添加事件监听</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定时器派发事件"><span class="nav-number">3.3.</span> <span class="nav-text">定时器派发事件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全部代码"><span class="nav-number">4.</span> <span class="nav-text">全部代码</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: 'c76d8bd91357057068efbc7a0b74c9bf',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

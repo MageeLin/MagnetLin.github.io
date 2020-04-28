@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="在之前的实例中设置图层的 source 属性时，可以发现经常用ol.source.OSM()或 ol.source.BingMaps()来创建图层的源。之所以加载源这么简单，是因为 OpenLayers 库中对 OSM（OpenStreetMap 地图）和 BingMap（必应地图）这类的国际比较常用的地图加载做了封装。但是 OpenLayers 不可能对所有的地图厂商都进行封装，这时候就需要自己">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenLayers6瓦片地图加载">
+<meta property="og:url" content="https://linjingyi.cn/posts/9190e623.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="在之前的实例中设置图层的 source 属性时，可以发现经常用ol.source.OSM()或 ol.source.BingMaps()来创建图层的源。之所以加载源这么简单，是因为 OpenLayers 库中对 OSM（OpenStreetMap 地图）和 BingMap（必应地图）这类的国际比较常用的地图加载做了封装。但是 OpenLayers 不可能对所有的地图厂商都进行封装，这时候就需要自己">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/9190e623/0-0-0.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9190e623/4map.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/9190e623/%E7%93%A6%E7%89%87%E5%88%87%E5%89%B2%EF%BC%88%E7%93%A6%E7%89%87%E9%87%91%E5%AD%97%E5%A1%94%EF%BC%89.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/9190e623/WMTS.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/9190e623/TMS.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/9190e623/%E7%99%BE%E5%BA%A6%E5%9C%B0%E5%9B%BE%E7%93%A6%E7%89%87.jpg">
+<meta property="article:published_time" content="2020-02-10T13:44:40.000Z">
+<meta property="article:modified_time" content="2020-02-10T13:44:40.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="OpenLayers">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="地图">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/9190e623/0-0-0.png">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/9190e623.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>OpenLayers6瓦片地图加载 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/9190e623.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          OpenLayers6瓦片地图加载
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-10 21:44:40" itemprop="dateCreated datePublished" datetime="2020-02-10T21:44:40+08:00">2020-02-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9C%B0%E5%9B%BE/" itemprop="url" rel="index">
+                    <span itemprop="name">地图</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在之前的实例中设置图层的 <code>source</code> 属性时，可以发现经常用<code>ol.source.OSM()</code>或 <code>ol.source.BingMaps()</code>来创建图层的源。之所以加载源这么简单，是因为 OpenLayers 库中对 OSM（<a href="https://www.openstreetmap.org/" target="_blank" rel="external nofollow noopener noreferrer">OpenStreetMap 地图</a>）和 BingMap（<a href="https://www.bing.com/maps/" target="_blank" rel="external nofollow noopener noreferrer">必应地图</a>）这类的国际比较常用的地图加载做了封装。但是 OpenLayers 不可能对所有的地图厂商都进行封装，这时候就需要自己手动拼接字符串来加载瓦片地图。绝大多数的瓦片地图都是用的大致相同的规律来加载的，这就使手动拼接字符串简单了许多。</p>
+<a id="more"></a>
+
+<h2 id="LOD"><a href="#LOD" class="headerlink" title="LOD"></a>LOD</h2><p>介绍瓦片地图之前，首先应该了解 <code>LOD</code>（<code>Levels of Detail</code>），意思是<code>多细节层次</code>。这是一种常用的游戏优化技术，按照模型的位置和重要程度来决定渲染时的资源分配，把非重要物体的面数和细节度降低，在渲染时就能更加高效。</p>
+<p>在地图中，<code>LOD</code> 的概念也很重要，比如观察国家层次的地图时，街道信息就是我们不想要了解的信息。而且如果街道信息全部加载，地图一定非常的辣眼睛，设备也不一定能带的动。所以在不同的高度观察地图时，所需要展示信息的细节类型和程度都应该是不同的。所以对于同一个地点来说，在鼠标滚轮放大缩小处在不同层级时，其实是在眼皮底下完成了图片替换。</p>
+<p>为了便于理解 <code>GIS</code> 系统中“层级的不同就是图片不同”这个概念，使用 google 的在线瓦片地图来说明。在为最小层级 <code>0</code> 的情况下，只使用了 <code>1</code> 张 <code>256×256</code> 像素的图片来表示整个地球平面：</p>
+<p><img src="/posts/9190e623/0-0-0.png" alt></p>
+<p>放大一个层级，为 <code>1</code> 的时候，用了 4 张 <code>256×256</code> 像素的图片来表示整个地球：</p>
+<p><img src="/posts/9190e623/4map.jpg" alt="4map"></p>
+<h2 id="瓦片计算"><a href="#瓦片计算" class="headerlink" title="瓦片计算"></a>瓦片计算</h2><h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>虽然瓦片地图其实是利用了 <code>LOD</code> 技术实现图片替换，但是由 google 地图的例子可以发现，示例的层级是 <code>0</code> 级和 <code>1</code> 级，所需要的图片数目是 <code>1</code> 和 <code>4</code>，也就是 <code>2^0</code> 和 <code>2^2</code>。如果层级越大，显示整个地球时所需要的<code>256×256</code> 像素的图片就越多，<code>n</code> 层的图片数为 <code>2^2n</code>，如下所示：</p>
+<p><img src="/posts/9190e623/%E7%93%A6%E7%89%87%E5%88%87%E5%89%B2%EF%BC%88%E7%93%A6%E7%89%87%E9%87%91%E5%AD%97%E5%A1%94%EF%BC%89.jpg" alt></p>
+<p>按照这个规律，如果层级为 <code>10</code>，那么显示全球时所需要 <code>256×256</code> 像素的图片数是 1048576，这个数目是非常大的，全部展示在浏览器是不现实的。但是不管你的屏幕分辨率是 <code>1920×1080</code> 还是 <code>1024×768</code>，一个浏览器的能同时显示的内容最大范围是固定的，所以只显示我们正在观察的这一张地图图片的附近若干张地图，就可以把屏幕全撑满，当移动或者放大缩小时，再加载当前中心位置附近的若干张，就实现了一个 <code>WEB</code> 地图。</p>
+<p>日常中我们使用的网页地图，在大幅度移动或者缩放地图时，经常能够发现地图其实就是一张张加载出来，这种情况在网速不好的时候尤其明显，本质上就是新的地图图片正在加载。</p>
+<h3 id="瓦片坐标"><a href="#瓦片坐标" class="headerlink" title="瓦片坐标"></a>瓦片坐标</h3><p>当瓦片处于 <code>n</code> 层的时候，瓦片数目是 <code>2^2n</code>，<code>x</code> 和 <code>y</code> 方向上都被切割成了 <code>2^n</code> 个。所以对于任何一个层级，都可以对它的瓦片像一个矩阵一样进行编号。<br>在 OpenLayers 的 <code>source</code> 中，有一个可以用于调试瓦片的源 <a href="https://openlayers.org/en/latest/apidoc/module-ol_source_TileDebug-TileDebug.html" target="_blank" rel="external nofollow noopener noreferrer">ol.source.TileDebug</a>，结合 <code>OSM</code> 的地图源可以清晰的观察到瓦片的坐标，在地图网格中，<code>z</code> 是层级，<code>x</code> 是经度方向的瓦片位置，<code>y</code> 是纬度的方向的瓦片位置。</p>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/css/ol.css" type="text/css">
+
+<script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.1.1/build/ol.js"></script>
+<script src="https://cdn.bootcss.com/proj4js/2.5.0/proj4.js"></script>
+<center id="map1" style="height: 500px;margin-left: 50px;margin-right: 50px"></center>
+<script type="text/javascript">
+    let osmSource = new ol.source.OSM();
+    let map1 = new ol.Map({
+    layers: [
+        // 加载Open Street Map地图
+      new ol.layer.Tile({
+        source: osmSource
+      }),
+      // 添加一个显示Open Street Map地图瓦片网格的图层
+      new ol.layer.Tile({
+        source: new ol.source.TileDebug({
+          projection: 'EPSG:3857',
+          tileGrid: osmSource.getTileGrid()
+        })
+      })
+    ],
+    target: 'map1',
+    view: new ol.View({
+      center: ol.proj.transform(
+           [114.3177223, 30.528461], 'EPSG:4326', 'EPSG:3857'),
+      zoom: 10
+    })
+});
+</script>
+
+<p>代码如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">style</span>=<span class="string">"width: 100%;height: 100%;"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> osmSource = <span class="keyword">new</span> ol.source.OSM();</span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">    layers: [</span><br><span class="line"><span class="actionscript">      <span class="comment">// 添加Open Street Map地图图层</span></span></span><br><span class="line"><span class="actionscript">      <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line">        source: osmSource</span><br><span class="line">      &#125;),</span><br><span class="line"><span class="actionscript">      <span class="comment">// 添加一个显示Open Street Map地图瓦片网格的图层</span></span></span><br><span class="line"><span class="actionscript">      <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.TileDebug(&#123;</span></span><br><span class="line"><span class="actionscript">          projection: <span class="string">"EPSG:3857"</span>,</span></span><br><span class="line">          tileGrid: osmSource.getTileGrid()</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;)</span><br><span class="line">    ],</span><br><span class="line"><span class="actionscript">    target: <span class="string">"map"</span>,</span></span><br><span class="line"><span class="actionscript">    view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 把经纬度转化为3857坐标系的坐标</span></span></span><br><span class="line">      center: ol.proj.transform(</span><br><span class="line">        [114.3177223, 30.528461],</span><br><span class="line"><span class="actionscript">        <span class="string">"EPSG:4326"</span>,</span></span><br><span class="line"><span class="actionscript">        <span class="string">"EPSG:3857"</span></span></span><br><span class="line">      ),</span><br><span class="line">      zoom: 10</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;);</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="瓦片地图标准"><a href="#瓦片地图标准" class="headerlink" title="瓦片地图标准"></a>瓦片地图标准</h2><p>在地图服务中，比较常用的两个标准如下：</p>
+<h3 id="WMTS"><a href="#WMTS" class="headerlink" title="WMTS"></a>WMTS</h3><p><a href="https://www.opengeospatial.org/standards/wmts" target="_blank" rel="external nofollow noopener noreferrer">WMTS</a>（Web Map Tile Service），是由<a href="https://www.opengeospatial.org/" target="_blank" rel="external nofollow noopener noreferrer">OGC</a>（Open Geospatial Consortium）制定的网页地图瓦片服务标准，标准中，原点在左上角（西北角），<code>x</code> 向右（东）为正方向，<code>y</code> 向下（南）为正方向。这也是 OpenLayers 中 <a href="https://openlayers.org/en/latest/apidoc/module-ol_source_XYZ-XYZ.html" target="_blank" rel="external nofollow noopener noreferrer">ol.source.XYZ</a> 使用的标准。</p>
+<p><img src="/posts/9190e623/WMTS.jpg" alt></p>
+<h3 id="TMS"><a href="#TMS" class="headerlink" title="TMS"></a>TMS</h3><p><a href="https://wiki.osgeo.org/wiki/Tile_Map_Service_Specification" target="_blank" rel="external nofollow noopener noreferrer">TMS</a>（Tile Map Service），是由<a href="https://osgeo.org/" target="_blank" rel="external nofollow noopener noreferrer">OSGeo</a>（Open Source Geospatial Foundation）制定的地图瓦片服务标准，标准中，原点在左下角（西南角），<code>x</code> 向右（东）为正方向，<code>y</code>向上（北）为正方向。</p>
+<p><img src="/posts/9190e623/TMS.png" alt></p>
+<h2 id="自定义瓦片地图加载"><a href="#自定义瓦片地图加载" class="headerlink" title="自定义瓦片地图加载"></a>自定义瓦片地图加载</h2><h3 id="ol-source-XYZ"><a href="#ol-source-XYZ" class="headerlink" title="ol.source.XYZ"></a>ol.source.XYZ</h3><p>国内常用的一些 WEB 地图并没有被 OpenLayer 官方封装，但是 OpenLayers 中有一个<a href="https://openlayers.org/en/latest/apidoc/module-ol_source_XYZ-XYZ.html" target="_blank" rel="external nofollow noopener noreferrer">ol.source.XYZ</a>对象，<code>ol.source.XYZ</code> 对象的 <code>url</code>属性 API 如下</p>
+<blockquote>
+<p>URL template. Must include <code>{x}</code>, <code>{y}</code> or <code>{-y}</code>, and <code>{z}</code> placeholders. A <code>{?-?}</code> template pattern, for example <code>subdomain{a-f}.domain.com</code>, may be used instead of defining each one separately in the <code>urls</code> option.</p>
+</blockquote>
+<p>翻译一下：</p>
+<blockquote>
+<p>URL 模板。必须包含<code>{x}</code>, <code>{y}</code> 或<code>{-y}</code>, 和<code>{z}</code> 占位符。一个<code>{?-?}</code>模板模式，比如<code>{a-f}.domain.com</code>。可以直接返回 <code>url</code> 代替定义 <code>urls</code> 属性。</p>
+</blockquote>
+<p>有了这个 <code>url</code> 模板字符串，就可以很轻松的自定义一个 <code>url</code> 模板来读取各厂家地图。</p>
+<h4 id="高德地图示例"><a href="#高德地图示例" class="headerlink" title="高德地图示例"></a>高德地图示例</h4><p>比如常用的<a href="https://www.amap.com/" target="_blank" rel="external nofollow noopener noreferrer">高德地图</a>，关于高德地图的服务地址规则可以参考下面这篇简书博客《<a href="https://www.jianshu.com/p/e34f85029fd7" target="_blank" rel="external nofollow noopener noreferrer">高德 WMTS 瓦片地图服务地图图源规律</a>》，分析一个典型的高德地图瓦片请求：</p>
+<blockquote>
+<p><a href="https://wprd02.is.autonavi.com/appmaptile?lang=zh_cn&amp;size=1&amp;style=7&amp;x=54658&amp;y=26799&amp;z=16&amp;scl=1&amp;ltype=1" target="_blank" rel="external nofollow noopener noreferrer">https://wprd02.is.autonavi.com/appmaptile?lang=zh_cn&amp;size=1&amp;style=7&amp;x=54658&amp;y=26799&amp;z=16&amp;scl=1&amp;ltype=1</a></p>
+</blockquote>
+<p>分析这个请求，<code>protocol</code> 是 <code>https</code>，<code>hostname</code> 是 <code>wprd02.is.autonavi.com</code>，<code>path</code> 中的<code>/appmaptile</code> 代表瓦片，<code>query</code> 中参数效果如下：</p>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>hostname</td>
+<td>目前还没有找出规律(webst、webrd、wpst、wprd)</td>
+</tr>
+<tr>
+<td>lang</td>
+<td>可以通过 zh_cn 设置中文，en 设置英文</td>
+</tr>
+<tr>
+<td>style</td>
+<td>地图类型控制，6（卫星图），7（简图），8（透明带道路详图）</td>
+</tr>
+<tr>
+<td>scl</td>
+<td>尺寸控制，1=256,2=512</td>
+</tr>
+<tr>
+<td>ltype</td>
+<td>线性控制，增加后，只对地图要素进行控制，没有文字注记，要素多少，是否透明</td>
+</tr>
+</tbody></table>
+<p>知道了上述参数后，就可以很方便的来构造高德地图的 <code>URL</code>：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">style</span>=<span class="string">"width: 100%;height: 100%;"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="actionscript">  <span class="comment">// 高德地图层</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> aMapLayer = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">    source: <span class="keyword">new</span> ol.source.XYZ(&#123;</span></span><br><span class="line">      url:</span><br><span class="line"><span class="actionscript">        <span class="string">"http://webrd0&#123;1-4&#125;.is.autonavi.com/appmaptile?x=&#123;x&#125;&amp;y=&#123;y&#125;&amp;z=&#123;z&#125;&amp;size=1&amp;scale=1&amp;style=7"</span></span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line"><span class="actionscript">  <span class="comment">// 创建地图</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">    layers: [</span><br><span class="line">      aMapLayer,</span><br><span class="line"><span class="actionscript">      <span class="comment">// 添加一个显示高德地图瓦片网格的图层</span></span></span><br><span class="line"><span class="actionscript">      <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.TileDebug(&#123;</span></span><br><span class="line"><span class="actionscript">          projection: <span class="string">"EPSG:3857"</span>,</span></span><br><span class="line">          tileGrid: aMapSource.getTileGrid()</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;)</span><br><span class="line">    ],</span><br><span class="line"><span class="actionscript">    view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 设置武汉为地图中心</span></span></span><br><span class="line">      center: [114.3177223, 30.528461],</span><br><span class="line"><span class="actionscript">      projection: <span class="string">"EPSG:4326"</span>,</span></span><br><span class="line">      zoom: 10</span><br><span class="line">    &#125;),</span><br><span class="line"><span class="actionscript">    target: <span class="string">"map"</span></span></span><br><span class="line">  &#125;);</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>形成的地图如下所示：</p>
+<center id="map2" style="height: 500px;margin-left: 50px;margin-right: 50px"></center>
+<script type="text/javascript">
+    let aMapSource = new ol.source.XYZ({
+            url: 'http://webrd0{1-4}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&size=1&scale=1&style=7'
+        });
+    // 高德地图层
+    let aMapLayer = new ol.layer.Tile({
+        source: aMapSource
+    });
+    let map2 = new ol.Map({
+            layers: [
+                aMapLayer,
+                // 添加一个显示高德地图瓦片网格的图层
+                new ol.layer.Tile({
+                  source: new ol.source.TileDebug({
+                    projection: "EPSG:3857",
+                    tileGrid: aMapSource.getTileGrid()
+                  })
+                }),
+            ],
+            view: new ol.View({
+                // 设置武汉为地图中心
+                center: [114.3177223, 30.528461],
+                projection: 'EPSG:4326',
+                zoom: 10
+            }),
+            target: 'map2'
+      });
+</script>
+
+<h3 id="ol-source-TileImage"><a href="#ol-source-TileImage" class="headerlink" title="ol.source.TileImage"></a>ol.source.TileImage</h3><p>并不是所有的厂家的地图像 OpenLayers 或者高德地图那样按照 <code>WMTS</code> 标准，比如百度地图的坐标系，原点在地图中心位置，向右为 <code>x</code> 正方向，向上为 <code>y</code> 正方向，而且分辨率也和 OpenLayers 的分辨率不同，此时就需要更基础的<a href="https://openlayers.org/en/latest/apidoc/module-ol_source_TileImage-TileImage.html" target="_blank" rel="external nofollow noopener noreferrer">ol.source.TileImage</a>来加载地图。主要需要的两个属性是<a href="https://openlayers.org/en/latest/apidoc/module-ol_tilegrid_TileGrid-TileGrid.html" target="_blank" rel="external nofollow noopener noreferrer">tileGrid</a>（瓦片网格）和<a href="https://openlayers.org/en/latest/apidoc/module-ol_Tile.html#~LoadFunction" target="_blank" rel="external nofollow noopener noreferrer">tileUrlFunction</a>（瓦片 URL 函数）。</p>
+<h4 id="百度地图示例"><a href="#百度地图示例" class="headerlink" title="百度地图示例"></a>百度地图示例</h4><p>百度地图坐标系和 Openlayers 默认坐标系的主要区别是：</p>
+<ul>
+<li>原点：百度坐标系原点在地图中心，OpenLayers 默认坐标系在地图左上角（西北角）；</li>
+<li>y 方向：百度地图向上（北）为正方向，OpenLayers 默认坐标系向（下）南为正方向；</li>
+<li>网格分辨率：百度地图每一层级网格的分辨率与 OpenLayers 默认不同；</li>
+<li>投影格式：百度地图投影格式为 <a href="https://github.com/openlayers/openlayers/issues/3522" target="_blank" rel="external nofollow noopener noreferrer">BD-MC</a>，OpenLayers 默认为 <code>EPSG:3857</code>；</li>
+</ul>
+<p>首先看<a href="http://lbsyun.baidu.com/index.php?title=jspopular3.0" target="_blank" rel="external nofollow noopener noreferrer">百度地图瓦片链接</a>，这个链接是百度地图开发者平台的<code>Javascript API</code>，里面有一个地图展示的 demo。如下图所示，打开控制台<code>Network</code>，筛选请求为<code>img</code>，然后随便在地图上拖动或者放大缩小，就会发现左下方列表里请求了新的瓦片图片。</p>
+<p><img src="/posts/9190e623/%E7%99%BE%E5%BA%A6%E5%9C%B0%E5%9B%BE%E7%93%A6%E7%89%87.jpg" alt="百度地图瓦片"></p>
+<blockquote>
+<p><a href="http://maponline1.bdimg.com/tile/?qt=vtile&amp;x=787&amp;y=294&amp;z=12&amp;styles=pl&amp;scaler=1&amp;udt=20200211" target="_blank" rel="external nofollow noopener noreferrer">http://maponline1.bdimg.com/tile/?qt=vtile&amp;x=787&amp;y=294&amp;z=12&amp;styles=pl&amp;scaler=1&amp;udt=20200211</a></p>
+</blockquote>
+<p>分析这个请求，<code>protocol</code> 是 <code>http</code>，<code>hostname</code>是 <code>maponline1.bdimg.com</code>，<code>path</code> 中的<code>/tile</code> 代表瓦片，<code>query</code> 是最关键的，<code>x=787&amp;y=294&amp;z=12</code> 说明 <code>x&gt;y&gt;z</code> 就是百度瓦片地图的模板字符串顺序。</p>
+<p>加载百度地图代码如下：</p>
+<ul>
+<li>原点：在 <a href="https://openlayers.org/en/latest/apidoc/module-ol_tilegrid_TileGrid-TileGrid.html" target="_blank" rel="external nofollow noopener noreferrer">ol.tilegrid.TileGrid</a> 设置 <code>origin</code> 坐标为<code>[0, 0]</code>，也就是地图中央。</li>
+<li>分辨率：根据百度地图网格分辨率规律递归计算出了一个<a href="http://anzhihun.coding.me/ol3-primer/ch05/05-03.html" target="_blank" rel="external nofollow noopener noreferrer">分辨率数组</a>，赋给了 <code>ol.tilegrid.TileGrid</code> 的 <code>resolutions</code>。</li>
+<li>投影方式：百度地图使用的投影格式为<a href="https://github.com/openlayers/openlayers/issues/3522" target="_blank" rel="external nofollow noopener noreferrer">BD-MC</a>，使用 <code>proj4</code> 定义了 <code>BD-MC</code> 的投影，并 <a href="https://openlayers.org/en/latest/apidoc/module-ol_proj_proj4.html#.register" target="_blank" rel="external nofollow noopener noreferrer">ol.proj.proj4.register(proj4)</a>注册给了 OpenLayers。</li>
+<li>xyz：在瓦片 URL 返回函数 tileUrlFunction 中，把<a href="https://github.com/openlayers/openlayers/issues/10535" target="_blank" rel="external nofollow noopener noreferrer">y 坐标+1</a>并加一个负号；再把所有为负数的 <code>x</code> 和 <code>y</code>的<code>负号</code>换为 <code>M</code>。</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">style</span>=<span class="string">"height: 100%;width: 100%;"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="actionscript">  proj4.defs(<span class="string">"EPSG:4008"</span>, <span class="string">"+proj=longlat +ellps=clrk66 +no_defs"</span>);</span></span><br><span class="line"><span class="actionscript">  proj4.defs(<span class="string">"BD-MC"</span>, <span class="string">"+proj=merc +lon_0=0 +units=m +ellps=clrk66 +no_defs"</span>);</span></span><br><span class="line">  ol.proj.proj4.register(proj4);</span><br><span class="line"><span class="actionscript">  <span class="comment">// 自定义分辨率和瓦片坐标系</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> resolutions = [];</span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> maxZoom = <span class="number">18</span>;</span></span><br><span class="line"><span class="actionscript">  <span class="comment">// 计算百度使用的分辨率</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt;= maxZoom; i++) &#123;</span></span><br><span class="line"><span class="javascript">    resolutions[i] = <span class="built_in">Math</span>.pow(<span class="number">2</span>, maxZoom - i);</span></span><br><span class="line">  &#125;</span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> tilegrid = <span class="keyword">new</span> ol.tilegrid.TileGrid(&#123;</span></span><br><span class="line"><span class="actionscript">    origin: [<span class="number">0</span>, <span class="number">0</span>], <span class="comment">// 设置原点坐标</span></span></span><br><span class="line"><span class="actionscript">    resolutions: resolutions <span class="comment">// 设置分辨率</span></span></span><br><span class="line">  &#125;);</span><br><span class="line"><span class="actionscript">  <span class="comment">// 创建百度地图的数据源</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> baiduSource = <span class="keyword">new</span> ol.source.TileImage(&#123;</span></span><br><span class="line"><span class="actionscript">    projection: <span class="string">"BD-MC"</span>,</span></span><br><span class="line">    tileGrid: tilegrid,</span><br><span class="line"><span class="actionscript">    tileUrlFunction: <span class="function"><span class="keyword">function</span><span class="params">(tileCoord, pixelRatio, proj)</span> </span>&#123;</span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> z = tileCoord[<span class="number">0</span>];</span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> x = tileCoord[<span class="number">1</span>];</span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> y = tileCoord[<span class="number">2</span>] + <span class="number">1</span>;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 百度瓦片服务url将负数使用M前缀来标识</span></span></span><br><span class="line">      if (x &lt; 0) &#123;</span><br><span class="line"><span class="actionscript">        x = <span class="string">"M"</span> + -x;</span></span><br><span class="line">      &#125;</span><br><span class="line">      y = -y;</span><br><span class="line">      if (y &lt; 0) &#123;</span><br><span class="line"><span class="actionscript">        y = <span class="string">"M"</span> + -y;</span></span><br><span class="line">      &#125;</span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> num = <span class="built_in">Math</span>.ceil(<span class="built_in">Math</span>.random() * <span class="number">3</span>);</span></span><br><span class="line"><span class="actionscript">      <span class="keyword">return</span> (</span></span><br><span class="line"><span class="actionscript">        <span class="string">"http://maponline"</span> +</span></span><br><span class="line">        num +</span><br><span class="line"><span class="actionscript">        <span class="string">".bdimg.com//onlinelabel/?qt=vtile&amp;x="</span> +</span></span><br><span class="line">        x +</span><br><span class="line"><span class="actionscript">        <span class="string">"&amp;y="</span> +</span></span><br><span class="line">        y +</span><br><span class="line"><span class="actionscript">        <span class="string">"&amp;z="</span> +</span></span><br><span class="line">        z +</span><br><span class="line"><span class="actionscript">        <span class="string">"&amp;styles=pl&amp;udt=20200211&amp;scaler=1&amp;p=0"</span></span></span><br><span class="line">      );</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"><span class="actionscript">  <span class="comment">// 百度地图层</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> baiduMapLayer = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line">    source: baiduSource</span><br><span class="line">  &#125;);</span><br><span class="line"><span class="actionscript">  <span class="comment">// 创建地图</span></span></span><br><span class="line"><span class="actionscript">  <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">    layers: [baiduMapLayer],</span><br><span class="line"><span class="actionscript">    view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 设置武汉为地图中心</span></span></span><br><span class="line"><span class="actionscript">      center: ol.proj.transform([<span class="number">114.3177223</span>, <span class="number">30.528461</span>], <span class="string">"EPSG:4326"</span>, <span class="string">"BD-MC"</span>),</span></span><br><span class="line">      zoom: 10</span><br><span class="line">    &#125;),</span><br><span class="line"><span class="actionscript">    target: <span class="string">"map"</span></span></span><br><span class="line">  &#125;);</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<center id="map3" style="height: 500px;margin-left: 50px;margin-right: 50px"></center>
+<script>
+  proj4.defs('EPSG:4008', '+proj=longlat +ellps=clrk66 +no_defs')
+  proj4.defs('BD-MC', '+proj=merc +lon_0=0 +units=m +ellps=clrk66 +no_defs')
+  ol.proj.proj4.register(proj4);
+  // 自定义分辨率和瓦片坐标系
+  let resolutions = [];
+  let maxZoom = 18;
+  // 计算百度使用的分辨率
+  for (let i = 0; i <= maxZoom; i++) {
+    resolutions[i] = Math.pow(2, maxZoom - i);
+  }
+  let tilegrid = new ol.tilegrid.TileGrid({
+    origin: [0, 0], // 设置原点坐标
+    resolutions: resolutions // 设置分辨率
+  });
+  // 创建百度地图的数据源
+  let baiduSource = new ol.source.TileImage({
+    projection: 'BD-MC',
+    tileGrid: tilegrid,
+    tileUrlFunction: function (tileCoord, pixelRatio, proj) {
+      let z = tileCoord[0];
+      let x = tileCoord[1];
+      let y = tileCoord[2] + 1;
+      // 百度瓦片服务url将负数使用M前缀来标识
+      if (x < 0) {
+        x = 'M' + (-x);
+      }
+      y = -y;
+      if (y < 0) {
+        y = 'M' + (-y);
+      }
+      let num = Math.ceil(Math.random() * 3);
+      return "http://maponline" + num + ".bdimg.com//onlinelabel/?qt=vtile&x=" + x + "&y=" + y + "&z=" + z + "&styles=pl&udt=20200211&scaler=1&p=0";
+    }
+  });
+  // 百度地图层
+  let baiduMapLayer = new ol.layer.Tile({
+    source: baiduSource
+  });
+  // 创建地图
+  new ol.Map({
+    layers: [
+      baiduMapLayer,
+    ],
+    view: new ol.View({
+      // 设置武汉为地图中心
+      center: ol.proj.transform([114.3177223, 30.528461], 'EPSG:4326', 'BD-MC'),
+      zoom: 10
+    }),
+    target: 'map3'
+  });
+</script>
+
+<h3 id="需要解密的瓦片地图"><a href="#需要解密的瓦片地图" class="headerlink" title="需要解密的瓦片地图"></a>需要解密的瓦片地图</h3><h4 id="谷歌地图示例"><a href="#谷歌地图示例" class="headerlink" title="谷歌地图示例"></a>谷歌地图示例</h4><p>首先说明因为地图服务商也是要恰饭的，所以建议大家最遵守版权和数据申明，通过申请开发者 API 合理合法的方式使用。</p>
+<p>下面分析 google 加密后的地图 <code>url</code> 链接，加载 google 瓦片地图，通过调试工具拿到 <code>url</code> 如下：</p>
+<blockquote>
+<p><a href="https://www.google.com/maps/vt/pb=!1m4!1m3!1i8!2i211!3i105!2m3!1e0!2sm!3i345013117!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0" target="_blank" rel="external nofollow noopener noreferrer">https://www.google.com/maps/vt/pb=!1m4!1m3!1i8!2i211!3i105!2m3!1e0!2sm!3i345013117!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0</a></p>
+<p><a href="https://www.google.com/maps/vt/pb=!1m4!1m3!1i8!2i212!3i106!2m3!1e0!2sm!3i345013117!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0" target="_blank" rel="external nofollow noopener noreferrer">https://www.google.com/maps/vt/pb=!1m4!1m3!1i8!2i212!3i106!2m3!1e0!2sm!3i345013117!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0</a></p>
+</blockquote>
+<p>很明显，两个瓦片 <code>url</code> 区别是 <code>!2i</code> 后的 <code>211</code> 和 <code>212</code> 以及 <code>!3i</code> 后的 <code>105</code> 和 <code>106</code>，这就是 <code>x</code> 和 <code>y</code> 的位置。再缩放一下地图，就能发现 <code>!1i</code>后的 <code>8</code> 就是层级 <code>z</code>，所以就可以构造 <code>url</code>，代码如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">style</span>=<span class="string">"height: 100%;width: 100%;"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="actionscript">  <span class="comment">// google地图层</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> googleMapLayer = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">    source: <span class="keyword">new</span> ol.source.XYZ(&#123;</span></span><br><span class="line">      url:</span><br><span class="line"><span class="actionscript">        <span class="string">"http://www.google.com/maps/vt/pb=!1m4!1m3!1i&#123;z&#125;!2i&#123;x&#125;!3i&#123;y&#125;!2m3!1e0!2sm!3i345013117!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0"</span></span></span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;);</span><br><span class="line"><span class="actionscript">  <span class="comment">// 创建地图</span></span></span><br><span class="line"><span class="javascript">  <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">    layers: [googleMapLayer],</span><br><span class="line"><span class="actionscript">    view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 设置武汉为地图中心</span></span></span><br><span class="line">      center: [114.3177223, 30.528461],</span><br><span class="line"><span class="actionscript">      projection: <span class="string">"EPSG:4326"</span>,</span></span><br><span class="line">      zoom: 10</span><br><span class="line">    &#125;),</span><br><span class="line"><span class="actionscript">    target: <span class="string">"map"</span></span></span><br><span class="line">  &#125;);</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<center id="map4" style="height: 500px;margin-left: 50px;margin-right: 50px"></center>
+<script>
+    // google地图层
+    let googleMapLayer = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            url:'http://www.google.com/maps/vt/pb=!1m4!1m3!1i{z}!2i{x}!3i{y}!2m3!1e0!2sm!3i345013117!3m8!2szh-CN!3scn!5e1105!12m4!1e68!2m2!1sset!2sRoadmap!4e0'
+        })
+    });
+    // 创建地图
+    let map = new ol.Map({
+        layers: [
+            googleMapLayer
+        ],
+        view: new ol.View({
+            // 设置成都为地图中心
+            center: [114.3177223, 30.528461],
+            projection: 'EPSG:4326',
+            zoom: 10
+        }),
+        target: 'map4'
+  });
+</script>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenLayers/" rel="tag"># OpenLayers</a>
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/%E5%9C%B0%E5%9B%BE/" rel="tag"># 地图</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/ba114d01.html" rel="prev" title="OpenLayers6实例分析：Earthquakes Heatmap（地震热力图）">
+      <i class="fa fa-chevron-left"></i> OpenLayers6实例分析：Earthquakes Heatmap（地震热力图）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/22f1fd78.html" rel="next" title="GeoJson规范（RFC 7946）全文翻译">
+      GeoJson规范（RFC 7946）全文翻译 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#LOD"><span class="nav-number">1.</span> <span class="nav-text">LOD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#瓦片计算"><span class="nav-number">2.</span> <span class="nav-text">瓦片计算</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原理"><span class="nav-number">2.1.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#瓦片坐标"><span class="nav-number">2.2.</span> <span class="nav-text">瓦片坐标</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#瓦片地图标准"><span class="nav-number">3.</span> <span class="nav-text">瓦片地图标准</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WMTS"><span class="nav-number">3.1.</span> <span class="nav-text">WMTS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TMS"><span class="nav-number">3.2.</span> <span class="nav-text">TMS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义瓦片地图加载"><span class="nav-number">4.</span> <span class="nav-text">自定义瓦片地图加载</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ol-source-XYZ"><span class="nav-number">4.1.</span> <span class="nav-text">ol.source.XYZ</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#高德地图示例"><span class="nav-number">4.1.1.</span> <span class="nav-text">高德地图示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ol-source-TileImage"><span class="nav-number">4.2.</span> <span class="nav-text">ol.source.TileImage</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#百度地图示例"><span class="nav-number">4.2.1.</span> <span class="nav-text">百度地图示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#需要解密的瓦片地图"><span class="nav-number">4.3.</span> <span class="nav-text">需要解密的瓦片地图</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#谷歌地图示例"><span class="nav-number">4.3.1.</span> <span class="nav-text">谷歌地图示例</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: 'b04a8e4ac4032346291fe42bcb989cfa',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

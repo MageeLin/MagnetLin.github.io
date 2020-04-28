@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /archives/
+Allow: /tags/
+Allow: /categories/
+Allow: /about/
+Allow: /posts/
+
+Disallow: /js/
+Disallow: /css/
+Disallow: /lib/
+
+Sitemap: /sitemap.xml

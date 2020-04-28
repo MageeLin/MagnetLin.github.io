@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="上一篇文章关于各种像素概念和前端长度单位的理解分析了 px 的定义和各种相对长度单位，这次翻译学习一下 CSS 的 calc()规范，为下一篇做铺垫。首先纠正 W3C 的 CSS 工作组规范草案中关于 calc()的一个错误：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CSS数学表达式calc()的规范草案翻译">
+<meta property="og:url" content="https://linjingyi.cn/posts/ef0a6799.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="上一篇文章关于各种像素概念和前端长度单位的理解分析了 px 的定义和各种相对长度单位，这次翻译学习一下 CSS 的 calc()规范，为下一篇做铺垫。首先纠正 W3C 的 CSS 工作组规范草案中关于 calc()的一个错误：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/ef0a6799/%E7%BA%A0%E9%94%99.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ef0a6799/%E5%85%BC%E5%AE%B9%E6%80%A7.jpg">
+<meta property="article:published_time" content="2020-02-27T13:19:42.000Z">
+<meta property="article:modified_time" content="2020-02-27T13:19:42.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="CSS">
+<meta property="article:tag" content="calc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/ef0a6799/%E7%BA%A0%E9%94%99.jpg">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/ef0a6799.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>CSS数学表达式calc()的规范草案翻译 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/ef0a6799.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          CSS数学表达式calc()的规范草案翻译
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-27 21:19:42" itemprop="dateCreated datePublished" datetime="2020-02-27T21:19:42+08:00">2020-02-27</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/CSS/" itemprop="url" rel="index">
+                    <span itemprop="name">CSS</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>上一篇文章<a href="https://linjingyi.cn/posts/3680799e.html">关于各种像素概念和前端长度单位的理解</a>分析了 <code>px</code> 的定义和各种相对长度单位，这次翻译学习一下 CSS 的 <code>calc()</code>规范，为下一篇做铺垫。<br>首先纠正 W3C 的 CSS 工作组<a href="https://drafts.csswg.org/css-values-3/#funcdef-calc" target="_blank" rel="external nofollow noopener noreferrer">规范草案</a>中关于 <code>calc()</code>的一个错误：</p>
+<a id="more"></a>
+
+<p><img src="/posts/ef0a6799/%E7%BA%A0%E9%94%99.jpg" alt="纠错"><br>实例 21 中，<code>calc(50% + 20px) calc(50% + 20px)</code>应该是向下和向<code>右</code>偏移，<code>left</code> 应改为 <code>right</code>。</p>
+<h2 id="草案翻译"><a href="#草案翻译" class="headerlink" title="草案翻译"></a>草案翻译</h2><p>W3C 的 CSS 工作组规范草案原文链接：<a href="https://drafts.csswg.org/css-values-3/#funcdef-calc" target="_blank" rel="external nofollow noopener noreferrer">https://drafts.csswg.org/css-values-3/#funcdef-calc</a></p>
+<p><code>calc()</code>函数允许使用带有加减乘除的数学表达式作为组件值。<code>calc()</code>表达式使用的是标准的运算符优化规则来表示其数学运算的结果。可以在表示长度、频率、角度、时间、百分比、数字或整数的任何地方使用。<code>calc()</code>表达式的组件值可以是<code>文本</code>、<code>attr()</code>、<code>calc()表达式</code>。</p>
+<p>实例 18：</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">section</span> &#123;</span><br><span class="line">	<span class="attribute">float</span>: left;</span><br><span class="line">	<span class="attribute">margin</span>: <span class="number">1em</span>;</span><br><span class="line">	<span class="attribute">border</span>: solid <span class="number">1px</span>;</span><br><span class="line">	<span class="attribute">width</span>: <span class="built_in">calc</span>(<span class="number">100%</span> / <span class="number">3</span> - <span class="number">2</span> * <span class="number">1em</span> - <span class="number">2</span> * <span class="number">1px</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实例 19：</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">p</span> &#123;</span><br><span class="line">	<span class="attribute">margin</span>: <span class="built_in">calc</span>(<span class="number">1rem</span> - <span class="number">2px</span>) <span class="built_in">calc</span>(<span class="number">1rem</span> - <span class="number">1px</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实例 20：</p>
+<p>下面的实例设置了根元素的 <code>font-size</code>，所以 <code>40em</code> 恰好等于视窗宽度，确保无论屏幕尺寸有多大都能以数量大致相同的文本填充屏幕。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-pseudo">:root</span> &#123;</span><br><span class="line">	<span class="attribute">font-size</span>: <span class="built_in">calc</span>(<span class="number">100vw</span> / <span class="number">40</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果其余的元素设计都使用 <code>rem</code> 单位来指定，则整个布局都会跟随视窗宽度变化。</p>
+<p>实例 21：</p>
+<p>下面的示例中叠加了两张背景图片，第一张图片完美居中，第二张图片在第一张的基础上向右和向下偏移 <code>20px</code>（原文写错）。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.foo</span> &#123;</span><br><span class="line">	<span class="attribute">background</span>: <span class="built_in">url</span>(top.png), <span class="built_in">url</span>(bottom.png);</span><br><span class="line">	<span class="attribute">background-repeat</span>: no-repeat;</span><br><span class="line">	<span class="attribute">background-position</span>: <span class="number">50%</span> <span class="number">50%</span>, <span class="built_in">calc</span>(<span class="number">50%</span> + <span class="number">20px</span>) <span class="built_in">calc</span>(<span class="number">50%</span> + <span class="number">20px</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实例 22：</p>
+<p>下面的示例展示了如何在线性渐变中在距离两端相等（<code>50px</code>）的位置上放置颜色点。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.foo</span> &#123;</span><br><span class="line">	<span class="attribute">background-image</span>: <span class="built_in">linear-gradient</span>(</span><br><span class="line">		to right,</span><br><span class="line">		silver,</span><br><span class="line">		white <span class="number">50px</span>,</span><br><span class="line">		white calc(<span class="number">100%</span> - <span class="number">50px</span>),</span><br><span class="line">		silver</span><br><span class="line">	);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><p>clac()函数的语法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;calc()&gt; &#x3D; calc( &lt;calc-sum&gt; )</span><br><span class="line">&lt;calc-sum&gt; &#x3D; &lt;calc-product&gt; [ [ &#39;+&#39; | &#39;-&#39; ] &lt;calc-product&gt; ]*</span><br><span class="line">&lt;calc-product&gt; &#x3D; &lt;calc-value&gt; [ &#39;*&#39; &lt;calc-value&gt; | &#39;&#x2F;&#39; &lt;calc-number-value&gt; ]*</span><br><span class="line">&lt;calc-value&gt; &#x3D; &lt;number&gt; | &lt;dimension&gt; | &lt;percentage&gt; | ( &lt;calc-sum&gt; )</span><br><span class="line"></span><br><span class="line">&lt;calc-number-sum&gt; &#x3D; &lt;calc-number-product&gt; [ [ &#39;+&#39; | &#39;-&#39; ] &lt;calc-number-product&gt; ]*</span><br><span class="line">&lt;calc-number-product&gt; &#x3D; &lt;calc-number-value&gt; [ &#39;*&#39; &lt;calc-number-value&gt; | &#39;&#x2F;&#39; &lt;calc-number-value&gt; ]*</span><br><span class="line">&lt;calc-number-value&gt; &#x3D; &lt;number&gt; | ( &lt;calc-number-sum&gt; )</span><br></pre></td></tr></table></figure>
+
+<p>另外，“<code>+</code>”和“<code>-</code>”旁边需要留<code>空格</code>。（“<code>\</code>”和“<code>/</code>”旁边可以不用留空格）！</p>
+<p>浏览器必须支持至少 <code>20</code> 个术语的表达式，其中 <code>NUMBER</code>、<code>DIMENSION</code>、<code>PERCENTAGE</code> 都是一个术语。如果一个 <code>calc()</code>表达式包含了超过浏览器所支持数目的术语，那么这个表达式应该被解释为无效。</p>
+<h3 id="类型检查"><a href="#类型检查" class="headerlink" title="类型检查"></a>类型检查</h3><p>一个数学表达式必须有他的解析类型，这个类型是 <a href="https://drafts.csswg.org/css-values-3/#length-value" target="_blank" rel="external nofollow noopener noreferrer">长度</a>、 <a href="https://drafts.csswg.org/css-values-3/#frequency-value" target="_blank" rel="external nofollow noopener noreferrer">频率</a>、 <a href="https://drafts.csswg.org/css-values-3/#angle-value" target="_blank" rel="external nofollow noopener noreferrer">角度</a>、<a href="https://drafts.csswg.org/css-values-3/#time-value" target="_blank" rel="external nofollow noopener noreferrer">时间</a>、 <a href="https://drafts.csswg.org/css-values-3/#percentage-value" target="_blank" rel="external nofollow noopener noreferrer">百分比</a>、 <a href="https://drafts.csswg.org/css-values-3/#number-value" target="_blank" rel="external nofollow noopener noreferrer">数字</a>、 <a href="https://drafts.csswg.org/css-values-3/#integer-value" target="_blank" rel="external nofollow noopener noreferrer">整数</a>之一。在表达式所在的位置这个解析类型必须是有效的，否则表达式无效。表达式的解析类型由其包含的值的类型决定，比如数字或者整数是数字解析类型，<code>cm</code> 是长度解析类型，<code>deg</code> 是角度解析类型。<code>attr()</code>表达式的类型是其单位参数决定的。</p>
+<blockquote>
+<p>注意: 因为数字和整数总是被解释为数字解析类型，所以 <code>calc ()</code>中不支持不带单位的长度。 也就是说，即使 <code>width: 0;</code>和 <code>width: 5px;</code>都有效，但<code>width: calc (0 + 5px) ;</code>是无效的。</p>
+</blockquote>
+<p>如果表达式上下文中接受百分比，并且表达式定义的是数字之外的类型，那么百分比符号将被定义为与表达式相同的类型。例如，在 <code>width</code> 属性中，百分比是长度类型。如果在上下文中，百分比值不予任何其他类型兼容，那么百分比就只是百分比类型。如果不允许百分比代替 <code>calc()</code>，那么包含百分比的 <code>calc()</code>表达式是无效的。</p>
+<blockquote>
+<p>注意：比如在 <code>opacity</code> 属性中，使用 <code>calc()</code>时，百分比是不允许相对于数字的。因为如果允许了的话会造成代数计算时（对长度进行乘除时）出现严重问题，并且到现在为止，并没有提供新功能。（举个例子，<code>opacity:25%;</code>等同于 <code>opacity:.25;</code>，这只是一个简单的语法转变）。<br>注意：尽管有些属性（比如 <code>line-height</code> 和 <code>tab-size</code>）在使用时会将纯数字变为长度。但是在 <code>calc()</code>中，永远不会变成长度类型，保持数字形式。</p>
+</blockquote>
+<p>运算符形成子表达式，子表达式根据参数获得类型。为了使表达式更简单，运算符对所接受的类型做出了限制。 在每个运算符中，都会检查左参数和右参数的类型是否兼容。 如果兼容，类型解析成如下所述(为简单起见，忽略运算符的优先规则) :</p>
+<ul>
+<li>“<code>+</code>”或“<code>-</code>”，检查两侧是否类型相同，如果相同，就解析为该类型。如果一侧数字一侧整数，解析为数字。</li>
+<li>“<code>\</code>”，检查至少一侧是数字。如果两侧都是整数，解析为整数。否则解析为另一侧的类型。</li>
+<li>“<code>/</code>”，检查右侧是否为数字。如果左侧是整数，解析为数字。否则解析为左侧的类型。</li>
+</ul>
+<p>如果运算符没有通过上述检查，则表达式无效。 此外，除<code>0</code>无效，既包括除以文字<code>0</code>，也包括计算结果为<code>0</code>的任何数值表达式(因为纯数字表达式可以在解析时不需要任何附加信息)。</p>
+<blockquote>
+<p>注意：代数简化不会影响 <code>clac()</code>表达式或者解析类型的有效性。例如 <code>calc(5px - 5px + 10s)</code>和 <code>calc(0 \ 5px + 10s)</code>，虽然能简化但是同时运算了长度和时间，所以是无效的。</p>
+</blockquote>
+<h3 id="计算值"><a href="#计算值" class="headerlink" title="计算值"></a>计算值</h3><p><code>calc()</code> 表达式的<code>计算值</code>是其所有分量的<code>计算值</code>。<br>如果百分比在值计算时不能被解析，那么在 <code>clac()</code>表达式中也不能被解析。比如，<code>calc(100% - 100% + 1em)</code>解析为 <code>calc(1em + 0%)</code> ，而不是 <code>1em</code>。如果在计算百分比值时有特殊规则（比如 <code>height</code>），那么 <code>clac()</code>表达式中也应该应用这些规则。</p>
+<p>实例 23：<br>例如，<code>font-size</code> 在值计算过程中计算百分比值，以便计算相对字体长度单位，而 <code>background-position</code> 的百分比值对布局有依赖性，因此直到使用值时才计算百分比。<br>因此，<code>background-position</code> 计算保留了 <code>calc()</code>中的百分比，而 <code>font-size</code> 将直接计算表达式并转为长度类型。</p>
+<p>考虑到计算表格和单元格的 <code>width</code>和 <code>height</code> 时的复杂性，表格列、表格列组、表格行、表格行组以及自动和固定布局表格中的表格单元格，这些元素的 <code>width</code> 和 <code>height</code> 的百分比数学表达式可能会被指定为“<code>auto</code>”。</p>
+<h3 id="范围检查"><a href="#范围检查" class="headerlink" title="范围检查"></a>范围检查</h3><p><code>clac()</code>表达式在值解析过程中不进行<code>范围检查</code>，因此超出范围的值不会导致声明无效。但是，表达式产生的值必须限制在上下文允许的范围内。在计算值时尽可能的夹紧可能的范围。如果无法充分简化表达式以允许范围检查，则最终<a href="https://drafts.csswg.org/css-cascade-4/#used-value" target="_blank" rel="external nofollow noopener noreferrer">使用值</a>也会夹紧，（不对<a href="https://drafts.csswg.org/css-cascade-4/#specified-value" target="_blank" rel="external nofollow noopener noreferrer">默认值</a>执行夹紧）。</p>
+<blockquote>
+<p>注意：范围检查要求接受 <code>calc()</code>的所有上下文将允许的值定义为<code>闭区间</code>。</p>
+</blockquote>
+<p>实例 24：<br>因为宽度不允许小于 <code>0px</code>，所以这三个声明是等价的:</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">width</span>: <span class="selector-tag">calc</span>(5<span class="selector-tag">px</span> <span class="selector-tag">-</span> 10<span class="selector-tag">px</span>);</span><br><span class="line"><span class="selector-tag">width</span>: <span class="selector-tag">calc</span>(<span class="selector-tag">-5px</span>);</span><br><span class="line"><span class="selector-tag">width</span>: 0<span class="selector-tag">px</span>;</span><br></pre></td></tr></table></figure>
+
+<p>但是请注意，<code>width:-5px</code> 并不等同于 <code>width: calc(-5px)</code>。 <code>calc()</code>范围外的值在语法上无效，并会导致删除整个声明。</p>
+<h3 id="序列化"><a href="#序列化" class="headerlink" title="序列化"></a>序列化</h3><p>在本级别中未定义 <code>calc()</code>的序列化。</p>
+<h2 id="兼容性"><a href="#兼容性" class="headerlink" title="兼容性"></a>兼容性</h2><p>在 MDN 上可以看到兼容性如下：<br><img src="/posts/ef0a6799/%E5%85%BC%E5%AE%B9%E6%80%A7.jpg" alt="浏览器兼容性"><br>一个 ToB 的前端工程师就别关心兼容性了，<code>Chrome80</code> 真香！</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>通过上一篇文章<a href="https://linjingyi.cn/posts/3680799e.html">关于各种像素概念和前端长度单位的理解</a>学懂了相对长度，翻译完这个草案学懂了 <code>clac()</code>，下一篇文章来分析在可视化大屏的布局中怎么应用相对长度单位和 <code>calc()</code>。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CSS/" rel="tag"># CSS</a>
+              <a href="/tags/calc/" rel="tag"># calc</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/3680799e.html" rel="prev" title="关于各种像素概念和前端长度单位的理解">
+      <i class="fa fa-chevron-left"></i> 关于各种像素概念和前端长度单位的理解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/50859aba.html" rel="next" title="在可视化大屏布局中相对单位和calc()的应用">
+      在可视化大屏布局中相对单位和calc()的应用 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#草案翻译"><span class="nav-number">1.</span> <span class="nav-text">草案翻译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语法"><span class="nav-number">1.1.</span> <span class="nav-text">语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类型检查"><span class="nav-number">1.2.</span> <span class="nav-text">类型检查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计算值"><span class="nav-number">1.3.</span> <span class="nav-text">计算值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#范围检查"><span class="nav-number">1.4.</span> <span class="nav-text">范围检查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#序列化"><span class="nav-number">1.5.</span> <span class="nav-text">序列化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#兼容性"><span class="nav-number">2.</span> <span class="nav-text">兼容性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '8cb0ab239005ec115c4645c2f639679d',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

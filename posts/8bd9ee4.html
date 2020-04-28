@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="分析 Image Filters（滤镜效果） 这个 demo，官网介绍是：  Layer rendering can be manipulated in prerender and postrender event listeners. These listeners get an event with a reference to the Canvas rendering context. In">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenLayers6实例分析：Image Filters（滤镜效果）">
+<meta property="og:url" content="https://linjingyi.cn/posts/8bd9ee4.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="分析 Image Filters（滤镜效果） 这个 demo，官网介绍是：  Layer rendering can be manipulated in prerender and postrender event listeners. These listeners get an event with a reference to the Canvas rendering context. In">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/8bd9ee4/%E6%BB%A4%E9%95%9C.gif">
+<meta property="article:published_time" content="2020-02-21T23:58:58.000Z">
+<meta property="article:modified_time" content="2020-02-21T23:58:58.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="OpenLayers">
+<meta property="article:tag" content="可视化">
+<meta property="article:tag" content="地图">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/8bd9ee4/%E6%BB%A4%E9%95%9C.gif">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/8bd9ee4.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>OpenLayers6实例分析：Image Filters（滤镜效果） | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/8bd9ee4.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          OpenLayers6实例分析：Image Filters（滤镜效果）
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-22 07:58:58" itemprop="dateCreated datePublished" datetime="2020-02-22T07:58:58+08:00">2020-02-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9C%B0%E5%9B%BE/" itemprop="url" rel="index">
+                    <span itemprop="name">地图</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>分析 Image Filters（滤镜效果） 这个 demo，官网介绍是：</p>
+<blockquote>
+<p>Layer rendering can be manipulated in <code>prerender</code> and <code>postrender</code> event listeners. These listeners get an event with a reference to the Canvas rendering context. In this example, the postrender listener applies a <code>filter</code> to the image data.<br><code>prerender</code>和<code>postrender</code>可以控制图层渲染。这两个监听器能够获得带有<code>Canvas上下文引用</code>的事件。在这个例子中，posetrender 事件监听器对图像数据应用了一个<code>卷积核（滤波器）</code>。</p>
+</blockquote>
+<ul>
+<li><p><a href="https://openlayers.org/en/latest/examples/image-filter.html" target="_blank" rel="external nofollow noopener noreferrer">官网实例</a>：Image Filters</p>
+</li>
+<li><p><a href="https://ke.qq.com/course/449937" target="_blank" rel="external nofollow noopener noreferrer">跟我学 OpenLayers——基础实例讲解</a>：12 渲染器机制的使用 &gt; 实例 81.图像滤镜效果</p>
+<a id="more"></a>
+
+</li>
+</ul>
+<p><img src="/posts/8bd9ee4/%E6%BB%A4%E9%95%9C.gif" alt="滤镜效果"></p>
+<h2 id="定义基本结构"><a href="#定义基本结构" class="headerlink" title="定义基本结构"></a>定义基本结构</h2><p>先展示地图基本结构，这里的地图使用的是<a href="https://www.maptiler.com/" target="_blank" rel="external nofollow noopener noreferrer">maptiler</a>的服务，注册一个开发者账号获得 <code>key</code>。地图源 <code>source</code> 使用的是<a href="https://openlayers.org/en/latest/apidoc/module-ol_source_XYZ-XYZ.html" target="_blank" rel="external nofollow noopener noreferrer">ol.source.XYZ</a>，通过拼接字符串访问地图服务，可参考以前的文章<a href="https://linjingyi.cn/posts/9190e623.html">OpenLayers6 瓦片地图加载</a>。</p>
+<p>在 html 部分，还添加了 <code>id</code> 为 <code>kernel</code> 的 <code>select</code> 标签，用于选择不同的滤镜效果。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span></span></span><br><span class="line"><span class="tag">      <span class="attr">rel</span>=<span class="string">"stylesheet"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">href</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.2.1/css/ol.css"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">type</span>=<span class="string">"text/css"</span></span></span><br><span class="line"><span class="tag">    /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.2.1/build/ol.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Image Filters(滤镜效果)<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body,</span><br><span class="line"><span class="css">      <span class="selector-class">.map</span> &#123;</span></span><br><span class="line">        height: 100%;</span><br><span class="line">        width: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"kernel"</span> <span class="attr">name</span>=<span class="string">"kernel"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"none"</span>&gt;</span>无<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"sharpen"</span> <span class="attr">selected</span>&gt;</span>锐化<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"sharpenless"</span>&gt;</span>锐化（轻）<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"blur"</span>&gt;</span>模糊<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"shadow"</span>&gt;</span>阴影<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"emboss"</span>&gt;</span>浮雕<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"edge"</span>&gt;</span>边界识别<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">class</span>=<span class="string">"map"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 需要在https://www.maptiler.com/cloud/上注册个账号拿到key</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> key = <span class="string">"Get your own API key at https://www.maptiler.com/cloud/"</span>;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 所有权</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> attributions =</span></span><br><span class="line"><span class="handlebars"><span class="xml">        '<span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">"https://www.maptiler.com/copyright/"</span> <span class="attr">target</span>=<span class="string">"_blank"</span>&gt;</span><span class="symbol">&amp;copy;</span> MapTiler<span class="tag">&lt;/<span class="name">a</span>&gt;</span> ' +</span></span></span><br><span class="line"><span class="handlebars"><span class="xml">        '<span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">"https://www.openstreetmap.org/copyright"</span> <span class="attr">target</span>=<span class="string">"_blank"</span>&gt;</span><span class="symbol">&amp;copy;</span> OpenStreetMap contributors<span class="tag">&lt;/<span class="name">a</span>&gt;</span>';</span></span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 地图底图层</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> imagery = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 使用ol.source.XYZ拼凑一个地图字符串</span></span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.XYZ(&#123;</span></span><br><span class="line">          attributions: attributions,</span><br><span class="line">          url:</span><br><span class="line"><span class="actionscript">            <span class="string">"https://api.maptiler.com/tiles/satellite/&#123;z&#125;/&#123;x&#125;/&#123;y&#125;.jpg?key="</span> +</span></span><br><span class="line">            key,</span><br><span class="line">          maxZoom: 20,</span><br><span class="line"><span class="actionscript">          crossOrigin: <span class="string">""</span></span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 构建一个地图</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">        layers: [imagery],</span><br><span class="line"><span class="actionscript">        target: <span class="string">"map"</span>,</span></span><br><span class="line"><span class="actionscript">        view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line">          center: ol.proj.fromLonLat([-120, 50]),</span><br><span class="line">          zoom: 6</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="不同滤镜效果的卷积核"><a href="#不同滤镜效果的卷积核" class="headerlink" title="不同滤镜效果的卷积核"></a>不同滤镜效果的卷积核</h2><p>关于图像处理中的<code>卷积核</code>可以参考上篇文章<a href="https://linjingyi.cn/posts/9f68952.html">图像处理中的卷积核 kernel</a>。</p>
+<p>在本文的示例卷积核中就是 <code>kernels</code> 数组中这些 <code>3×3</code> 的 <code>3 阶矩阵</code>，利用这个卷积核和图像像素之间进行<code>卷积运算</code>，就能做出模糊、锐化、凹凸、边缘检测等效果。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 图像处理的卷积核</span></span><br><span class="line"><span class="keyword">let</span> kernels = &#123;</span><br><span class="line">  none: [</span><br><span class="line">              <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,</span><br><span class="line">              <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, </span><br><span class="line">              <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span></span><br><span class="line">              ],</span><br><span class="line">        sharpen: [</span><br><span class="line">                  <span class="number">0</span>, <span class="number">-1</span>, <span class="number">0</span>,</span><br><span class="line">                  <span class="number">-1</span>, <span class="number">5</span>, <span class="number">-1</span>, </span><br><span class="line">                  <span class="number">0</span>, <span class="number">-1</span>, <span class="number">0</span></span><br><span class="line">                  ],</span><br><span class="line">        sharpenless: [</span><br><span class="line">                      <span class="number">0</span>, <span class="number">-1</span>, <span class="number">0</span>,</span><br><span class="line">                      <span class="number">-1</span>, <span class="number">10</span>, <span class="number">-1</span>,</span><br><span class="line">                      <span class="number">0</span>, <span class="number">-1</span>, <span class="number">0</span></span><br><span class="line">                      ],</span><br><span class="line">        blur: [</span><br><span class="line">              <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>,</span><br><span class="line">              <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>,</span><br><span class="line">              <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span></span><br><span class="line">              ],</span><br><span class="line">        shadow: [</span><br><span class="line">                <span class="number">1</span>, <span class="number">2</span>, <span class="number">1</span>,</span><br><span class="line">                <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>,</span><br><span class="line">                <span class="number">-1</span>, <span class="number">-2</span>, <span class="number">-1</span></span><br><span class="line">                ],</span><br><span class="line">        emboss: [</span><br><span class="line">                <span class="number">-2</span>, <span class="number">1</span>, <span class="number">0</span>,</span><br><span class="line">                <span class="number">-1</span>, <span class="number">1</span>, <span class="number">1</span>,</span><br><span class="line">                <span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span></span><br><span class="line">                ],</span><br><span class="line">        edge: [</span><br><span class="line">              <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>,</span><br><span class="line">              <span class="number">1</span>, <span class="number">-4</span>, <span class="number">1</span>,</span><br><span class="line">              <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span></span><br><span class="line">              ]</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 矩阵标准化处理，让所有的元素加起来为1</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;type&#125;</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>:返回标准化后的矩阵</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> normalize = <span class="function"><span class="params">kernel</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> len = kernel.length;</span><br><span class="line">  <span class="keyword">let</span> normal = <span class="keyword">new</span> <span class="built_in">Array</span>(len);</span><br><span class="line">  <span class="keyword">let</span> i,</span><br><span class="line">    sum = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; ++i) &#123;</span><br><span class="line">    sum += kernel[i];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (sum &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 矩阵各位置相加小于等于零时，设定sum=1，normalized=false</span></span><br><span class="line">    normal.normalized = <span class="literal">false</span>;</span><br><span class="line">    sum = <span class="number">1</span>;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    normal.normalized = <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; ++i) &#123;</span><br><span class="line">    <span class="comment">// 每一位除以sum来标准化</span></span><br><span class="line">    normal[i] = kernel[i] / sum;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> normal;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// 一开始就从select标签中拿到kernel并标准化</span></span><br><span class="line"><span class="keyword">let</span> select = <span class="built_in">document</span>.getElementById(<span class="string">"kernel"</span>);</span><br><span class="line"><span class="keyword">let</span> selectedKernel = normalize(kernels[select.value]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// select标签值改变后重新标准化kernel并渲染地图</span></span><br><span class="line">select.onchange = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  selectedKernel = normalize(kernels[select.value]);</span><br><span class="line">  map.render();</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>给 <code>select 标签</code>添加一个 <code>onchange</code> 事件，当<code>改变选项</code>时就把对应的卷积核<code>标准化</code>后赋给 <code>selectedKernel</code>，然后对地图进行<code>redner</code>渲染，目的是为了去触发 <code>postrender</code> 事件。</p>
+<h2 id="滤镜效果执行"><a href="#滤镜效果执行" class="headerlink" title="滤镜效果执行"></a>滤镜效果执行</h2><h3 id="imageData"><a href="#imageData" class="headerlink" title="imageData"></a>imageData</h3><p>经过 mentor 点醒，又查阅了<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/ImageData" target="_blank" rel="external nofollow noopener noreferrer">MDN</a>上的相关资料，才真正理解了 Canvas 中的<code>imageData</code>。</p>
+<p><code>imageData</code>其实是一个 Canvas 中一个隐含像素数据的区域，有三个属性<code>data</code>（数据）、<code>weight</code>（宽度）、<code>height</code>（高度），用到了三个相关方法<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/getImageData" target="_blank" rel="external nofollow noopener noreferrer">getImageData</a>（获取）、<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/createImageData" target="_blank" rel="external nofollow noopener noreferrer">createImageData</a>（创建）、<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/putImageData" target="_blank" rel="external nofollow noopener noreferrer">putImageData</a>（写入）。</p>
+<p>需要理解的最关键的地方就是<code>data</code>这个属性，它是一个 JavaScript 的很不常用的内置类型<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray" target="_blank" rel="external nofollow noopener noreferrer">Uint8ClampedArray</a>（<code>8位无符号整型固定数组</code>），这个数组中每一项的处理规则为：</p>
+<ul>
+<li>把内容转化为<code>Number</code>类型</li>
+<li>如果是<code>NaN</code>，返回<code>+0</code></li>
+<li>如果是<code>负数</code>，返回<code>+0</code></li>
+<li>如果大于等于<code>255</code>，返回<code>255</code></li>
+<li>如果是<code>小数</code>，就执行<a href="https://baike.baidu.com/item/%E9%93%B6%E8%A1%8C%E5%AE%B6%E8%88%8D%E5%85%A5" target="_blank" rel="external nofollow noopener noreferrer">银行家舍入</a></li>
+</ul>
+<p>简单说，就是如果你指定一个在 <code>[0,255]</code> 区间外的值，它将被替换为<code>0或255</code>；如果你指定一个<code>非整数</code>，那么它将被设置为<code>最接近它的整数</code>。<code>Uint8ClampedArray</code>类型其余的属性和方法都和普通的<code>Array</code>类型一致，所以非常适用于存放 8 位二进制的颜色数据。</p>
+<h3 id="四层循环"><a href="#四层循环" class="headerlink" title="四层循环"></a>四层循环</h3><p>给 <code>imagery</code>图层添加 <code>postrender</code> 事件，当改变滤镜选择的 <code>select 标签</code>导致地图渲染后，就会获得 Canvas 上下文并执行 <code>convolve</code> 函数。</p>
+<p><code>convolve</code> 函数接收两个参数，第一个参数 <code>context</code> 是 Canvas 上下文环境，第二个参数 <code>kernel</code> 是需要执行的卷积核。先拿到 Canvas 的宽度和高度，再使用 <code>getImageData</code> 方法获取像素数据 <code>inputData</code>，并用 <code>createImageData</code> 方法新建一个 <code>outputData</code>。</p>
+<p>循环像素数据 <code>inputData</code> 中的每一个像素，就是 Canvas 中的 <code>imageData</code> 像素数据就是上述<code>width×height×4</code> 的<code>Uint8ClampedArray</code>类型的数组，每四位代表一个像素的 <code>r（red）</code>、<code>g（green）</code>、<code>b（blue）</code>、<code>a（alpha 透明度）</code>四个通道，所以在计算<code>加权结果</code>时 <code>index</code> 用的是<code>(neighborY × width + neighborX) × 4</code>。</p>
+<p>在每个卷积核的循环中，将带有<code>权重</code>的 <code>r</code>、<code>g</code>、<code>b</code>、<code>a</code> 分别累加，就计算出了该像素的<code>加权后的结果</code>，赋予给新建的 <code>outputData</code> 相同位置处。最后使用 <code>putImageData</code> 方法将 <code>outputData</code> 覆盖给 Canvas 上下文环境 <code>context</code>。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 图层渲染完成后就触发滤镜函数</span></span><br><span class="line">imagery.on(<span class="string">"postrender"</span>, event =&gt; &#123;</span><br><span class="line">  convolve(event.context, selectedKernel);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@description</span>: 给canvas应用一个卷积核，任意大小的卷积核都能运行，但是如果大小超过了3 x 3后性能会下降</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;CanvasRenderingContext2D&#125;</span>  </span>context canvas2d上下文</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Array&lt;number&gt;&#125;</span>  </span>kernel 卷积内核</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span>:</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> convolve = <span class="function">(<span class="params">context, kernel</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// 拿到canvas上下文环境和宽高</span></span><br><span class="line">  <span class="keyword">let</span> canvas = context.canvas;</span><br><span class="line">  <span class="keyword">let</span> width = canvas.width;</span><br><span class="line">  <span class="keyword">let</span> height = canvas.height;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 核矩阵的宽度</span></span><br><span class="line">  <span class="keyword">let</span> size = <span class="built_in">Math</span>.sqrt(kernel.length);</span><br><span class="line">  <span class="keyword">let</span> half = <span class="built_in">Math</span>.floor(size / <span class="number">2</span>);</span><br><span class="line">  <span class="comment">// 拿到canvas全部范围imageData中的像素数据</span></span><br><span class="line">  <span class="keyword">let</span> inputData = context.getImageData(<span class="number">0</span>, <span class="number">0</span>, width, height).data;</span><br><span class="line">  <span class="comment">// 新建一个imageData</span></span><br><span class="line">  <span class="keyword">let</span> output = context.createImageData(width, height);</span><br><span class="line">  <span class="keyword">let</span> outputData = output.data;</span><br><span class="line">  <span class="comment">// 循环列</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> pixelY = <span class="number">0</span>; pixelY &lt; height; ++pixelY) &#123;</span><br><span class="line">    <span class="comment">// pixelsAbove是已经运行了整行像素的像素数目</span></span><br><span class="line">    <span class="keyword">let</span> pixelsAbove = pixelY * width;</span><br><span class="line">    <span class="comment">// 循环行;</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> pixelX = <span class="number">0</span>; pixelX &lt; width; ++pixelX) &#123;</span><br><span class="line">      <span class="comment">// rgba是red、green、blue、alpha</span></span><br><span class="line">      <span class="keyword">let</span> r = <span class="number">0</span>,</span><br><span class="line">        g = <span class="number">0</span>,</span><br><span class="line">        b = <span class="number">0</span>,</span><br><span class="line">        a = <span class="number">0</span>;</span><br><span class="line">      <span class="comment">// 对于每一个像素位置上，再进行卷积核矩阵循环</span></span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">let</span> kernelY = <span class="number">0</span>; kernelY &lt; size; ++kernelY) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">let</span> kernelX = <span class="number">0</span>; kernelX &lt; size; ++kernelX) &#123;</span><br><span class="line">          <span class="comment">// 由于js没有原生二维矩阵，所以用下面的转换来代替，</span></span><br><span class="line">          <span class="comment">// weight是核矩阵该位置的权重</span></span><br><span class="line">          <span class="keyword">let</span> weight = kernel[kernelY * size + kernelX];</span><br><span class="line">          <span class="comment">// 求出该像素位置的相邻位置（与卷积核矩阵对应，并防止越界）</span></span><br><span class="line">          <span class="keyword">let</span> neighborY = <span class="built_in">Math</span>.min(</span><br><span class="line">            height - <span class="number">1</span>,</span><br><span class="line">            <span class="built_in">Math</span>.max(<span class="number">0</span>, pixelY + kernelY - half)</span><br><span class="line">          );</span><br><span class="line">          <span class="keyword">let</span> neighborX = <span class="built_in">Math</span>.min(</span><br><span class="line">            width - <span class="number">1</span>,</span><br><span class="line">            <span class="built_in">Math</span>.max(<span class="number">0</span>, pixelX + kernelX - half)</span><br><span class="line">          );</span><br><span class="line">          <span class="comment">// 经mentor点醒，才看懂在imagedata中，数据是一个数组排列</span></span><br><span class="line">          <span class="comment">// 每四个位置rgba分别代表一个像素</span></span><br><span class="line">          <span class="keyword">let</span> inputIndex = (neighborY * width + neighborX) * <span class="number">4</span>;</span><br><span class="line">          <span class="comment">// 该neighbor位置像素的rgba每一个都要乘该neightbor位置的weight</span></span><br><span class="line">          <span class="comment">// 在size*size中的每一个相邻像素[neighborX,neighborY],rgba都乘该位置的权重weight</span></span><br><span class="line">          <span class="comment">// 进行了size*size次迭代，累加起来，求出了该像素位置[pixelX,pixelY]最终的rgba</span></span><br><span class="line">          r += inputData[inputIndex] * weight;</span><br><span class="line">          g += inputData[inputIndex + <span class="number">1</span>] * weight;</span><br><span class="line">          b += inputData[inputIndex + <span class="number">2</span>] * weight;</span><br><span class="line">          a += inputData[inputIndex + <span class="number">3</span>] * weight;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 把该像素的位置的累加后的rgba赋值给新建的output这个imageData的对应像素位置</span></span><br><span class="line">      <span class="keyword">let</span> outputIndex = (pixelsAbove + pixelX) * <span class="number">4</span>;</span><br><span class="line">      outputData[outputIndex] = r;</span><br><span class="line">      outputData[outputIndex + <span class="number">1</span>] = g;</span><br><span class="line">      outputData[outputIndex + <span class="number">2</span>] = b;</span><br><span class="line">      <span class="comment">// 如果矩阵未标准化，就把a设置为255</span></span><br><span class="line">      outputData[outputIndex + <span class="number">3</span>] = kernel.normalized ? a : <span class="number">255</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 最后把output写进上下文环境，完成替换</span></span><br><span class="line">  context.putImageData(output, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h2 id="全部代码"><a href="#全部代码" class="headerlink" title="全部代码"></a>全部代码</h2><p>全部代码如下：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"UTF-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">"viewport"</span> <span class="attr">content</span>=<span class="string">"width=device-width, initial-scale=1.0"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">"X-UA-Compatible"</span> <span class="attr">content</span>=<span class="string">"ie=edge"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">link</span></span></span><br><span class="line"><span class="tag">      <span class="attr">rel</span>=<span class="string">"stylesheet"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">href</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.2.1/css/ol.css"</span></span></span><br><span class="line"><span class="tag">      <span class="attr">type</span>=<span class="string">"text/css"</span></span></span><br><span class="line"><span class="tag">    /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.2.1/build/ol.js"</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Image Filters(滤镜效果)<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">style</span>&gt;</span></span><br><span class="line">      html,</span><br><span class="line">      body,</span><br><span class="line"><span class="css">      <span class="selector-class">.map</span> &#123;</span></span><br><span class="line">        height: 100%;</span><br><span class="line">        width: 100%;</span><br><span class="line">      &#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">"kernel"</span> <span class="attr">name</span>=<span class="string">"kernel"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"none"</span>&gt;</span>无<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"sharpen"</span> <span class="attr">selected</span>&gt;</span>锐化<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"sharpenless"</span>&gt;</span>锐化（轻）<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"blur"</span>&gt;</span>模糊<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"shadow"</span>&gt;</span>阴影<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"emboss"</span>&gt;</span>浮雕<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">"edge"</span>&gt;</span>边界识别<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"map"</span> <span class="attr">class</span>=<span class="string">"map"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 需要在https://www.maptiler.com/cloud/上注册个账号拿到key</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> key = <span class="string">"Get your own API key at https://www.maptiler.com/cloud/"</span>;</span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 所有权</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> attributions =</span></span><br><span class="line"><span class="handlebars"><span class="xml">        '<span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">"https://www.maptiler.com/copyright/"</span> <span class="attr">target</span>=<span class="string">"_blank"</span>&gt;</span><span class="symbol">&amp;copy;</span> MapTiler<span class="tag">&lt;/<span class="name">a</span>&gt;</span> ' +</span></span></span><br><span class="line"><span class="handlebars"><span class="xml">        '<span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">"https://www.openstreetmap.org/copyright"</span> <span class="attr">target</span>=<span class="string">"_blank"</span>&gt;</span><span class="symbol">&amp;copy;</span> OpenStreetMap contributors<span class="tag">&lt;/<span class="name">a</span>&gt;</span>';</span></span></span><br><span class="line"><span class="actionscript">      <span class="comment">// 地图底图层</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> imagery = <span class="keyword">new</span> ol.layer.Tile(&#123;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 使用ol.source.XYZ拼凑一个地图字符串</span></span></span><br><span class="line"><span class="actionscript">        source: <span class="keyword">new</span> ol.source.XYZ(&#123;</span></span><br><span class="line">          attributions: attributions,</span><br><span class="line">          url:</span><br><span class="line"><span class="actionscript">            <span class="string">"https://api.maptiler.com/tiles/satellite/&#123;z&#125;/&#123;x&#125;/&#123;y&#125;.jpg?key="</span> +</span></span><br><span class="line">            key,</span><br><span class="line">          maxZoom: 20,</span><br><span class="line"><span class="actionscript">          crossOrigin: <span class="string">""</span></span></span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 构建一个地图</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> map = <span class="keyword">new</span> ol.Map(&#123;</span></span><br><span class="line">        layers: [imagery],</span><br><span class="line"><span class="actionscript">        target: <span class="string">"map"</span>,</span></span><br><span class="line"><span class="actionscript">        view: <span class="keyword">new</span> ol.View(&#123;</span></span><br><span class="line">          center: ol.proj.fromLonLat([-120, 50]),</span><br><span class="line">          zoom: 6</span><br><span class="line">        &#125;)</span><br><span class="line">      &#125;);</span><br><span class="line"><span class="actionscript">      <span class="comment">// 图像处理的卷积核</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> kernels = &#123;</span></span><br><span class="line">        none: [</span><br><span class="line">              0, 0, 0,</span><br><span class="line">              0, 1, 0, </span><br><span class="line">              0, 0, 0</span><br><span class="line">              ],</span><br><span class="line">        sharpen: [</span><br><span class="line">                  0, -1, 0,</span><br><span class="line">                  -1, 5, -1, </span><br><span class="line">                  0, -1, 0</span><br><span class="line">                  ],</span><br><span class="line">        sharpenless: [</span><br><span class="line">                      0, -1, 0,</span><br><span class="line">                      -1, 10, -1,</span><br><span class="line">                      0, -1, 0</span><br><span class="line">                      ],</span><br><span class="line">        blur: [</span><br><span class="line">              1, 1, 1,</span><br><span class="line">              1, 1, 1,</span><br><span class="line">              1, 1, 1</span><br><span class="line">              ],</span><br><span class="line">        shadow: [</span><br><span class="line">                1, 2, 1,</span><br><span class="line">                0, 1, 0,</span><br><span class="line">                -1, -2, -1</span><br><span class="line">                ],</span><br><span class="line">        emboss: [</span><br><span class="line">                -2, 1, 0,</span><br><span class="line">                -1, 1, 1,</span><br><span class="line">                0, 1, 2</span><br><span class="line">                ],</span><br><span class="line">        edge: [</span><br><span class="line">              0, 1, 0,</span><br><span class="line">              1, -4, 1,</span><br><span class="line">              0, 1, 0</span><br><span class="line">              ]</span><br><span class="line">      &#125;;</span><br><span class="line">      /**</span><br><span class="line">       * @description: 卷积矩阵标准化处理</span><br><span class="line">       * @param &#123;type&#125;</span><br><span class="line"><span class="actionscript">       * @<span class="keyword">return</span>:</span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">const</span> normalize = <span class="function"><span class="params">kernel</span> =&gt;</span> &#123;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> len = kernel.length;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> normal = <span class="keyword">new</span> <span class="built_in">Array</span>(len);</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> i,</span></span><br><span class="line">          sum = 0;</span><br><span class="line">        for (i = 0; i &lt; len; ++i) &#123;</span><br><span class="line">          sum += kernel[i];</span><br><span class="line">        &#125;</span><br><span class="line">        if (sum &lt;= 0) &#123;</span><br><span class="line"><span class="actionscript">          <span class="comment">// 矩阵各位置相加小于等于零时，设定sum=1，normalized=false</span></span></span><br><span class="line"><span class="actionscript">          normal.normalized = <span class="literal">false</span>;</span></span><br><span class="line">          sum = 1;</span><br><span class="line"><span class="actionscript">        &#125; <span class="keyword">else</span> &#123;</span></span><br><span class="line"><span class="actionscript">          normal.normalized = <span class="literal">true</span>;</span></span><br><span class="line">        &#125;</span><br><span class="line">        for (i = 0; i &lt; len; ++i) &#123;</span><br><span class="line"><span class="actionscript">          <span class="comment">// 每一位除以sum来标准化</span></span></span><br><span class="line">          normal[i] = kernel[i] / sum;</span><br><span class="line">        &#125;</span><br><span class="line"><span class="javascript">        <span class="built_in">console</span>.log(normal);</span></span><br><span class="line"><span class="actionscript">        <span class="keyword">return</span> normal;</span></span><br><span class="line">      &#125;;</span><br><span class="line"><span class="actionscript">      <span class="comment">// 一开始就从select标签中拿到kernel并标准化</span></span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> select = <span class="built_in">document</span>.getElementById(<span class="string">"kernel"</span>);</span></span><br><span class="line"><span class="javascript">      <span class="keyword">let</span> selectedKernel = normalize(kernels[select.value]);</span></span><br><span class="line"></span><br><span class="line"><span class="actionscript">      <span class="comment">// select标签值改变后重新标准化kernel并渲染地图</span></span></span><br><span class="line"><span class="javascript">      select.onchange = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span></span><br><span class="line">        selectedKernel = normalize(kernels[select.value]);</span><br><span class="line">        map.render();</span><br><span class="line">      &#125;;</span><br><span class="line"></span><br><span class="line"><span class="actionscript">      <span class="comment">// 图层渲染完成后就触发滤镜函数</span></span></span><br><span class="line"><span class="actionscript">      imagery.on(<span class="string">"postrender"</span>, event =&gt; &#123;</span></span><br><span class="line">        convolve(event.context, selectedKernel);</span><br><span class="line">      &#125;);</span><br><span class="line"></span><br><span class="line">      /**</span><br><span class="line">       * @description: 给canvas应用一个卷积核，任意大小的卷积核都能运行，但是如果大小超过了3 x 3后性能会下降</span><br><span class="line">       * @param &#123;CanvasRenderingContext2D&#125;  context canvas2d上下文</span><br><span class="line"><span class="javascript">       * @param &#123;<span class="built_in">Array</span>&lt;number&gt;&#125;  kernel 卷积内核</span></span><br><span class="line"><span class="actionscript">       * @<span class="keyword">return</span>:</span></span><br><span class="line">       */</span><br><span class="line"><span class="javascript">      <span class="keyword">const</span> convolve = <span class="function">(<span class="params">context, kernel</span>) =&gt;</span> &#123;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 拿到canvas上下文环境和宽高</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> canvas = context.canvas;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> width = canvas.width;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> height = canvas.height;</span></span><br><span class="line"></span><br><span class="line"><span class="actionscript">        <span class="comment">// 核矩阵的宽度</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> size = <span class="built_in">Math</span>.sqrt(kernel.length);</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> half = <span class="built_in">Math</span>.floor(size / <span class="number">2</span>);</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 拿到canvas全部范围imageData中的像素数据</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> inputData = context.getImageData(<span class="number">0</span>, <span class="number">0</span>, width, height).data;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 新建一个imageData</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> output = context.createImageData(width, height);</span></span><br><span class="line"><span class="javascript">        <span class="keyword">let</span> outputData = output.data;</span></span><br><span class="line"><span class="actionscript">        <span class="comment">// 循环列</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">for</span> (<span class="keyword">let</span> pixelY = <span class="number">0</span>; pixelY &lt; height; ++pixelY) &#123;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// pixelsAbove是已经运行了整行像素的像素数目</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">let</span> pixelsAbove = pixelY * width;</span></span><br><span class="line"><span class="actionscript">          <span class="comment">// 循环行;</span></span></span><br><span class="line"><span class="javascript">          <span class="keyword">for</span> (<span class="keyword">let</span> pixelX = <span class="number">0</span>; pixelX &lt; width; ++pixelX) &#123;</span></span><br><span class="line"><span class="actionscript">            <span class="comment">// rgba是red、green、blue、alpha</span></span></span><br><span class="line"><span class="javascript">            <span class="keyword">let</span> r = <span class="number">0</span>,</span></span><br><span class="line">              g = 0,</span><br><span class="line">              b = 0,</span><br><span class="line">              a = 0;</span><br><span class="line"><span class="actionscript">            <span class="comment">// 对于每一个像素位置上，再进行卷积核矩阵循环</span></span></span><br><span class="line"><span class="javascript">            <span class="keyword">for</span> (<span class="keyword">let</span> kernelY = <span class="number">0</span>; kernelY &lt; size; ++kernelY) &#123;</span></span><br><span class="line"><span class="javascript">              <span class="keyword">for</span> (<span class="keyword">let</span> kernelX = <span class="number">0</span>; kernelX &lt; size; ++kernelX) &#123;</span></span><br><span class="line"><span class="actionscript">                <span class="comment">// 由于js没有原生二维矩阵，所以用下面的转换来代替，</span></span></span><br><span class="line"><span class="actionscript">                <span class="comment">// weight是核矩阵该位置的权重</span></span></span><br><span class="line"><span class="javascript">                <span class="keyword">let</span> weight = kernel[kernelY * size + kernelX];</span></span><br><span class="line"><span class="actionscript">                <span class="comment">// 求出该像素位置的相邻位置（与核矩阵对应，并防止越界）</span></span></span><br><span class="line"><span class="javascript">                <span class="keyword">let</span> neighborY = <span class="built_in">Math</span>.min(</span></span><br><span class="line">                  height - 1,</span><br><span class="line"><span class="javascript">                  <span class="built_in">Math</span>.max(<span class="number">0</span>, pixelY + kernelY - half)</span></span><br><span class="line">                );</span><br><span class="line"><span class="javascript">                <span class="keyword">let</span> neighborX = <span class="built_in">Math</span>.min(</span></span><br><span class="line">                  width - 1,</span><br><span class="line"><span class="javascript">                  <span class="built_in">Math</span>.max(<span class="number">0</span>, pixelX + kernelX - half)</span></span><br><span class="line">                );</span><br><span class="line"><span class="actionscript">                <span class="comment">// 经mentor点醒，才看懂在imagedata中，数据是一个数组排列</span></span></span><br><span class="line"><span class="actionscript">                <span class="comment">// 每四个位置rgba分别代表一个像素</span></span></span><br><span class="line"><span class="javascript">                <span class="keyword">let</span> inputIndex = (neighborY * width + neighborX) * <span class="number">4</span>;</span></span><br><span class="line"><span class="actionscript">                <span class="comment">// 该neighbor位置像素的rgba每一个都要乘该neightbor位置的weight</span></span></span><br><span class="line"><span class="actionscript">                <span class="comment">// 在size*size中的每一个相邻像素[neighborX,neighborY],rgba都乘该位置的权重weight</span></span></span><br><span class="line"><span class="actionscript">                <span class="comment">// 进行了size*size次迭代，累加起来，求出了该像素位置[pixelX,pixelY]最终的rgba</span></span></span><br><span class="line">                r += inputData[inputIndex] * weight;</span><br><span class="line">                g += inputData[inputIndex + 1] * weight;</span><br><span class="line">                b += inputData[inputIndex + 2] * weight;</span><br><span class="line">                a += inputData[inputIndex + 3] * weight;</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line"><span class="actionscript">            <span class="comment">// 把该像素的位置的累加后的rgba赋值给新建的output这个imageData的对应像素位置</span></span></span><br><span class="line"><span class="javascript">            <span class="keyword">let</span> outputIndex = (pixelsAbove + pixelX) * <span class="number">4</span>;</span></span><br><span class="line">            outputData[outputIndex] = r;</span><br><span class="line">            outputData[outputIndex + 1] = g;</span><br><span class="line">            outputData[outputIndex + 2] = b;</span><br><span class="line"><span class="actionscript">            <span class="comment">// 如果矩阵未标准化，就把a设置为255</span></span></span><br><span class="line">            outputData[outputIndex + 3] = kernel.normalized ? a : 255;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line"><span class="actionscript">        <span class="comment">// 最后把output写进上下文环境，完成替换</span></span></span><br><span class="line">        context.putImageData(output, 0, 0);</span><br><span class="line">      &#125;;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenLayers/" rel="tag"># OpenLayers</a>
+              <a href="/tags/%E5%8F%AF%E8%A7%86%E5%8C%96/" rel="tag"># 可视化</a>
+              <a href="/tags/%E5%9C%B0%E5%9B%BE/" rel="tag"># 地图</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/9f68952.html" rel="prev" title="图像处理中的卷积核kernel">
+      <i class="fa fa-chevron-left"></i> 图像处理中的卷积核kernel
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/4a90030.html" rel="next" title="ECharts旭日图及轮播效果实现">
+      ECharts旭日图及轮播效果实现 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#定义基本结构"><span class="nav-number">1.</span> <span class="nav-text">定义基本结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#不同滤镜效果的卷积核"><span class="nav-number">2.</span> <span class="nav-text">不同滤镜效果的卷积核</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#滤镜效果执行"><span class="nav-number">3.</span> <span class="nav-text">滤镜效果执行</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#imageData"><span class="nav-number">3.1.</span> <span class="nav-text">imageData</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四层循环"><span class="nav-number">3.2.</span> <span class="nav-text">四层循环</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#全部代码"><span class="nav-number">4.</span> <span class="nav-text">全部代码</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '8526dbac9b4c166b6a0b48b9e78c5f83',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
