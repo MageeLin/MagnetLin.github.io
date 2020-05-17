@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="下述内容翻译自 Professional JavaScript for Web Developes,4th Edition（JavaScript 高级程序设计第四版），323 页，Proxies and Reflect（代理和反射） 章节。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JS高程第4版第9章翻译：代理和反射">
+<meta property="og:url" content="https://linjingyi.cn/posts/755931bb.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="下述内容翻译自 Professional JavaScript for Web Developes,4th Edition（JavaScript 高级程序设计第四版），323 页，Proxies and Reflect（代理和反射） 章节。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-05-16T13:25:37.000Z">
+<meta property="article:modified_time" content="2020-05-16T13:25:37.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="JS">
+<meta property="article:tag" content="JS高程">
+<meta property="article:tag" content="红宝书">
+<meta property="article:tag" content="JavaScript高级程序设计">
+<meta property="article:tag" content="第4版">
+<meta property="article:tag" content="翻译">
+<meta property="article:tag" content="代理">
+<meta property="article:tag" content="Proxy">
+<meta property="article:tag" content="反射">
+<meta property="article:tag" content="Reflect">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/755931bb.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>JS高程第4版第9章翻译：代理和反射 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/755931bb.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          JS高程第4版第9章翻译：代理和反射
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-16 21:25:37" itemprop="dateCreated datePublished" datetime="2020-05-16T21:25:37+08:00">2020-05-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/" itemprop="url" rel="index">
+                    <span itemprop="name">JS</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E7%BF%BB%E8%AF%91/" itemprop="url" rel="index">
+                    <span itemprop="name">翻译</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>下述内容翻译自 Professional JavaScript for Web Developes,4th Edition（<a href="https://www.ituring.com.cn/book/2472" target="_blank" rel="external nofollow noopener noreferrer">JavaScript 高级程序设计第四版</a>），323 页，Proxies and Reflect（代理和反射） 章节。</p>
+<a id="more"></a>
+
+<h2 id="代理和反射"><a href="#代理和反射" class="headerlink" title="代理和反射"></a>代理和反射</h2><p>在 ECMAScript6 中引入的代理（proxy）和反射（reflect）是全新的结构，能够拦截并修改语言中基础操作的附加行为。更具体地说，你可以定义一个与目标对象关联的代理对象，代理对象可以看作一个抽象的目标对象，可以在代理对象中控制各种操作，完成之前实际在目标对象执行的操作。</p>
+<p>对于第一次接触这个主题的开发者来说，这是一个相当模糊的概念，堪比一个完整的新术语库。通过多个实例将有助于巩固理解。</p>
+<blockquote>
+<p>注意:在 ES6 之前的 ECMAScript 版本中没有类似的代理概念。因为这是一种完全新的语言能力，转换器无法将代理行为转换为早期的 ECMAScript 版本，因为实际上不可能复制代理的行为。因此，代理和反射只有在 100%提供原生支持的平台上才可以使用。可以检测对代理的支持情况，并在不支持时改用备用代码，但这会导致代码重复，因此不提倡这样做。</p>
+</blockquote>
+<h3 id="代理基础"><a href="#代理基础" class="headerlink" title="代理基础"></a>代理基础</h3><p>正如在引言中提到的，代理作为目标对象的抽象对象存在。它与 C++的指针在许多方面都很类似，因为它可以作为它所指向的目标对象的替代字段使用，但实际上，代理与目标对象完全分离。目标对象既可以直接操作，也可以通过代理操作，但是直接操作将绕过代理定义的行为。</p>
+<blockquote>
+<p>注意：ECMAScript 代理和 C++指针之间有一些关键的区别将在后面讨论，但是出于介绍的目的，指针是一个合适的概念性模块。</p>
+</blockquote>
+<h4 id="创建一个直通代理"><a href="#创建一个直通代理" class="headerlink" title="创建一个直通代理"></a>创建一个直通代理</h4><p>在最简单的形式中，代理只能作为一个抽象的目标对象存在。默认情况下，对代理对象执行的所有操作都将透明地传递到目标对象。因此，能够以目标对象相同的方式和位置来使用代理对象。</p>
+<p>使用 Proxy 构造函数创建一个代理。要求同时提供目标对象和处理器对象，否则将抛出 TypeError。对于简单的直通代理，对处理器对象使用简单的对象文本将允许所有操作畅通无阻地到达目标对象。</p>
+<p>如下所示，在代理上执行的所有操作都将有效地应用于目标对象。唯一可以感受到的区别是代理对象的识别符。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  id: <span class="string">'target'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> handler = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, handler);</span><br><span class="line"></span><br><span class="line"><span class="comment">// id属性访问相同的值</span></span><br><span class="line"><span class="built_in">console</span>.log(target.id); <span class="comment">// target</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy.id); <span class="comment">// target</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 对target属性的修改会在proxy中同样生效，因为proxy访问的是同一个值</span></span><br><span class="line">target.id = <span class="string">'foo'</span>;</span><br><span class="line"><span class="built_in">console</span>.log(target.id); <span class="comment">// foo</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy.id); <span class="comment">// foo</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 对proxy属性的修改会在target中同样生效，因为修改的属性值赋予到了target对象</span></span><br><span class="line">proxy.id = <span class="string">'bar'</span>;</span><br><span class="line"><span class="built_in">console</span>.log(target.id); <span class="comment">// bar</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy.id); <span class="comment">// bar</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// hasOwnProperty()方法在两种情况下都生效（备注：Chrome80测试应为true，原文为false）</span></span><br><span class="line"><span class="built_in">console</span>.log(target.hasOwnProperty(<span class="string">'id'</span>)); <span class="comment">// true</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy.hasOwnProperty(<span class="string">'id'</span>)); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// instanceof操作符在两种情况下都生效（备注：Chrome80测试应会报错，Proxy没有prototype）</span></span><br><span class="line"><span class="built_in">console</span>.log(target <span class="keyword">instanceof</span> <span class="built_in">Proxy</span>); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy <span class="keyword">instanceof</span> <span class="built_in">Proxy</span>); <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 仍然可以使用严格相等模式区分proxy和target</span></span><br><span class="line"><span class="built_in">console</span>.log(target === proxy); <span class="comment">// false</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="定义陷阱"><a href="#定义陷阱" class="headerlink" title="定义陷阱"></a>定义陷阱</h4><p>代理的主要目的是允许自定义陷阱（trap），它们在处理器对象（handler object）中起到”基础操作拦截器”的作用。每个处理器对象由零个、一个或多个陷阱组成，每个陷阱对应于一个基础操作，该操作可以直接或间接地在代理上调用。当对代理对象调用这些基础操作时，在应用到目标对象之前，代理将调用陷阱函数，从而允许接收和修改行为。</p>
+<blockquote>
+<p>注意：“陷阱（trap）”这个术语借用自操作系统的范畴，其中的陷阱是程序流中的一个同步中断，它转移处理器的执行，并在返回到原始程序流之前执行一个子程序。</p>
+</blockquote>
+<p>例如，可以定义一个 get()陷阱，这个陷阱在每次 ECMAScript 以某种形式执行 get()时触发。陷阱可以定义如下:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  foo: <span class="string">'bar'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">const</span> handler = &#123;</span><br><span class="line">  <span class="comment">// 陷阱由处理器对象中的方法名标识</span></span><br><span class="line">  <span class="keyword">get</span>() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'handler override'</span>;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, handler);</span><br></pre></td></tr></table></figure>
+
+<p>当这个代理对象调用 get()操作时，将调用为 get()定义的陷阱函数。当然，get()不是 ECMAScript 对象上可用的方法。被捕获的 get()操作在多个操作之间共享，这些操作可以在实际的 JavaScript 代码中找到。表单代理的操作 proxy[property]、proxy.property 或 Object.create(proxy)[property]都将使用基本操作 get()来检索属性，因此所有这些操作都将在调用它们时调用代理上的陷阱函数。只有代理对象会使用陷阱函数处理器，这些操作与目标对象一起使用时将正常运行。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  foo: <span class="string">'bar'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">const</span> handler = &#123;</span><br><span class="line">  <span class="comment">// 陷阱由处理器对象中的方法名标识</span></span><br><span class="line">  <span class="keyword">get</span>() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'handler override'</span>;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, handler);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(target.foo); <span class="comment">// bar</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy.foo); <span class="comment">// handler override</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(target[<span class="string">'foo'</span>]); <span class="comment">// bar</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy[<span class="string">'foo'</span>]); <span class="comment">// handler override</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Object</span>.create(target)[<span class="string">'foo'</span>]); <span class="comment">// bar</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">Object</span>.create(proxy)[<span class="string">'foo'</span>]); <span class="comment">// handler override</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="陷阱参数和反射-API"><a href="#陷阱参数和反射-API" class="headerlink" title="陷阱参数和反射 API"></a>陷阱参数和反射 API</h4><p>所有陷阱都具有访问参数的权限，这些参数允许完全重新创建被捕获方法的原始行为。例如，get()方法接收对捕获对象的引用、正在查找的 property 以及对代理对象的引用三个参数。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  foo: <span class="string">'bar'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> handler = &#123;</span><br><span class="line">  <span class="keyword">get</span>(trapTarget, property, receiver) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(trapTarget === target);</span><br><span class="line">    <span class="built_in">console</span>.log(property);</span><br><span class="line">    <span class="built_in">console</span>.log(receiver === proxy);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, handler);</span><br><span class="line"></span><br><span class="line">proxy.foo;</span><br><span class="line"><span class="comment">// true</span></span><br><span class="line"><span class="comment">// foo</span></span><br><span class="line"><span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p>因此，可以定义一个陷阱处理器来完全重建被捕获方法的行为:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  foo: <span class="string">'bar'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> handler = &#123;</span><br><span class="line">  <span class="keyword">get</span>(trapTarget, property, receiver) &#123;</span><br><span class="line">    <span class="keyword">return</span> trapTarget[property];</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, handler);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(proxy.foo); <span class="comment">// bar</span></span><br><span class="line"><span class="built_in">console</span>.log(target.foo); <span class="comment">// bar</span></span><br></pre></td></tr></table></figure>
+
+<p>这样的策略可以应用于所有的陷阱，但并非所有的陷阱行为都像 get()那样容易重建；因此，这是一个不切实际的策略。与手动实现捕获方法的内容不同，捕获方法的原始行为包装在全局 Reflect 对象上的一个名称相同的方法中。</p>
+<p>每个可以被捕获在处理器对象中的方法都有一个对应的 Reflect API 方法。这个方法具有相同的名称和函数签名，并执行被捕获的方法正在拦截的确切行为。因此，仅使用 Reflect API 就可以定义一个直通代理:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  foo: <span class="string">'bar'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> handler = &#123;</span><br><span class="line">  <span class="keyword">get</span>() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.get(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, handler);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(proxy.foo); <span class="comment">// bar</span></span><br><span class="line"><span class="built_in">console</span>.log(target.foo); <span class="comment">// bar</span></span><br></pre></td></tr></table></figure>
+
+<p>或者使用更简洁的格式:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  foo: <span class="string">'bar'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> handler = &#123;</span><br><span class="line">  <span class="keyword">get</span>: Reflect.<span class="keyword">get</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">const proxy = new Proxy(target, handler);</span><br><span class="line"></span><br><span class="line">console.log(proxy.foo); // bar</span><br><span class="line">console.log(target.foo); // bar</span><br></pre></td></tr></table></figure>
+
+<p>如果希望创建一个真正的直通代理来捕获所有可用方法，并将每个方法转发给其对应的 Reflect API 函数，则不需要定义一个显式处理器对象：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  foo: <span class="string">'bar'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, <span class="built_in">Reflect</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(proxy.foo); <span class="comment">// bar</span></span><br><span class="line"><span class="built_in">console</span>.log(target.foo); <span class="comment">// bar</span></span><br></pre></td></tr></table></figure>
+
+<p>Reflect API 允许使用最少的模板代码修改捕获的方法。例如每当访问某个特定属性时，都会使用下面的修饰符来修饰返回值:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  foo: <span class="string">'bar'</span>,</span><br><span class="line">  baz: <span class="string">'qux'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> handler = &#123;</span><br><span class="line">  <span class="keyword">get</span>(trapTarget, property, receiver) &#123;</span><br><span class="line">    <span class="keyword">let</span> decoration = <span class="string">''</span>;</span><br><span class="line">    <span class="keyword">if</span> (property === <span class="string">'foo'</span>) &#123;</span><br><span class="line">      decoration = <span class="string">'!!!'</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.get(...arguments) + decoration;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, handler);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(proxy.foo); <span class="comment">// bar!!!</span></span><br><span class="line"><span class="built_in">console</span>.log(target.foo); <span class="comment">// bar</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(proxy.baz); <span class="comment">// qux</span></span><br><span class="line"><span class="built_in">console</span>.log(target.baz); <span class="comment">// qux</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="陷阱不变量"><a href="#陷阱不变量" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h4><p>陷阱能够广泛地改变几乎任何基本方法的行为，但它们并非没有限制。每个被捕获的方法都能获取到目标对象上下文和陷阱函数签名，陷阱处理函数的行为必须遵守 ECMAScript 规范中指定的“陷阱不变量（trap invariants）”。陷阱不变量因方法而异，但一般而言，它们将防止陷阱定义表现出任何严重意外的行为。</p>
+<p>例如，如果目标对象具有不可配置（non-configurable）和不可写（non-writable）的数据属性，这时尝试从陷阱对象返回与目标对象的属性不同的值，则会抛出 TypeError:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;&#125;;</span><br><span class="line"><span class="built_in">Object</span>.defineProperty(target, <span class="string">'foo'</span>, &#123;</span><br><span class="line">  configurable: <span class="literal">false</span>,</span><br><span class="line">  writable: <span class="literal">false</span>,</span><br><span class="line">  value: <span class="string">'bar'</span>,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> handler = &#123;</span><br><span class="line">  <span class="keyword">get</span>() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'qux'</span>;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, handler);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(proxy.foo);</span><br><span class="line"><span class="comment">// TypeError</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="可撤销的代理"><a href="#可撤销的代理" class="headerlink" title="可撤销的代理"></a>可撤销的代理</h4><p>有时会需要禁用代理对象和目标对象之间的关联。对于使用 new Proxy()创建的普通代理，此关联将保持代理对象的生命周期。</p>
+<p>Proxy 还公开了一个 revoable()方法，提供了一个附加的撤销函数（revoke function），可以调用该函数将代理对象与目标对象分离。撤销代理是不可逆的，此外，撤销函数是幂等的，如果调用多次，则不会产生更多效果。在代理被撤销后调用任何方法都会抛出一个 TypeError。</p>
+<p>撤销函数可以在实例化时代理捕获:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  foo: <span class="string">'bar'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> handler = &#123;</span><br><span class="line">  <span class="keyword">get</span>() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'intercepted'</span>;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> &#123; proxy, revoke &#125; = <span class="built_in">Proxy</span>.revocable(target, handler);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(proxy.foo); <span class="comment">// intercepted</span></span><br><span class="line"><span class="built_in">console</span>.log(target.foo); <span class="comment">// bar</span></span><br><span class="line"></span><br><span class="line">revoke();</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(proxy.foo); <span class="comment">// TypeError</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Reflect-API-的实用性"><a href="#Reflect-API-的实用性" class="headerlink" title="Reflect API 的实用性"></a>Reflect API 的实用性</h4><p>在某些情况下有很多原因需要使用 Reflect API。</p>
+<h5 id="Reflect-API-对比-Object-API"><a href="#Reflect-API-对比-Object-API" class="headerlink" title="Reflect API 对比 Object API"></a>Reflect API 对比 Object API</h5><p>当深入使用 Reflect API 时，请记住:</p>
+<ol>
+<li>Reflect API 不仅限于陷阱处理器；</li>
+<li>大多数 Reflect API 方法与 Object 的类似。</li>
+</ol>
+<p>通常，Object 方法适用于一般应用，而 Reflect 方法适用于微调对象控制和操作。</p>
+<h5 id="状态标志"><a href="#状态标志" class="headerlink" title="状态标志"></a>状态标志</h5><p>许多 Reflect 方法返回一个布尔值，表示执行的操作是否成功。在某些情况下，这比其他 Reflect API 方法的行为（将返回修改后的对象或抛出错误）更有用。例如，可以使用 Reflect API 执行以下重构:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 初始代码</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> o = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="built_in">Object</span>.defineProperty(o, <span class="string">'foo'</span>, <span class="string">'bar'</span>);</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'success'</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'failure'</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// failure</span></span><br></pre></td></tr></table></figure>
+
+<p>如果定义新属性出现问题，Reflect.defineProperty 将返回 false，而不是抛出错误，这样就可以执行以下操作:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 重构后的代码</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> o = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">Reflect</span>.defineProperty(o, <span class="string">'foo'</span>, &#123; <span class="attr">value</span>: <span class="string">'bar'</span> &#125;)) &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'success'</span>);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'failure'</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面的 Reflect 方法为提供了状态标志:</p>
+<ul>
+<li>Reflect.defineProperty</li>
+<li>Reflect.preventExtensions</li>
+<li>Reflect.setPrototypeOf</li>
+<li>Reflect.set</li>
+<li>Reflect.deleteProperty</li>
+</ul>
+<h5 id="使用头等函数取代操作符"><a href="#使用头等函数取代操作符" class="headerlink" title="使用头等函数取代操作符"></a>使用头等函数取代操作符</h5><p>一些 Reflect 方法提供了只能通过操作符获得的行为:</p>
+<ul>
+<li>Reflect.get()来访问只能通过对象属性访问获得的行为。</li>
+<li>Reflect.set()来访问只能通过赋值操作符访问的行为。</li>
+<li>Reflect.has()来访问只能通过 in 操作符或 with()访问的行为。</li>
+<li>Reflect.deleteProperty()来访问只能通过 delete 操作符访问的行为。</li>
+<li>Reflect.construct()来访问只能通过 new 操作符访问的行为。</li>
+</ul>
+<h5 id="安全的函数应用"><a href="#安全的函数应用" class="headerlink" title="安全的函数应用"></a>安全的函数应用</h5><p>在使用 apply 方法调用函数时，被调用的函数很可能定义了自己的 apply 属性。为了避免这个问题，可以从函数原型中提取 apply 方法，如下所示:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Function</span>.prototype.apply.call(myFunc, thisVal, argumentList);</span><br></pre></td></tr></table></figure>
+
+<p>使用 Reflect.apply 可以避免并完全复制上述糟糕的代码:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Reflect</span>.apply(myFunc, thisVal, argumentsList);</span><br></pre></td></tr></table></figure>
+
+<h4 id="代理一个-Proxy-331"><a href="#代理一个-Proxy-331" class="headerlink" title="代理一个 Proxy 331"></a>代理一个 Proxy 331</h4><p>代理能够拦截 Reflect API 操作，这意味着完全可以创建一个代理的代理。允许在单一目标对象上构建多个间接层:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  foo: <span class="string">'bar'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> firstProxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, &#123;</span><br><span class="line">  <span class="keyword">get</span>() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'first proxy'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.get(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> secondProxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(firstProxy, &#123;</span><br><span class="line">  <span class="keyword">get</span>() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'second proxy'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.get(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(secondProxy.foo);</span><br><span class="line"><span class="comment">// second proxy</span></span><br><span class="line"><span class="comment">// first proxy</span></span><br><span class="line"><span class="comment">// bar</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="代理的思考与缺陷"><a href="#代理的思考与缺陷" class="headerlink" title="代理的思考与缺陷"></a>代理的思考与缺陷</h4><p>代理是建立在现有 ECMAScript 基础之上的一种新的 API，因此它们的实现是最有效的。在大多数情况下，代理作为对象的虚拟层来说工作得非常有效。然而，在某些场景中，代理并不总能与现有的 ECMAScript 结构无缝集成。</p>
+<h5 id="代理中的-this"><a href="#代理中的-this" class="headerlink" title="代理中的 this"></a>代理中的 this</h5><p>代理的一个潜在问题来源是 this。正如所期望的那样，方法中的 this 值将取决于被调用的对象:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  thisValEqualsProxy() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span> === proxy;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, &#123;&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(target.thisValEqualsProxy()); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy.thisValEqualsProxy()); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p>从直观上看，这是正确的行为：在代理上调用的任何方法 proxy.outerMethod()，将在其函数体内调用另一个方法 this.innerMethod()，也就是应该有效地调用 proxy.innerMethod()。在大多数情况下，这当然是预期的行为；但是如果目标依赖于对象标识，则可能会遇到意想不到的问题。</p>
+<p>回想一下集合引用类型（Collection Reference Types）章节中的 WeakMap 私有变量实现，简化版本显示如下:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> wm = <span class="keyword">new</span> <span class="built_in">WeakMap</span>();</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(userId) &#123;</span><br><span class="line">    wm.set(<span class="keyword">this</span>, userId);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">set</span> id(userId) &#123;</span><br><span class="line">    wm.set(<span class="keyword">this</span>, userId);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">get</span> id() &#123;</span><br><span class="line">    <span class="keyword">return</span> wm.get(<span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>因为此实现依赖于 User 实例的对象标识，所以当 user 实例被代理时将遇到问题:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> user = <span class="keyword">new</span> User(<span class="number">123</span>);</span><br><span class="line"><span class="built_in">console</span>.log(user.id); <span class="comment">// 123</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> userInstanceProxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(user, &#123;&#125;);</span><br><span class="line"><span class="built_in">console</span>.log(userInstanceProxy.id); <span class="comment">// undefined</span></span><br></pre></td></tr></table></figure>
+
+<p>user 实例最初被键入到带有目标对象的 weakmap 中，但是代理试图用代理对象检索该实例。解决这个问题的办法是重新确定代理的位置，这样初始键的插入就可以通过一个代理实例来完成——这个思路可以通过代理 User 类本身来完成，并实例化该类的一个代理:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> UserClassProxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(User, &#123;&#125;);</span><br><span class="line"><span class="keyword">const</span> proxyUser = <span class="keyword">new</span> UserClassProxy(<span class="number">456</span>);</span><br><span class="line"><span class="built_in">console</span>.log(proxyUser.id);</span><br></pre></td></tr></table></figure>
+
+<h5 id="代理和内部插槽"><a href="#代理和内部插槽" class="headerlink" title="代理和内部插槽"></a>代理和内部插槽</h5><p>通常，内置引用类型的实例可以无缝地与代理一起工作（比如 Array）。但是一些 ECMAScript 内置类型会依赖于代理无法控制的机制。结果就是，封装后实例上的某些方法将无法正常工作。</p>
+<p>这方面的典型示例是 Date 类型。根据 ECMAScript 规范，在执行方法时，Date 类型依赖于此值上名为[[NumberData]]的“内部插槽（Internal Slots）”。因为代理上不存在内部插槽位，而且这些内部插槽值不能通过常规的 get 和 set 操作访问，代理可能会拦截并重定向到目标，且抛出一个 TypeError:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = <span class="keyword">new</span> <span class="built_in">Date</span>();</span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, &#123;&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(proxy <span class="keyword">instanceof</span> <span class="built_in">Date</span>); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line">proxy.getDate(); <span class="comment">// TypeError: 'this' is not a Date object</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="代理陷阱和-Reflect-方法"><a href="#代理陷阱和-Reflect-方法" class="headerlink" title="代理陷阱和 Reflect 方法"></a>代理陷阱和 Reflect 方法</h3><p>代理能够捕获十三种不同的基本操作。每个都在 Reflect API、参数、相关的 ECMAScript 操作和不变量中有自己的一部分。</p>
+<p>如前文所述，几个不同的 JavaScript 操作可能会调用同一个陷阱处理器。但是，对于在代理对象上执行的任何单个操作，只会调用一个陷阱处理器；陷阱覆盖范围不重叠。</p>
+<p>如果在代理上调用陷阱，那么它们都将截获对应的 Reflect API 操作。</p>
+<h4 id="get"><a href="#get" class="headerlink" title="get()"></a>get()</h4><p>get()陷阱在检索属性值的操作中调用，其对应的 Reflect API 方法是 Reflect.get()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  <span class="keyword">get</span>(target, property, receiver) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'get()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.get(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">proxy.foo;</span><br><span class="line"><span class="comment">// get()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h5><p>返回值不受限制。</p>
+<h5 id="被拦截的操作"><a href="#被拦截的操作" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>proxy.property</p>
+</li>
+<li><p>proxy[property]</p>
+</li>
+<li><p>Object.create(proxy)[property]</p>
+</li>
+<li><p>Reflect.get(proxy, property, receiver)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数"><a href="#陷阱处理器参数" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li><p>target: 目标对象</p>
+</li>
+<li><p>property: 在目标对象上引用的字符串类型键名</p>
+</li>
+<li><p>receiver: 代理对象或其继承继承</p>
+</li>
+</ul>
+<h5 id="陷阱不变量-1"><a href="#陷阱不变量-1" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li><p>如果 target.property 是不可写和不可配置的，处理器返回值必须匹配 target.property。</p>
+</li>
+<li><p>如果 target.property 是不可配置的，并且没有定义它的[[Get]]属性，那么处理器返回值也必须是 undefined。</p>
+</li>
+</ul>
+<h4 id="set"><a href="#set" class="headerlink" title="set()"></a>set()</h4><p>set()陷阱在分配属性值的操作中调用，其对应的 Reflect API 方法是 Reflect.set()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  <span class="keyword">set</span>(target, property, value, receiver) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'set()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.set(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">proxy.foo = <span class="string">'bar'</span>;</span><br><span class="line"><span class="comment">// set()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h5><p>返回值为 true 表示成功；返回值为 false 表示失败，并且在严格模式下将抛出 TypeError。</p>
+<h5 id="被拦截的操作-1"><a href="#被拦截的操作-1" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>proxy.property = value</p>
+</li>
+<li><p>proxy[property] = value</p>
+</li>
+<li><p>Object.create(proxy)[property] = value</p>
+</li>
+<li><p>Reflect.set(proxy, property, value, receiver)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-1"><a href="#陷阱处理器参数-1" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li><p>target:目标对象</p>
+</li>
+<li><p>property:在目标对象上引用的字符串类型键名</p>
+</li>
+<li><p>value:分配给属性的值</p>
+</li>
+<li><p>receiver:原始的赋值接收者对象</p>
+</li>
+</ul>
+<h5 id="陷阱不变量-2"><a href="#陷阱不变量-2" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li><p>如果 target.property 是不可写和不可配置的，则不能更改目标属性值。</p>
+</li>
+<li><p>如果 target.property 不可配置且未定义为其[[Set]]属性，则不能更改目标属性值。</p>
+</li>
+<li><p>从处理器返回 false 将在严格模式下抛出 TypeError。</p>
+</li>
+</ul>
+<h4 id="has"><a href="#has" class="headerlink" title="has()"></a>has()</h4><p>在 in 操作符中将调用 has()陷阱，其对应的 Reflect API 方法是 Reflect.has()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  has(target, property) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'has()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.has(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="string">'foo'</span> <span class="keyword">in</span> proxy;</span><br><span class="line"><span class="comment">// has()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-2"><a href="#返回值-2" class="headerlink" title="返回值"></a>返回值</h5><p>has()必须返回一个布尔值，指示该属性是否存在。非布尔值将强制转换为布尔值返回。</p>
+<h5 id="被拦截的操作-2"><a href="#被拦截的操作-2" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>property in proxy</p>
+</li>
+<li><p>property in Object.create(proxy)</p>
+</li>
+<li><p>with(proxy) {(property);}</p>
+</li>
+<li><p>Reflect.has(proxy, property)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-2"><a href="#陷阱处理器参数-2" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li><p>target:目标对象</p>
+</li>
+<li><p>property:在目标对象上引用的字符串类型键名</p>
+</li>
+</ul>
+<h5 id="陷阱不变量-3"><a href="#陷阱不变量-3" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li><p>如果存在自己的 target.property 且不可配置，则处理器必须返回 true。</p>
+</li>
+<li><p>如果存在自己的 target.property 且目标对象不可扩展，则处理器必须返回 true。</p>
+</li>
+</ul>
+<h4 id="defineProperty"><a href="#defineProperty" class="headerlink" title="defineProperty()"></a>defineProperty()</h4><p>defineproperty()陷阱在 Object.defineProperty()内部调用，其对应的 Reflect API 方法是 Reflect.defineProperty()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  defineProperty(target, property, descriptor) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'defineProperty()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.defineProperty(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.defineProperty(proxy, <span class="string">'foo'</span>, &#123; <span class="attr">value</span>: <span class="string">'bar'</span> &#125;);</span><br><span class="line"><span class="comment">// defineProperty()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-3"><a href="#返回值-3" class="headerlink" title="返回值"></a>返回值</h5><p>defineproperty()必须返回一个布尔值，指示该属性是否已成功定义。非布尔值将强制转换为布尔值返回。</p>
+<h5 id="被拦截的操作-3"><a href="#被拦截的操作-3" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>Object.defineProperty(proxy, property, descriptor)</p>
+</li>
+<li><p>Reflect.defineProperty(proxy, property, descriptor)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-3"><a href="#陷阱处理器参数-3" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li><p>target:目标对象</p>
+</li>
+<li><p>property:在目标对象上引用的字符串类型键名</p>
+</li>
+<li><p>descriptor:包含 enumerable、configurable、writable、value、get 或 set</p>
+</li>
+</ul>
+<h5 id="陷阱不变量-4"><a href="#陷阱不变量-4" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li><p>如果目标对象是不可扩展的，则不能添加属性。</p>
+</li>
+<li><p>如果目标对象具有可配置属性，则不能添加同一键名的不可配置属性。</p>
+</li>
+<li><p>如果目标对象具有不可配置属性，则不能添加同一键名的可配置属性。</p>
+</li>
+</ul>
+<h4 id="getOwnPropertyDescriptor"><a href="#getOwnPropertyDescriptor" class="headerlink" title="getOwnPropertyDescriptor()"></a>getOwnPropertyDescriptor()</h4><p>getownpropertydescriptor()陷阱在 Object.getOwnPropertyDescriptor()内部调用。它对应的 Reflect API 方法是 Reflect.getownpropertydescriptor()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  getOwnPropertyDescriptor(target, property) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'getOwnPropertyDescriptor()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.getOwnPropertyDescriptor(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.getOwnPropertyDescriptor(proxy, <span class="string">'foo'</span>);</span><br><span class="line"><span class="comment">// getOwnPropertyDescriptor()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-4"><a href="#返回值-4" class="headerlink" title="返回值"></a>返回值</h5><p>getownpropertydescriptor()必须返回一个对象，如果属性不存在，则返回 undefined。</p>
+<h5 id="被拦截的操作-4"><a href="#被拦截的操作-4" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>property in proxy</p>
+</li>
+<li><p>property in Object.create(proxy)</p>
+</li>
+<li><p>with(proxy) {(property);}</p>
+</li>
+<li><p>Reflect.has(proxy, property)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-4"><a href="#陷阱处理器参数-4" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li><p>target:目标对象</p>
+</li>
+<li><p>property:在目标对象上引用的字符串类型键名</p>
+</li>
+</ul>
+<h5 id="陷阱不变量-5"><a href="#陷阱不变量-5" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li><p>如果存在自己的 target.property 并且不可配置，处理器必须返回一个对象来指示该属性的存在。</p>
+</li>
+<li><p>如果存在自己的 target.property 是并且可配置的，则处理器不能返回一个对象表明该属性可配置。</p>
+</li>
+<li><p>如果存在自己的 target.property 并且 target 是不可扩展的，处理器必须返回一个对象来指示该属性的存在。</p>
+</li>
+<li><p>如果 target.property 不存在，而且 target 是不可扩展的，则处理器必须返回 undefined 以指示该属性不存在。</p>
+</li>
+<li><p>如果 target.property 不存在，则处理器无法返回一个对象指示该属性可配置。</p>
+</li>
+</ul>
+<h4 id="deleteProperty"><a href="#deleteProperty" class="headerlink" title="deleteProperty()"></a>deleteProperty()</h4><p>deleteproperty()陷阱在 delete 运算符内部调用，其对应的 Reflect API 方法是 Reflect.deleteProperty()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  deleteProperty(target, property) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'deleteProperty()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.deleteProperty(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">delete</span> proxy.foo;</span><br><span class="line"><span class="comment">// deleteProperty()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-5"><a href="#返回值-5" class="headerlink" title="返回值"></a>返回值</h5><p>deleteproperty()必须返回一个布尔值，指示该属性是否被成功删除。非布尔值将强制转换为布尔值返回。</p>
+<h5 id="被拦截的操作-5"><a href="#被拦截的操作-5" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>delete proxy.property</p>
+</li>
+<li><p>delete proxy[property]</p>
+</li>
+<li><p>Reflect.deleteProperty(proxy, property)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-5"><a href="#陷阱处理器参数-5" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li><p>target:目标对象</p>
+</li>
+<li><p>property:在目标对象上引用的字符串类型键名</p>
+</li>
+</ul>
+<h5 id="陷阱不变量-6"><a href="#陷阱不变量-6" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li>如果存在自己的 target.property 并且不可配置，则处理器不能删除该属性。</li>
+</ul>
+<h4 id="ownKeys"><a href="#ownKeys" class="headerlink" title="ownKeys()"></a>ownKeys()</h4><p>ownkeys()陷阱在 Object.keys()和类似的方法中调用，其对应的 Reflect API 方法是 Reflect.ownKeys()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  ownKeys(target) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'ownKeys()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.ownKeys(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.keys(proxy);</span><br><span class="line"><span class="comment">// ownKeys()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-6"><a href="#返回值-6" class="headerlink" title="返回值"></a>返回值</h5><p>ownkeys()必须返回包含字符串或 symbol 的可枚举对象。</p>
+<h5 id="被拦截的操作-6"><a href="#被拦截的操作-6" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>Object.getOwnPropertyNames(proxy)</p>
+</li>
+<li><p>Object.getOwnPropertySymbols(proxy)</p>
+</li>
+<li><p>Object.keys(proxy)</p>
+</li>
+<li><p>Reflect.ownKeys(proxy)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-6"><a href="#陷阱处理器参数-6" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li>target:目标对象</li>
+</ul>
+<h5 id="陷阱不变量-7"><a href="#陷阱不变量-7" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li><p>返回的可枚举对象必须包含目标的所有不可配置的属性。</p>
+</li>
+<li><p>如果 target 是不可扩展的，则返回的可枚举对象必须完全包含 target 的属性键。</p>
+</li>
+</ul>
+<h4 id="getPrototypeOf"><a href="#getPrototypeOf" class="headerlink" title="getPrototypeOf()"></a>getPrototypeOf()</h4><p>getprototypeof()陷阱在 Object.getPrototypeOf()内部调用，其对应的 Reflect API 方法是 Reflect.getPrototypeOf()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  getPrototypeOf(target) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'getPrototypeOf()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.getPrototypeOf(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.getPrototypeOf(proxy);</span><br><span class="line"><span class="comment">// getPrototypeOf()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-7"><a href="#返回值-7" class="headerlink" title="返回值"></a>返回值</h5><p>getprototypeof()必须返回一个对象或 null。</p>
+<h5 id="被拦截的操作-7"><a href="#被拦截的操作-7" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>Object.getPrototypeOf(proxy)</p>
+</li>
+<li><p>Reflect.getPrototypeOf(proxy)</p>
+</li>
+<li><p>proxy.<code>__proto__</code></p>
+</li>
+<li><p>Object.prototype.isPrototypeOf(proxy)</p>
+</li>
+<li><p>proxy instanceof Object</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-7"><a href="#陷阱处理器参数-7" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li>target:目标对象</li>
+</ul>
+<h5 id="陷阱不变量-8"><a href="#陷阱不变量-8" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li>如果 target 是不可扩展的，那么 Object.getPrototypeOf(proxy)的唯一有效返回值是从 Object.getPrototypeOf(target)返回的值。</li>
+</ul>
+<h4 id="setPrototypeOf"><a href="#setPrototypeOf" class="headerlink" title="setPrototypeOf()"></a>setPrototypeOf()</h4><p>setPrototypeOf()陷阱在 Object.setPrototypeOf()内部调用，其对应的 Reflect API 方法是 Reflect.setPrototypeOf()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  setPrototypeOf(target, prototype) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'setPrototypeOf()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.setPrototypeOf(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.setPrototypeOf(proxy, <span class="built_in">Object</span>);</span><br><span class="line"><span class="comment">// setPrototypeOf()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-8"><a href="#返回值-8" class="headerlink" title="返回值"></a>返回值</h5><p>setprototypeof()必须返回一个布尔值，指示原型分配是否成功。非布尔值将强制转换为布尔值返回。</p>
+<h5 id="被拦截的操作-8"><a href="#被拦截的操作-8" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>Object.setPrototypeOf(proxy)</p>
+</li>
+<li><p>Reflect.setPrototypeOf(proxy)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-8"><a href="#陷阱处理器参数-8" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li><p>target:目标对象</p>
+</li>
+<li><p>Prototype:目标的预期替换原型，如果这是一个顶级原型，则为 null</p>
+</li>
+</ul>
+<h5 id="陷阱不变量-9"><a href="#陷阱不变量-9" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li>如果目标是不可扩展的，那么唯一有效的原型参数是从 Object.getPrototypeOf(target)返回的值。</li>
+</ul>
+<h4 id="isExtensible"><a href="#isExtensible" class="headerlink" title="isExtensible()"></a>isExtensible()</h4><p>isextensible()陷阱被 Object.isExtensible()内部调用，其对应的 Reflect API 方法是 Reflect.isExtensible ()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  isExtensible(target) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'isExtensible()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.isExtensible(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.isExtensible(proxy);</span><br><span class="line"><span class="comment">// isExtensible()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-9"><a href="#返回值-9" class="headerlink" title="返回值"></a>返回值</h5><p>isextensible()必须返回一个布尔值，指示是否可扩展。非布尔值将强制转换为布尔值返回。</p>
+<h5 id="被拦截的操作-9"><a href="#被拦截的操作-9" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>Object.isExtensible(proxy)</p>
+</li>
+<li><p>Reflect.isExtensible(proxy)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-9"><a href="#陷阱处理器参数-9" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li>target:目标对象</li>
+</ul>
+<h5 id="陷阱不变量-10"><a href="#陷阱不变量-10" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li><p>如果目标是可扩展的，则处理器必须返回 true。</p>
+</li>
+<li><p>如果目标是不可扩展的，处理器必须返回 false。</p>
+</li>
+</ul>
+<h4 id="preventExtensions"><a href="#preventExtensions" class="headerlink" title="preventExtensions()"></a>preventExtensions()</h4><p>preventextensions()陷阱在 Object.preventExtensions()内部调用，其对应的反映 API 方法是 Reflect.preventExtensions()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  preventExtensions(target) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'preventExtensions()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.preventExtensions(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">Object</span>.preventExtensions(proxy);</span><br><span class="line"><span class="comment">// preventExtensions()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-10"><a href="#返回值-10" class="headerlink" title="返回值"></a>返回值</h5><p>preventextensions()必须返回一个布尔值，指示目标是否成功被设置为不可扩展。</p>
+<h5 id="被拦截的操作-10"><a href="#被拦截的操作-10" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>Object.preventExtensions(proxy)</p>
+</li>
+<li><p>Reflect.preventExtensions(proxy)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-10"><a href="#陷阱处理器参数-10" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li>target:目标对象</li>
+</ul>
+<h5 id="陷阱不变量-11"><a href="#陷阱不变量-11" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li>如果 Object.isExtensible(proxy)为 false，则处理器必须返回 true。</li>
+</ul>
+<h4 id="apply"><a href="#apply" class="headerlink" title="apply()"></a>apply()</h4><p>当函数调用时会调用 apply()陷阱，其对应的 Reflect API 方法是 Reflect.apply()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = &#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  apply(target, thisArg, ...argumentsList) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'apply()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.apply(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">proxy();</span><br><span class="line"><span class="comment">// apply()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-11"><a href="#返回值-11" class="headerlink" title="返回值"></a>返回值</h5><p>返回值不受限制。</p>
+<h5 id="被拦截的操作-11"><a href="#被拦截的操作-11" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>proxy(…argumentsList)</p>
+</li>
+<li><p>Function.prototype.apply(thisArg, argumentsList)</p>
+</li>
+<li><p>Function.prototype.call(thisArg, …argumentsList)</p>
+</li>
+<li><p>Reflect.apply(target, thisArgument, argumentsList)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-11"><a href="#陷阱处理器参数-11" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li><p>target:目标对象</p>
+</li>
+<li><p>thisArg:函数调用的 this 参数</p>
+</li>
+<li><p>argumentsList:函数调用的参数列表</p>
+</li>
+</ul>
+<h5 id="陷阱不变量-12"><a href="#陷阱不变量-12" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li>target 必须是函数对象。</li>
+</ul>
+<h4 id="construct"><a href="#construct" class="headerlink" title="construct()"></a>construct()</h4><p>在 new 操作符内部调用 construct()陷阱，其对应的 Reflect API 方法是 Reflect.construct()。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> myTarget = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(myTarget, &#123;</span><br><span class="line">  construct(target, argumentsList, newTarget) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'construct()'</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.construct(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> proxy();</span><br><span class="line"><span class="comment">// construct()</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="返回值-12"><a href="#返回值-12" class="headerlink" title="返回值"></a>返回值</h5><p>construct()必须返回一个对象。</p>
+<h5 id="被拦截的操作-12"><a href="#被拦截的操作-12" class="headerlink" title="被拦截的操作"></a>被拦截的操作</h5><ul>
+<li><p>new proxy(…argumentsList)</p>
+</li>
+<li><p>Reflect.construct(target, argumentsList, newTarget)</p>
+</li>
+</ul>
+<h5 id="陷阱处理器参数-12"><a href="#陷阱处理器参数-12" class="headerlink" title="陷阱处理器参数"></a>陷阱处理器参数</h5><ul>
+<li><p>target:目标构造函数</p>
+</li>
+<li><p>argumentsList:传递给目标构造函数的参数列表</p>
+</li>
+<li><p>newTarget:最初被调用的构造函数</p>
+</li>
+</ul>
+<h5 id="陷阱不变量-13"><a href="#陷阱不变量-13" class="headerlink" title="陷阱不变量"></a>陷阱不变量</h5><ul>
+<li>target 必须能够用作构造函数。</li>
+</ul>
+<h3 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h3><p>Proxy API 允许在代码中使用一些非常有用的模式。</p>
+<h4 id="跟踪属性访问"><a href="#跟踪属性访问" class="headerlink" title="跟踪属性访问"></a>跟踪属性访问</h4><p>get、set 和 has 使能够完全洞察对象属性何时被访问和检查。如果在应用程序中提供了一个含有陷阱的代理，将能够准确地看到这个对象被访问的时间和位置:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> user = &#123;</span><br><span class="line">  name: <span class="string">'Jake'</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(user, &#123;</span><br><span class="line">  <span class="keyword">get</span>(target, property, receiver) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'Getting $&#123;property&#125;'</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.get(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="keyword">set</span>(target, property, value, receiver) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'Setting $&#123;property&#125;=$&#123;value&#125;'</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.set(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">proxy.name; <span class="comment">// Getting name</span></span><br><span class="line">proxy.age = <span class="number">27</span>; <span class="comment">// Setting age=27</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="隐藏属性"><a href="#隐藏属性" class="headerlink" title="隐藏属性"></a>隐藏属性</h4><p>在远程代码中，代理的内部结构完全隐藏，因此很容易隐藏目标对象上属性的存在。例如:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> hiddenProperties = [<span class="string">'foo'</span>, <span class="string">'bar'</span>];</span><br><span class="line"><span class="keyword">const</span> targetObject = &#123;</span><br><span class="line">  foo: <span class="number">1</span>,</span><br><span class="line">  bar: <span class="number">2</span>,</span><br><span class="line">  baz: <span class="number">3</span>,</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(targetObject, &#123;</span><br><span class="line">  <span class="keyword">get</span>(target, property) &#123;</span><br><span class="line">    <span class="keyword">if</span> (hiddenProperties.includes(property)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">undefined</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Reflect</span>.get(...arguments);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  has(target, property) &#123;</span><br><span class="line">    <span class="keyword">if</span> (hiddenProperties.includes(property)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Reflect</span>.has(...arguments);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// get()</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy.foo); <span class="comment">// undefined</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy.bar); <span class="comment">// undefined</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy.baz); <span class="comment">// 3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// has()</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'foo'</span> <span class="keyword">in</span> proxy); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'bar'</span> <span class="keyword">in</span> proxy); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="string">'baz'</span> <span class="keyword">in</span> proxy); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="属性验证"><a href="#属性验证" class="headerlink" title="属性验证"></a>属性验证</h4><p>因为所有赋值都必须经过 set()陷阱，所以可以基于期望值的内容来允许或拒绝赋值:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> target = &#123;</span><br><span class="line">  onlyNumbersGoHere: <span class="number">0</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(target, &#123;</span><br><span class="line">  <span class="keyword">set</span>(target, property, value) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> value !== <span class="string">'Number'</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Reflect</span>.set(...arguments);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">proxy.onlyNumbersGoHere = <span class="number">1</span>;</span><br><span class="line"><span class="built_in">console</span>.log(proxy.onlyNumbersGoHere); <span class="comment">// 1</span></span><br><span class="line">proxy.onlyNumbersGoHere = <span class="string">'2'</span>;</span><br><span class="line"><span class="built_in">console</span>.log(proxy.onlyNumbersGoHere); <span class="comment">// 1</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="函数和构造函数的参数验证"><a href="#函数和构造函数的参数验证" class="headerlink" title="函数和构造函数的参数验证"></a>函数和构造函数的参数验证</h4><p>与对象属性被验证和保护的方式相同，函数和构造函数的参数也可被审查。例如，一个函数可以确保它只提供特定类型的值:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">median</span>(<span class="params">...nums</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> nums.sort()[<span class="built_in">Math</span>.floor(nums.length / <span class="number">2</span>)];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(median, &#123;</span><br><span class="line">  apply(target, thisArg, ...argumentsList) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">const</span> arg <span class="keyword">of</span> argumentsList) &#123;</span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">typeof</span> arg !== <span class="string">'number'</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="string">'Non-number argument provided'</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Reflect</span>.apply(...arguments);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(proxy(<span class="number">4</span>, <span class="number">7</span>, <span class="number">1</span>)); <span class="comment">// 4</span></span><br><span class="line"><span class="built_in">console</span>.log(proxy(<span class="number">4</span>, <span class="string">'7'</span>, <span class="number">1</span>));</span><br><span class="line"><span class="comment">// Error: Non-number argument provided</span></span><br></pre></td></tr></table></figure>
+
+<p>类似地，构造函数可以强制构造函数的必填参数:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(id) &#123;</span><br><span class="line">    <span class="keyword">this</span>.id_ = id;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(User, &#123;</span><br><span class="line">  construct(target, argumentsList, newTarget) &#123;</span><br><span class="line">    <span class="keyword">if</span> (argumentsList[<span class="number">0</span>] === <span class="literal">undefined</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="string">'User cannot be instantiated without id'</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Reflect</span>.construct(...arguments);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> proxy(<span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> proxy();</span><br><span class="line"><span class="comment">// Error: User cannot be instantiated without id</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="数据绑定和观察"><a href="#数据绑定和观察" class="headerlink" title="数据绑定和观察"></a>数据绑定和观察</h4><p>代理允许将运行时的各个完全不同的部分缠绕在一起。这就导致了允许各种各样的模式，能使不同的代码位相互交互。</p>
+<p>例如，代理类可以绑定到一个全局实例集合，这样每个创建的实例都会被添加到该集合中:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> userList = [];</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(name) &#123;</span><br><span class="line">    <span class="keyword">this</span>.name_ = name;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(User, &#123;</span><br><span class="line">  construct() &#123;</span><br><span class="line">    <span class="keyword">const</span> newUser = <span class="built_in">Reflect</span>.construct(...arguments);</span><br><span class="line">    userList.push(newUser);</span><br><span class="line">    <span class="keyword">return</span> newUser;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> proxy(<span class="string">'John'</span>);</span><br><span class="line"><span class="keyword">new</span> proxy(<span class="string">'Jacob'</span>);</span><br><span class="line"><span class="keyword">new</span> proxy(<span class="string">'Jingleheimerschmidt'</span>);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(userList); <span class="comment">// [User &#123;&#125;, User &#123;&#125;, User&#123;&#125;]</span></span><br></pre></td></tr></table></figure>
+
+<p>或者，一个集合可以绑定到一个发射器，这个发射器会在每次插入一个新实例时发射:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> userList = [];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">emit</span>(<span class="params">newValue</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(newValue);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> proxy = <span class="keyword">new</span> <span class="built_in">Proxy</span>(userList, &#123;</span><br><span class="line">  <span class="keyword">set</span>(target, property, value, receiver) &#123;</span><br><span class="line">    <span class="keyword">const</span> result = <span class="built_in">Reflect</span>.set(...arguments);</span><br><span class="line">    <span class="keyword">if</span> (result) &#123;</span><br><span class="line">      emit(<span class="built_in">Reflect</span>.get(target, property, receiver));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">proxy.push(<span class="string">'John'</span>);</span><br><span class="line"><span class="comment">// John</span></span><br><span class="line">proxy.push(<span class="string">'Jacob'</span>);</span><br><span class="line"><span class="comment">// Jacob</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>代理是 ECMAScript6 规范中最令人兴奋和激动的新增部分之一。尽管不支持向后编译，但是它们支持一个以前不可用的全新的元语法和抽象领域。</p>
+<p>在高层次上，代理是一个真实 JavaScript 对象的透明虚拟层。在创建代理时，可以定义一个包含陷阱的处理器对象，这些陷阱是几乎所有基本的 JavaScript 运算符和方法都会遇到的拦截点。尽管由陷阱不变量绑定，这些陷阱捕获器允许修改这些基本方法的操作方式。</p>
+<p>与代理一起出现的是 Reflect API，它提供了一组方法，这些方法封装了每个陷阱拦截的行为。可以将 Reflect API 看作是基本操作的集合，这些操作是几乎所有 JavaScript 对象 API 的构建模块。</p>
+<p>代理的实用性几乎是无界的，它允许开发者使用优雅的新模式，例如跟踪属性访问、隐藏属性、防止修改或删除属性、函数参数验证、构造函数参数验证、数据绑定和观察等。</p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JS/" rel="tag"># JS</a>
+              <a href="/tags/JS%E9%AB%98%E7%A8%8B/" rel="tag"># JS高程</a>
+              <a href="/tags/%E7%BA%A2%E5%AE%9D%E4%B9%A6/" rel="tag"># 红宝书</a>
+              <a href="/tags/JavaScript%E9%AB%98%E7%BA%A7%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" rel="tag"># JavaScript高级程序设计</a>
+              <a href="/tags/%E7%AC%AC4%E7%89%88/" rel="tag"># 第4版</a>
+              <a href="/tags/%E7%BF%BB%E8%AF%91/" rel="tag"># 翻译</a>
+              <a href="/tags/%E4%BB%A3%E7%90%86/" rel="tag"># 代理</a>
+              <a href="/tags/Proxy/" rel="tag"># Proxy</a>
+              <a href="/tags/%E5%8F%8D%E5%B0%84/" rel="tag"># 反射</a>
+              <a href="/tags/Reflect/" rel="tag"># Reflect</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/a9658a46.html" rel="prev" title="JS高程第4版新增章节翻译：CLASSES">
+      <i class="fa fa-chevron-left"></i> JS高程第4版新增章节翻译：CLASSES
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#代理和反射"><span class="nav-number">1.</span> <span class="nav-text">代理和反射</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#代理基础"><span class="nav-number">1.1.</span> <span class="nav-text">代理基础</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#创建一个直通代理"><span class="nav-number">1.1.1.</span> <span class="nav-text">创建一个直通代理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#定义陷阱"><span class="nav-number">1.1.2.</span> <span class="nav-text">定义陷阱</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#陷阱参数和反射-API"><span class="nav-number">1.1.3.</span> <span class="nav-text">陷阱参数和反射 API</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#陷阱不变量"><span class="nav-number">1.1.4.</span> <span class="nav-text">陷阱不变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可撤销的代理"><span class="nav-number">1.1.5.</span> <span class="nav-text">可撤销的代理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Reflect-API-的实用性"><span class="nav-number">1.1.6.</span> <span class="nav-text">Reflect API 的实用性</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Reflect-API-对比-Object-API"><span class="nav-number">1.1.6.1.</span> <span class="nav-text">Reflect API 对比 Object API</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#状态标志"><span class="nav-number">1.1.6.2.</span> <span class="nav-text">状态标志</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#使用头等函数取代操作符"><span class="nav-number">1.1.6.3.</span> <span class="nav-text">使用头等函数取代操作符</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#安全的函数应用"><span class="nav-number">1.1.6.4.</span> <span class="nav-text">安全的函数应用</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#代理一个-Proxy-331"><span class="nav-number">1.1.7.</span> <span class="nav-text">代理一个 Proxy 331</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#代理的思考与缺陷"><span class="nav-number">1.1.8.</span> <span class="nav-text">代理的思考与缺陷</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#代理中的-this"><span class="nav-number">1.1.8.1.</span> <span class="nav-text">代理中的 this</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#代理和内部插槽"><span class="nav-number">1.1.8.2.</span> <span class="nav-text">代理和内部插槽</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代理陷阱和-Reflect-方法"><span class="nav-number">1.2.</span> <span class="nav-text">代理陷阱和 Reflect 方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#get"><span class="nav-number">1.2.1.</span> <span class="nav-text">get()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-1"><span class="nav-number">1.2.1.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#set"><span class="nav-number">1.2.2.</span> <span class="nav-text">set()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-1"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-1"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-1"><span class="nav-number">1.2.2.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-2"><span class="nav-number">1.2.2.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#has"><span class="nav-number">1.2.3.</span> <span class="nav-text">has()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-2"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-2"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-2"><span class="nav-number">1.2.3.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-3"><span class="nav-number">1.2.3.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#defineProperty"><span class="nav-number">1.2.4.</span> <span class="nav-text">defineProperty()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-3"><span class="nav-number">1.2.4.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-3"><span class="nav-number">1.2.4.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-3"><span class="nav-number">1.2.4.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-4"><span class="nav-number">1.2.4.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#getOwnPropertyDescriptor"><span class="nav-number">1.2.5.</span> <span class="nav-text">getOwnPropertyDescriptor()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-4"><span class="nav-number">1.2.5.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-4"><span class="nav-number">1.2.5.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-4"><span class="nav-number">1.2.5.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-5"><span class="nav-number">1.2.5.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#deleteProperty"><span class="nav-number">1.2.6.</span> <span class="nav-text">deleteProperty()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-5"><span class="nav-number">1.2.6.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-5"><span class="nav-number">1.2.6.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-5"><span class="nav-number">1.2.6.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-6"><span class="nav-number">1.2.6.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ownKeys"><span class="nav-number">1.2.7.</span> <span class="nav-text">ownKeys()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-6"><span class="nav-number">1.2.7.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-6"><span class="nav-number">1.2.7.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-6"><span class="nav-number">1.2.7.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-7"><span class="nav-number">1.2.7.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#getPrototypeOf"><span class="nav-number">1.2.8.</span> <span class="nav-text">getPrototypeOf()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-7"><span class="nav-number">1.2.8.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-7"><span class="nav-number">1.2.8.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-7"><span class="nav-number">1.2.8.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-8"><span class="nav-number">1.2.8.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#setPrototypeOf"><span class="nav-number">1.2.9.</span> <span class="nav-text">setPrototypeOf()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-8"><span class="nav-number">1.2.9.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-8"><span class="nav-number">1.2.9.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-8"><span class="nav-number">1.2.9.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-9"><span class="nav-number">1.2.9.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#isExtensible"><span class="nav-number">1.2.10.</span> <span class="nav-text">isExtensible()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-9"><span class="nav-number">1.2.10.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-9"><span class="nav-number">1.2.10.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-9"><span class="nav-number">1.2.10.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-10"><span class="nav-number">1.2.10.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#preventExtensions"><span class="nav-number">1.2.11.</span> <span class="nav-text">preventExtensions()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-10"><span class="nav-number">1.2.11.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-10"><span class="nav-number">1.2.11.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-10"><span class="nav-number">1.2.11.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-11"><span class="nav-number">1.2.11.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#apply"><span class="nav-number">1.2.12.</span> <span class="nav-text">apply()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-11"><span class="nav-number">1.2.12.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-11"><span class="nav-number">1.2.12.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-11"><span class="nav-number">1.2.12.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-12"><span class="nav-number">1.2.12.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#construct"><span class="nav-number">1.2.13.</span> <span class="nav-text">construct()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#返回值-12"><span class="nav-number">1.2.13.1.</span> <span class="nav-text">返回值</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#被拦截的操作-12"><span class="nav-number">1.2.13.2.</span> <span class="nav-text">被拦截的操作</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱处理器参数-12"><span class="nav-number">1.2.13.3.</span> <span class="nav-text">陷阱处理器参数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#陷阱不变量-13"><span class="nav-number">1.2.13.4.</span> <span class="nav-text">陷阱不变量</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代理模式"><span class="nav-number">1.3.</span> <span class="nav-text">代理模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#跟踪属性访问"><span class="nav-number">1.3.1.</span> <span class="nav-text">跟踪属性访问</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#隐藏属性"><span class="nav-number">1.3.2.</span> <span class="nav-text">隐藏属性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#属性验证"><span class="nav-number">1.3.3.</span> <span class="nav-text">属性验证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#函数和构造函数的参数验证"><span class="nav-number">1.3.4.</span> <span class="nav-text">函数和构造函数的参数验证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#数据绑定和观察"><span class="nav-number">1.3.5.</span> <span class="nav-text">数据绑定和观察</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">52</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '28a1dfeaeb3c5bcb45eccf336942d76a',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
