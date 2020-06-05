@@ -225,6 +225,95 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/9f68952.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/posts/9f68952.html" class="post-title-link" itemprop="url">图像处理中的卷积核kernel</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-21 07:26:13" itemprop="dateCreated datePublished" datetime="2020-02-21T07:26:13+08:00">2020-02-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" itemprop="url" rel="index">
+                    <span itemprop="name">图像处理</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近稍微研究了下 canvas 滤镜在 OpenLayers 中的应用，发现自己照猫画虎可以做出滤镜效果，但是最关键的 <code>kernel</code> 这个<code>卷积核</code>却一点都不了解，参考<a href="https://en.wikipedia.org/wiki/Kernel_(image_processing)#Convolution" target="_blank" rel="external nofollow noopener noreferrer">wiki</a>深入学习一下写一篇笔记。</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p><code>卷积核</code>（<code>kernel</code>），也叫<code>卷积矩阵</code>（<code>convolution matrix</code>）或者<code>掩膜</code>（<code>mask</code>），本质上是一个非常小的矩阵，最常用的是 <code>3×3</code> 矩阵。主要是利用核与图像之间进行卷积运算来实现图像处理，能做出模糊、锐化、凹凸、边缘检测等效果。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/posts/9f68952.html#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/a3cc2dcd.html">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1084,101 +1173,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/911be51e.html">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/orange-logo.svg">
-      <meta itemprop="name" content="林景宜">
-      <meta itemprop="description" content="一个已婚的前端er">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林景宜的记事本">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/posts/911be51e.html" class="post-title-link" itemprop="url">OpenLayers6实例分析：Custom Animation（水波扩散）</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-01-20 07:50:02" itemprop="dateCreated datePublished" datetime="2020-01-20T07:50:02+08:00">2020-01-20</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
-                    <span itemprop="name">前端</span>
-                  </a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
-                    <span itemprop="name">可视化</span>
-                  </a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9C%B0%E5%9B%BE/" itemprop="url" rel="index">
-                    <span itemprop="name">地图</span>
-                  </a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>分析 Custom Animation 这个 demo，官网介绍是：</p>
-<blockquote>
-<p>This example shows how to use postrender and vectorContext to animate features. Here we choose to do a flash animation each time a feature is added to the layer.<br>此示例演示如何使用 postrender 和 vectorContext 对要素进行动画处理。 做法是当一个要素被添加到图层时给它添加闪烁效果。</p>
-</blockquote>
-<ul>
-<li><p><a href="https://openlayers.org/en/latest/examples/feature-animation.html" target="_blank" rel="external nofollow noopener noreferrer">官网实例</a>：Custom Animation</p>
-</li>
-<li><p><a href="https://ke.qq.com/course/449937" target="_blank" rel="external nofollow noopener noreferrer">跟我学 OpenLayers——基础实例讲解</a>：12 渲染器机制的使用 &gt; 实例 82.水纹效果</p></li></ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/911be51e.html#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1250,7 +1244,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">32</span>
+          <span class="site-state-item-count">33</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1263,7 +1257,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">52</span>
+        <span class="site-state-item-count">57</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1381,6 +1375,54 @@ if (document.querySelectorAll('pre.mermaid').length) {
   
 
   
+      
+<script type="text/x-mathjax-config">
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') {
+          next = next.nextSibling;
+        }
+        if (next && next.nodeName.toLowerCase() === 'br') {
+          next.parentNode.removeChild(next);
+        }
+      }
+    });
+  });
+
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      element = document.getElementById(all[i].inputID + '-Frame').parentNode;
+      if (element.nodeName.toLowerCase() == 'li') {
+        element = element.parentNode;
+      }
+      element.classList.add('has-jax');
+    }
+  });
+</script>
+<script>
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML', () => {
+    MathJax.Hub.Typeset();
+  }, window.MathJax);
+</script>
+
+    
 
   
 
