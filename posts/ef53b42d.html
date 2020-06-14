@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/orange-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/orange-16x16-next.png">
+  <link rel="mask-icon" href="/images/orange-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="上一篇《浏览器进程线程、任务队列和 async&#x2F;await》按照自己的理解分析了下浏览器的进程和线程。最近在极客时间发现一个挺不错的课程——浏览器工作原理与实践，根据老师的课程在进程的层面上做一个笔记和实践分析。 当前多进程架构课程中大概介绍了单进程浏览器、早期多进程架构、当前多进程架构和未来面向服务的架构。本篇主要分析下当前的多进程浏览器架构，如下图所示：  从图中可以看出，最新的 Chrome">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chrome浏览器进程分析">
+<meta property="og:url" content="https://linjingyi.cn/posts/ef53b42d.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="上一篇《浏览器进程线程、任务队列和 async&#x2F;await》按照自己的理解分析了下浏览器的进程和线程。最近在极客时间发现一个挺不错的课程——浏览器工作原理与实践，根据老师的课程在进程的层面上做一个笔记和实践分析。 当前多进程架构课程中大概介绍了单进程浏览器、早期多进程架构、当前多进程架构和未来面向服务的架构。本篇主要分析下当前的多进程浏览器架构，如下图所示：  从图中可以看出，最新的 Chrome">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://linjingyi.cn/posts/ef53b42d/Chrome%E8%BF%9B%E7%A8%8B%E6%9E%B6%E6%9E%84%E5%9B%BE.png">
+<meta property="og:image" content="https://linjingyi.cn/posts/ef53b42d/task1.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ef53b42d/task2.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ef53b42d/task3.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ef53b42d/task4.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ef53b42d/task1.jpg">
+<meta property="og:image" content="https://linjingyi.cn/posts/ef53b42d/windows%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86%E5%99%A8.jpg">
+<meta property="article:published_time" content="2020-06-11T01:06:14.000Z">
+<meta property="article:modified_time" content="2020-06-11T01:06:14.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="Chrome">
+<meta property="article:tag" content="进程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://linjingyi.cn/posts/ef53b42d/Chrome%E8%BF%9B%E7%A8%8B%E6%9E%B6%E6%9E%84%E5%9B%BE.png">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/ef53b42d.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>Chrome浏览器进程分析 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/ef53b42d.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/orange-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          Chrome浏览器进程分析
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-11 09:06:14" itemprop="dateCreated datePublished" datetime="2020-06-11T09:06:14+08:00">2020-06-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E6%B5%8F%E8%A7%88%E5%99%A8/" itemprop="url" rel="index">
+                    <span itemprop="name">浏览器</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>上一篇《<a href="https://linjingyi.cn/posts/aab41707.html">浏览器进程线程、任务队列和 async/await</a>》按照自己的理解分析了下浏览器的进程和线程。最近在极客时间发现一个挺不错的课程——浏览器工作原理与实践，根据老师的课程在进程的层面上做一个笔记和实践分析。</p>
+<h1 id="当前多进程架构"><a href="#当前多进程架构" class="headerlink" title="当前多进程架构"></a>当前多进程架构</h1><p>课程中大概介绍了单进程浏览器、早期多进程架构、当前多进程架构和未来面向服务的架构。本篇主要分析下当前的多进程浏览器架构，如下图所示：</p>
+<p><img src="/posts/ef53b42d/Chrome%E8%BF%9B%E7%A8%8B%E6%9E%B6%E6%9E%84%E5%9B%BE.png" alt="Chrome进程架构图"></p>
+<p>从图中可以看出，最新的 Chrome 浏览器包括：<code>1</code> 个浏览器（Browser）主进程、<code>1</code> 个 GPU 进程、<code>1</code> 个网络（NetWork）进程、<code>多</code>个渲染进程和<code>多</code>个插件进程。</p>
+<p>几个进程的功能如下所示：</p>
+<ul>
+<li><strong>浏览器进程</strong>。主要负责界面显示、用户交互、子进程管理，同时提供存储等功能。</li>
+<li><strong>渲染进程</strong>。核心任务是将 HTML、CSS 和 JavaScript 转换为用户可以与之交互的网页，排版引擎 Blink 和 JavaScript 引擎 V8 都是运行在该进程中，默认情况下，Chrome 会为每个 Tab 标签创建一个渲染进程。出于安全考虑，渲染进程都是运行在沙箱模式下。</li>
+<li><strong>GPU 进程</strong>。GPU 进程的使用初衷是为了实现 3D CSS 的效果，只是随后网页、Chrome 的 UI 界面都选择采用 GPU 来绘制，这使得 GPU 成为浏览器普遍的需求。最后，Chrome 在其多进程架构上也引入了 GPU 进程。</li>
+<li><strong>网络进程</strong>。主要负责页面的网络资源加载。</li>
+<li><strong>插件进程</strong>。主要是负责插件的运行，因插件易崩溃，所以需要通过插件进程来隔离，以保证插件进程崩溃不会对浏览器和页面造成影响。</li>
+</ul>
+<h1 id="进程分析"><a href="#进程分析" class="headerlink" title="进程分析"></a>进程分析</h1><p>现在提出一个问题，当前的 Chrome 浏览器打开 <code>2</code> 个页面后会有几个进程？下面分不同情况逐步进行分析。</p>
+<h2 id="普通情况"><a href="#普通情况" class="headerlink" title="普通情况"></a>普通情况</h2><p>不加载任何插件，普通情况下打开谷歌和百度的首页，结果如下图所示：</p>
+<p><img src="/posts/ef53b42d/task1.jpg" alt="5个进程"></p>
+<p>可以发现会有浏览器进程、GPU 进程、网络进程和两个标签页的渲染进程，<code>1+1+1+2=5</code> 个进程。每个标签页放在不同的进程中，有效避免了单进程架构下某一页面崩溃则整个浏览器崩溃的窘境。</p>
+<h2 id="加载两个扩展"><a href="#加载两个扩展" class="headerlink" title="加载两个扩展"></a>加载两个扩展</h2><p>在普通情况的基础上随意加载两个扩展，结果如下图所示：</p>
+<p><img src="/posts/ef53b42d/task2.jpg" alt="7个进程"></p>
+<p>可以发现多出了两个扩展程序的进程，<code>1+1+1+2+2=7</code> 个进程。与标签页原因相似，把插件进程单独隔离，以保证插件进程崩溃不会对浏览器和页面造成影响。</p>
+<h2 id="打开两个同一站点页面"><a href="#打开两个同一站点页面" class="headerlink" title="打开两个同一站点页面"></a>打开两个同一站点页面</h2><p>现在关闭所有插件，并且打开两个<strong>同一站点（same-site）</strong>的页面。</p>
+<blockquote>
+<p><strong>同一站点</strong>的定义与<strong>同源</strong>是有区别的，“同一站点”定义为<strong>根域名</strong>（例如 linjingyi.cn）加上<strong>协议</strong>（例如，https:// 或者http://），包含了该根域名下的所有子域名和不同的端口，比如下面这三个：</p>
+<ul>
+<li><a href="https://test.linjingyi.cn" target="_blank" rel="external nofollow noopener noreferrer">https://test.linjingyi.cn</a></li>
+<li><a href="https://www.linjingyi.cn" target="_blank" rel="noopener">https://www.linjingyi.cn</a></li>
+<li><a href="https://www.linjingyi.cn:8080" target="_blank" rel="noopener">https://www.linjingyi.cn:8080</a></li>
+</ul>
+<p>都是属于同一站点，因为它们的协议都是 https，而根域名也都是 linjingyi.cn。</p>
+</blockquote>
+<p><img src="/posts/ef53b42d/task3.jpg" alt="4个进程"></p>
+<p>可以发现，百度搜索 github 和百度搜索 javascript 这两个标签页被合并成了同一个进程，共用一个进程 ID，<code>1+1+1+1=4</code> 个进程。这里的主要原因是 Chrome 默认的进程策略为“<strong>process-per-site-instance</strong>”，解释下就是每个标签对应一个渲染进程。但是如果从一个页面打开了新页面，而新页面和当前页面属于<strong>同一站点</strong>时，那么新页面会复用父页面的渲染进程。总结下就是同一个 <strong>site-instance</strong> 使用一个进程。</p>
+<h2 id="一个页面内嵌套两个-iframe"><a href="#一个页面内嵌套两个-iframe" class="headerlink" title="一个页面内嵌套两个 iframe"></a>一个页面内嵌套两个 iframe</h2><p>关闭所有插件，写一个 html 文件并打开，内容如下所示：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">"utf-8"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>iframe<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">iframe</span> <span class="attr">src</span>=<span class="string">"https://linjingyi.cn"</span> <span class="attr">width</span>=<span class="string">"300"</span> <span class="attr">height</span>=<span class="string">"400"</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">iframe</span> <span class="attr">src</span>=<span class="string">"https://baidu.com"</span> <span class="attr">width</span>=<span class="string">"300"</span> <span class="attr">height</span>=<span class="string">"400"</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在代码中使用了两个 iframe 框架，打开后的任务管理器如下所示：</p>
+<p><img src="/posts/ef53b42d/task4.jpg" alt="4个进程"></p>
+<p>在 Chrome 任务管理器中，虽然只打开了一个标签页，但是两个 iframe 页面都单独占了一个进程，所以 <code>1+1+1+3=6</code> 个进程。</p>
+<h2 id="查看-Windows-系统任务管理器"><a href="#查看-Windows-系统任务管理器" class="headerlink" title="查看 Windows 系统任务管理器"></a>查看 Windows 系统任务管理器</h2><p>虽然 Chrome 有任务管理器，但是 Windows 系统也自带了任务管理器，使用普通情况（也就是关闭所有插件，只打开百度和谷歌首页）进行对照：</p>
+<p><img src="/posts/ef53b42d/task1.jpg" alt="5个进程"></p>
+<p><img src="/posts/ef53b42d/windows%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86%E5%99%A8.jpg" alt="7个进程"></p>
+<p>对比很明显，为什么在 Chrome 任务管理器中只有 <code>5</code> 个进程，而 Windows 任务管理器中却有 <code>7</code> 个进程。这是因为 Chrome 有一些辅助进程并不会在任务管理器中显示，比如<strong>预渲染进程</strong>是一个额外的渲染辅助进程，当有渲染需求时直接改进程，省去创建进程的时间。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://time.geekbang.org/column/article/113513" target="_blank" rel="external nofollow noopener noreferrer">浏览器工作原理与实践-&gt;01、Chrome 架构：仅仅打开了 1 个页面，为什么有 4 个进程？，李兵</a></p>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Chrome/" rel="tag"># Chrome</a>
+              <a href="/tags/%E8%BF%9B%E7%A8%8B/" rel="tag"># 进程</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/aab41707.html" rel="prev" title="浏览器进程线程、任务队列和async/await">
+      <i class="fa fa-chevron-left"></i> 浏览器进程线程、任务队列和async/await
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#当前多进程架构"><span class="nav-number">1.</span> <span class="nav-text">当前多进程架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进程分析"><span class="nav-number">2.</span> <span class="nav-text">进程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#普通情况"><span class="nav-number">2.1.</span> <span class="nav-text">普通情况</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加载两个扩展"><span class="nav-number">2.2.</span> <span class="nav-text">加载两个扩展</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#打开两个同一站点页面"><span class="nav-number">2.3.</span> <span class="nav-text">打开两个同一站点页面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个页面内嵌套两个-iframe"><span class="nav-number">2.4.</span> <span class="nav-text">一个页面内嵌套两个 iframe</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查看-Windows-系统任务管理器"><span class="nav-number">2.5.</span> <span class="nav-text">查看 Windows 系统任务管理器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/orange-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '5aa45248192a8b461d95384990290c21',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
