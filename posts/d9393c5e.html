@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/bangchui-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/bangchui-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/bangchui-16x16-next.png">
+  <link rel="mask-icon" href="/images/bangchui-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="上一阵子一直在忙着对前端界做出一点微小的贡献，再过两个多月就能揭晓。现在打算开一个天坑，把 lodash 的源码挨个解析一遍，学习下 npm 下载量最大、依赖最多的库的源码逻辑。 解析的代码为 2020 年 7 月 18 日的lodash 源码，版本是4.17.15，fork 到了自己的仓库中，顺序按照官网文档的顺序，在解析时会将该方法依赖的子方法也会全部分析下。有很多自己难理解或理解错的地方，抛">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lodash源码解析：chunk、slice、toInteger、toFinite、toNumber、isObject、isSymbol">
+<meta property="og:url" content="https://linjingyi.cn/posts/d9393c5e.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="上一阵子一直在忙着对前端界做出一点微小的贡献，再过两个多月就能揭晓。现在打算开一个天坑，把 lodash 的源码挨个解析一遍，学习下 npm 下载量最大、依赖最多的库的源码逻辑。 解析的代码为 2020 年 7 月 18 日的lodash 源码，版本是4.17.15，fork 到了自己的仓库中，顺序按照官网文档的顺序，在解析时会将该方法依赖的子方法也会全部分析下。有很多自己难理解或理解错的地方，抛">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-07-20T12:33:42.000Z">
+<meta property="article:modified_time" content="2020-07-20T12:33:42.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="lodash">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="chunk">
+<meta property="article:tag" content="slice">
+<meta property="article:tag" content="toInteger">
+<meta property="article:tag" content="toFinite">
+<meta property="article:tag" content="toNumber">
+<meta property="article:tag" content="isObject">
+<meta property="article:tag" content="isSymbol">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/d9393c5e.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>lodash源码解析：chunk、slice、toInteger、toFinite、toNumber、isObject、isSymbol | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/d9393c5e.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/bangchui-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          lodash源码解析：chunk、slice、toInteger、toFinite、toNumber、isObject、isSymbol
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-20 20:33:42" itemprop="dateCreated datePublished" datetime="2020-07-20T20:33:42+08:00">2020-07-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/" itemprop="url" rel="index">
+                    <span itemprop="name">JS</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" itemprop="url" rel="index">
+                    <span itemprop="name">源码解析</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/lodash/" itemprop="url" rel="index">
+                    <span itemprop="name">lodash</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>上一阵子一直在忙着对前端界做出一点微小的贡献，再过两个多月就能揭晓。现在打算开一个天坑，把 lodash 的源码挨个解析一遍，学习下 npm 下载量最大、依赖最多的库的源码逻辑。</p>
+<p>解析的代码为 2020 年 7 月 18 日的<a href="https://github.com/lodash/lodash" target="_blank" rel="external nofollow noopener noreferrer">lodash 源码</a>，版本是4.17.15，fork 到了<a href="https://github.com/MagnetLin/lodash" target="_blank" rel="external nofollow noopener noreferrer">自己的仓库</a>中，顺序按照官网文档的顺序，在解析时会将该方法依赖的子方法也会全部分析下。有很多自己难理解或理解错的地方，抛砖引玉。</p>
+<a id="more"></a>
+
+<h2 id="chunk"><a href="#chunk" class="headerlink" title="chunk"></a>chunk</h2><p><a href="https://lodash.com/docs/4.17.15#chunk" target="_blank" rel="external nofollow noopener noreferrer">文档地址:https://lodash.com/docs/4.17.15#chunk</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> slice <span class="keyword">from</span> <span class="string">'./slice.js'</span>;</span><br><span class="line"><span class="keyword">import</span> toInteger <span class="keyword">from</span> <span class="string">'./toInteger.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 将数组（array）拆分成多个 size 长度的区块，并将这些区块组成一个新数组。</span></span><br><span class="line"><span class="comment"> * 如果array 无法被分割成全部等长的区块，那么最后剩余的元素将组成一个区块。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>3.0.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Array</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Array&#125;</span> </span>array 需要处理的数组</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>[size=1] 每个数组区块的长度</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;Array&#125;</span> </span>返回一个包含拆分区块的新数组（注：相当于一个二维数组）。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * chunk(['a', 'b', 'c', 'd'], 2)</span></span><br><span class="line"><span class="comment"> * // =&gt; [['a', 'b'], ['c', 'd']]</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * chunk(['a', 'b', 'c', 'd'], 3)</span></span><br><span class="line"><span class="comment"> * // =&gt; [['a', 'b', 'c'], ['d']]</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">chunk</span>(<span class="params">array, size = <span class="number">1</span></span>) </span>&#123;</span><br><span class="line">  <span class="comment">// size必须大于等于0</span></span><br><span class="line">  size = <span class="built_in">Math</span>.max(toInteger(size), <span class="number">0</span>);</span><br><span class="line">  <span class="comment">// array为假时，length设为0；为真时设为数组长度</span></span><br><span class="line">  <span class="keyword">const</span> length = array == <span class="literal">null</span> ? <span class="number">0</span> : array.length;</span><br><span class="line">  <span class="comment">// length为假或size为0时，返回空数组</span></span><br><span class="line">  <span class="keyword">if</span> (!length || size &lt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> [];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 初始化一个长度为（length / size并向上取整）的数组</span></span><br><span class="line">  <span class="keyword">let</span> index = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">let</span> resIndex = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">const</span> result = <span class="keyword">new</span> <span class="built_in">Array</span>(<span class="built_in">Math</span>.ceil(length / size));</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 循环取区块并赋值给result数组的对应位置</span></span><br><span class="line">  <span class="keyword">while</span> (index &lt; length) &#123;</span><br><span class="line">    result[resIndex++] = slice(array, index, (index += size));</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 返回result</span></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> chunk;</span><br></pre></td></tr></table></figure>
+
+<h3 id="slice"><a href="#slice" class="headerlink" title="slice"></a>slice</h3><p><a href="https://lodash.com/docs/4.17.15#slice" target="_blank" rel="external nofollow noopener noreferrer">文档地址:https://lodash.com/docs/4.17.15#slice</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 创建一个数组，来源是裁剪数组array，从 start 位置开始到 end 位置结束，但不包括 end 本身的位置。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * **注意:** 这个方法被用来代替</span></span><br><span class="line"><span class="comment"> * [`Array#slice`](https://mdn.io/Array/slice)确保返回的是个稠密数组。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>3.0.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Array</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Array&#125;</span> </span>array 要裁剪的数组</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>[start=0] 开始位置。负数索引将会被看作从数组结束位置的向前偏移。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>[end=array.length] 结束位置。负数索引将会被看作从数组结束位置的向前偏移。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;Array&#125;</span> </span>返回剪切后的数组。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * var array = [1, 2, 3, 4]</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * _.slice(array, 2)</span></span><br><span class="line"><span class="comment"> * // =&gt; [3, 4]</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">slice</span>(<span class="params">array, start, end</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// array是否为undefined或null，是的话则length为0</span></span><br><span class="line">  <span class="keyword">let</span> length = array == <span class="literal">null</span> ? <span class="number">0</span> : array.length;</span><br><span class="line">  <span class="comment">//  length为假（undefined或0），则返回空数组</span></span><br><span class="line">  <span class="keyword">if</span> (!length) &#123;</span><br><span class="line">    <span class="keyword">return</span> [];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// start是否为undefined或null，是的话则start赋值为0</span></span><br><span class="line">  start = start == <span class="literal">null</span> ? <span class="number">0</span> : start;</span><br><span class="line">  <span class="comment">// start是否为undefined，是的话则end赋值为length</span></span><br><span class="line">  end = end === <span class="literal">undefined</span> ? length : end;</span><br><span class="line">  <span class="comment">// 如果start小于0</span></span><br><span class="line">  <span class="keyword">if</span> (start &lt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 防止真正的start变为负数</span></span><br><span class="line">    start = -start &gt; length ? <span class="number">0</span> : length + start;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 防止end比length还大</span></span><br><span class="line">  end = end &gt; length ? length : end;</span><br><span class="line">  <span class="comment">// 如果end小于0</span></span><br><span class="line">  <span class="keyword">if</span> (end &lt; <span class="number">0</span>) &#123;</span><br><span class="line">    end += length;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果start大于end时，length赋值0，否则就使用&gt;&gt;&gt;移位0确保length是个正整数</span></span><br><span class="line">  length = start &gt; end ? <span class="number">0</span> : (end - start) &gt;&gt;&gt; <span class="number">0</span>;</span><br><span class="line">  <span class="comment">// 确保start是个正整数</span></span><br><span class="line">  start &gt;&gt;&gt;= <span class="number">0</span>;</span><br><span class="line">  <span class="comment">// 返回结果初始化</span></span><br><span class="line">  <span class="keyword">let</span> index = <span class="number">-1</span>;</span><br><span class="line">  <span class="keyword">const</span> result = <span class="keyword">new</span> <span class="built_in">Array</span>(length);</span><br><span class="line">  <span class="comment">// 循环赋值</span></span><br><span class="line">  <span class="keyword">while</span> (++index &lt; length) &#123;</span><br><span class="line">    result[index] = array[index + start];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 返回</span></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> slice;</span><br></pre></td></tr></table></figure>
+
+<h3 id="toInteger"><a href="#toInteger" class="headerlink" title="toInteger"></a>toInteger</h3><p><a href="https://lodash.com/docs/4.17.15#toInteger" target="_blank" rel="external nofollow noopener noreferrer">文档地址:https://lodash.com/docs/4.17.15#toInteger</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> toFinite <span class="keyword">from</span> <span class="string">'./toFinite.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 转换值为整数</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * **注意:** 这个方法大致基于</span></span><br><span class="line"><span class="comment"> * [`ToInteger`](http://www.ecma-international.org/ecma-262/7.0/#sec-tointeger).</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>4.0.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Lang</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;*&#125;</span> </span>value 需要转换的值</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;number&#125;</span> </span>返回转换后的整数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see </span>isInteger, isNumber, toNumber</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toInteger(3.2)</span></span><br><span class="line"><span class="comment"> * // =&gt; 3</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toInteger(Number.MIN_VALUE)</span></span><br><span class="line"><span class="comment"> * // =&gt; 0</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toInteger(Infinity)</span></span><br><span class="line"><span class="comment"> * // =&gt; 1.7976931348623157e+308</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toInteger('3.2')</span></span><br><span class="line"><span class="comment"> * // =&gt; 3</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">toInteger</span>(<span class="params">value</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 转换为有限数字</span></span><br><span class="line">  <span class="keyword">const</span> result = toFinite(value);</span><br><span class="line">  <span class="comment">// 对1取余</span></span><br><span class="line">  <span class="keyword">const</span> remainder = result % <span class="number">1</span>;</span><br><span class="line">  <span class="comment">// 能取到余数就减去余数，返回了整数值</span></span><br><span class="line">  <span class="keyword">return</span> remainder ? result - remainder : result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> toInteger;</span><br></pre></td></tr></table></figure>
+
+<h4 id="toFinite"><a href="#toFinite" class="headerlink" title="toFinite"></a>toFinite</h4><p><a href="https://lodash.com/docs/4.17.15#toFinite" target="_blank" rel="external nofollow noopener noreferrer">文档地址:https://lodash.com/docs/4.17.15#toFinite</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> toNumber <span class="keyword">from</span> <span class="string">'./toNumber.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 用作各种“数字”常量的引用。 */</span></span><br><span class="line"><span class="keyword">const</span> INFINITY = <span class="number">1</span> / <span class="number">0</span>;</span><br><span class="line"><span class="keyword">const</span> MAX_INTEGER = <span class="number">1.7976931348623157e308</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 将值转换为有限数字</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>4.12.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Lang</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;*&#125;</span> </span>value 需要转换的值</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;number&#125;</span> </span>返回转换后的数字</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toFinite(3.2)</span></span><br><span class="line"><span class="comment"> * // =&gt; 3.2</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toFinite(Number.MIN_VALUE)</span></span><br><span class="line"><span class="comment"> * // =&gt; 5e-324</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toFinite(Infinity)</span></span><br><span class="line"><span class="comment"> * // =&gt; 1.7976931348623157e+308</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toFinite('3.2')</span></span><br><span class="line"><span class="comment"> * // =&gt; 3.2</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">toFinite</span>(<span class="params">value</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 先判断value是否假</span></span><br><span class="line">  <span class="keyword">if</span> (!value) &#123;</span><br><span class="line">    <span class="comment">// 假的话就判断是否为0，为0返回0，否则返回value</span></span><br><span class="line">    <span class="keyword">return</span> value === <span class="number">0</span> ? value : <span class="number">0</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 把value转换为数字</span></span><br><span class="line">  value = toNumber(value);</span><br><span class="line">  <span class="comment">// 判断是否正负无穷大</span></span><br><span class="line">  <span class="keyword">if</span> (value === INFINITY || value === -INFINITY) &#123;</span><br><span class="line">    <span class="comment">// 是正负无穷大的话，则返回对应正负1.7976931348623157e+308</span></span><br><span class="line">    <span class="keyword">const</span> sign = value &lt; <span class="number">0</span> ? <span class="number">-1</span> : <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> sign * MAX_INTEGER;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// value 如果!== value的情况，就是+0 === -0，此时返回0</span></span><br><span class="line">  <span class="keyword">return</span> value === value ? value : <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> toFinite;</span><br></pre></td></tr></table></figure>
+
+<h4 id="toNumber"><a href="#toNumber" class="headerlink" title="toNumber"></a>toNumber</h4><p><a href="https://lodash.com/docs/4.17.15#toNumber" target="_blank" rel="external nofollow noopener noreferrer">文档地址:https://lodash.com/docs/4.17.15#toNumber</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> isObject <span class="keyword">from</span> <span class="string">'./isObject.js'</span>;</span><br><span class="line"><span class="keyword">import</span> isSymbol <span class="keyword">from</span> <span class="string">'./isSymbol.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 用于各种Number类型的常量*/</span></span><br><span class="line"><span class="keyword">const</span> NAN = <span class="number">0</span> / <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 用于匹配前面或者后面的空白 */</span></span><br><span class="line"><span class="keyword">const</span> reTrim = <span class="regexp">/^\s+|\s+$/g</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 用于检测错误的有符号十六进制字符串值 */</span></span><br><span class="line"><span class="keyword">const</span> reIsBadHex = <span class="regexp">/^[-+]0x[0-9a-f]+$/i</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 用于检测二进制字符串值 */</span></span><br><span class="line"><span class="keyword">const</span> reIsBinary = <span class="regexp">/^0b[01]+$/i</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 用于检测八进制字符串值 */</span></span><br><span class="line"><span class="keyword">const</span> reIsOctal = <span class="regexp">/^0o[0-7]+$/i</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 不依赖于root的内置方法引用 */</span></span><br><span class="line"><span class="keyword">const</span> freeParseInt = <span class="built_in">parseInt</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 将目标值转换为数字</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>4.0.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Lang</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;*&#125;</span> </span>value 目标值</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;number&#125;</span> </span>返回一个数字.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see </span>isInteger, toInteger, isNumber</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toNumber(3.2)</span></span><br><span class="line"><span class="comment"> * // =&gt; 3.2</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toNumber(Number.MIN_VALUE)</span></span><br><span class="line"><span class="comment"> * // =&gt; 5e-324</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toNumber(Infinity)</span></span><br><span class="line"><span class="comment"> * // =&gt; Infinity</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * toNumber('3.2')</span></span><br><span class="line"><span class="comment"> * // =&gt; 3.2</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">toNumber</span>(<span class="params">value</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 如果为number原始类型，则直接返回原值，否则继续</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">typeof</span> value === <span class="string">'number'</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> value;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果为symbol类型则返回NaN，否则继续</span></span><br><span class="line">  <span class="keyword">if</span> (isSymbol(value)) &#123;</span><br><span class="line">    <span class="keyword">return</span> NAN;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果为对象类型，则先判断valueof属性是否typeof结果为function</span></span><br><span class="line">  <span class="comment">// 是的话就执行后赋值给other，否的话就valueof属性直接赋值给other</span></span><br><span class="line">  <span class="comment">//</span></span><br><span class="line">  <span class="comment">// 再判断other是否为对象，</span></span><br><span class="line">  <span class="comment">// 是对象则把toString结果赋值给value，否的话就other赋值给value。</span></span><br><span class="line">  <span class="keyword">if</span> (isObject(value)) &#123;</span><br><span class="line">    <span class="keyword">const</span> other = <span class="keyword">typeof</span> value.valueOf === <span class="string">'function'</span> ? value.valueOf() : value;</span><br><span class="line">    value = isObject(other) ? <span class="string">`<span class="subst">$&#123;other&#125;</span>`</span> : other;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如果当前的value是否为string类型，</span></span><br><span class="line">  <span class="comment">// 不是string类型的话就判断是否为0，</span></span><br><span class="line">  <span class="comment">// 为0则直接返回，不为0就强制转换后返回</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">typeof</span> value !== <span class="string">'string'</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> value === <span class="number">0</span> ? value : +value;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 现在已经确定为string类型，掐头去尾</span></span><br><span class="line">  value = value.replace(reTrim, <span class="string">''</span>);</span><br><span class="line">  <span class="comment">// 判断是否为二进制</span></span><br><span class="line">  <span class="keyword">const</span> isBinary = reIsBinary.test(value);</span><br><span class="line">  <span class="comment">// 如果是二进制或八进制，就直接转换为数字返回</span></span><br><span class="line">  <span class="keyword">return</span> isBinary || reIsOctal.test(value)</span><br><span class="line">    ? freeParseInt(value.slice(<span class="number">2</span>), isBinary ? <span class="number">2</span> : <span class="number">8</span>)</span><br><span class="line">    : <span class="comment">// 不是的话就判断是否为有错的16进制，是的话返回Nan，否就转化为数字返回</span></span><br><span class="line">    reIsBadHex.test(value)</span><br><span class="line">    ? NAN</span><br><span class="line">    : +value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> toNumber;</span><br></pre></td></tr></table></figure>
+
+<h4 id="isObject"><a href="#isObject" class="headerlink" title="isObject"></a>isObject</h4><p><a href="https://lodash.com/docs/4.17.15#isObject" target="_blank" rel="external nofollow noopener noreferrer">文档地址:https://lodash.com/docs/4.17.15#isObject</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 检查value是否为</span></span><br><span class="line"><span class="comment"> * [Object类型](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)</span></span><br><span class="line"><span class="comment"> * 例如 arrays, functions, objects, regexes, `new Number(0)`, and `new String('')</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>0.1.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Lang</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;*&#125;</span> </span>value 需要检查的值</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;boolean&#125;</span> </span>如果对象则返回true，不是返回false</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * isObject(&#123;&#125;)</span></span><br><span class="line"><span class="comment"> * // =&gt; true</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * isObject([1, 2, 3])</span></span><br><span class="line"><span class="comment"> * // =&gt; true</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * isObject(Function)</span></span><br><span class="line"><span class="comment"> * // =&gt; true</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * isObject(null)</span></span><br><span class="line"><span class="comment"> * // =&gt; false</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">isObject</span>(<span class="params">value</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 本质上使用typeof判断符来判断,这是以下类型的返回值，所以需要先排除null，并把function纳入进来</span></span><br><span class="line">  <span class="comment">// typeof null                'object'</span></span><br><span class="line">  <span class="comment">// typeof function() &#123;&#125;       'function'</span></span><br><span class="line">  <span class="comment">// typeof &#123;&#125;                  'object'</span></span><br><span class="line">  <span class="comment">// typeof []                  'object'</span></span><br><span class="line">  <span class="keyword">const</span> type = <span class="keyword">typeof</span> value;</span><br><span class="line">  <span class="keyword">return</span> value != <span class="literal">null</span> &amp;&amp; (type === <span class="string">'object'</span> || type === <span class="string">'function'</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> isObject;</span><br></pre></td></tr></table></figure>
+
+<h4 id="isSymbol"><a href="#isSymbol" class="headerlink" title="isSymbol"></a>isSymbol</h4><p><a href="https://lodash.com/docs/4.17.15#isSymbol" target="_blank" rel="external nofollow noopener noreferrer">文档地址:https://lodash.com/docs/4.17.15#isSymbol</a></p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> getTag <span class="keyword">from</span> <span class="string">'./.internal/getTag.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 检查目标值是否为Symbol原始类型或Symbol对象</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>4.0.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Lang</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;*&#125;</span> </span>value 需要检查的值</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;boolean&#125;</span> </span>如果为symbol则返回true，否则返回false</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * isSymbol(Symbol.iterator)</span></span><br><span class="line"><span class="comment"> * // =&gt; true</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * isSymbol('abc')</span></span><br><span class="line"><span class="comment"> * // =&gt; false</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">isSymbol</span>(<span class="params">value</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// || 符号之后的判断是为了在ES2015之前的代码polyfill中检测symbol</span></span><br><span class="line">  <span class="keyword">const</span> type = <span class="keyword">typeof</span> value;</span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    type == <span class="string">'symbol'</span> ||</span><br><span class="line">    (type === <span class="string">'object'</span> &amp;&amp; value != <span class="literal">null</span> &amp;&amp; getTag(value) == <span class="string">'[object Symbol]'</span>)</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> isSymbol;</span><br></pre></td></tr></table></figure>
+
+<h4 id="getTag"><a href="#getTag" class="headerlink" title="getTag"></a>getTag</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> toString = <span class="built_in">Object</span>.prototype.toString;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 获取目标值的类型标签（Symbol.toStringTag）</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@private</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;*&#125;</span> </span>value 需要查询的值</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;string&#125;</span> </span>返回类型标签.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getTag</span>(<span class="params">value</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 如果==为假，则先检查是否为undefined，</span></span><br><span class="line">  <span class="comment">// 是的话返回[object Undefined]，不是的话统统返回[object Null]</span></span><br><span class="line">  <span class="keyword">if</span> (value == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> value === <span class="literal">undefined</span> ? <span class="string">'[object Undefined]'</span> : <span class="string">'[object Null]'</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 如==为真，直接借用Object原型链上的toString方法</span></span><br><span class="line">  <span class="keyword">return</span> toString.call(value);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> getTag;</span><br></pre></td></tr></table></figure>
+<h2 id="纯JS实现"><a href="#纯JS实现" class="headerlink" title="纯JS实现"></a>纯JS实现</h2><p>在找lodash源码的时候发现了一个很有意思的仓库叫<a href="https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_chunk" target="_blank" rel="external nofollow noopener noreferrer">You-Dont-Need-Lodash-Underscore</a>，使用纯JS实现了Lodash/Underscore的很多方法。在能明确自己的变量类型并且不想很重的引入lodash时可以自己写这些方法，同样来解析下它。</p>
+<h3 id="chunk-1"><a href="#chunk-1" class="headerlink" title="chunk"></a>chunk</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Underscore/Lodash使用</span></span><br><span class="line">_.chunk([<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>, <span class="string">'d'</span>], <span class="number">2</span>);</span><br><span class="line"><span class="comment">// =&gt; [['a', 'b'], ['c', 'd']]</span></span><br><span class="line"></span><br><span class="line">_.chunk([<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>, <span class="string">'d'</span>], <span class="number">3</span>);</span><br><span class="line"><span class="comment">// =&gt; [['a', 'b', 'c'], ['d']]</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 原生实现</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> chunk = <span class="function">(<span class="params">input, size</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="comment">// arr是累计器</span></span><br><span class="line">  <span class="comment">// item是当前当前值</span></span><br><span class="line">  <span class="comment">// idx是当前索引</span></span><br><span class="line">  <span class="comment">// []是初始累计器</span></span><br><span class="line">  <span class="comment">// 整体的逻辑如下：</span></span><br><span class="line">  <span class="comment">// 当索引对size取余为0时，就在当前累计器的基础上加一个子数组[item]</span></span><br><span class="line">  <span class="comment">// 当索引对size取余不为0时，就在当前累计器基础上把最后一个子数组加上子元素item</span></span><br><span class="line">  <span class="keyword">return</span> input.reduce(<span class="function">(<span class="params">arr, item, idx</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> idx % size === <span class="number">0</span></span><br><span class="line">      ? [...arr, [item]]</span><br><span class="line">      : [...arr.slice(<span class="number">0</span>, <span class="number">-1</span>), [...arr.slice(<span class="number">-1</span>)[<span class="number">0</span>], item]];<span class="comment">// 这里活用了slice不改变原数组，返回新数组的规则</span></span><br><span class="line">  &#125;, []);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">chunk([<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>, <span class="string">'d'</span>], <span class="number">2</span>);</span><br><span class="line"><span class="comment">// =&gt; [['a', 'b'], ['c', 'd']]</span></span><br><span class="line"></span><br><span class="line">chunk([<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>, <span class="string">'d'</span>], <span class="number">3</span>);</span><br><span class="line"><span class="comment">// =&gt; [['a', 'b', 'c'], ['d']]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="slice-1"><a href="#slice-1" class="headerlink" title="slice"></a>slice</h3><p>slice就很尴尬了，<code>Array.prototype</code>上的原生方法。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Lodash</span></span><br><span class="line"><span class="keyword">var</span> array = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line"><span class="built_in">console</span>.log(_.slice(array, <span class="number">1</span>, <span class="number">3</span>))</span><br><span class="line"><span class="comment">// output: [2, 3]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 原生</span></span><br><span class="line"><span class="keyword">var</span> array = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]</span><br><span class="line"><span class="built_in">console</span>.log(array.slice(<span class="number">1</span>, <span class="number">3</span>));</span><br><span class="line"><span class="comment">// output: [2, 3]</span></span><br></pre></td></tr></table></figure>
+<h3 id><a href="#" class="headerlink" title></a></h3>
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/lodash/" rel="tag"># lodash</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+              <a href="/tags/chunk/" rel="tag"># chunk</a>
+              <a href="/tags/slice/" rel="tag"># slice</a>
+              <a href="/tags/toInteger/" rel="tag"># toInteger</a>
+              <a href="/tags/toFinite/" rel="tag"># toFinite</a>
+              <a href="/tags/toNumber/" rel="tag"># toNumber</a>
+              <a href="/tags/isObject/" rel="tag"># isObject</a>
+              <a href="/tags/isSymbol/" rel="tag"># isSymbol</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/d452b933.html" rel="prev" title="Protocol Buffers3语言指南（译）">
+      <i class="fa fa-chevron-left"></i> Protocol Buffers3语言指南（译）
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/posts/a3f2035b.html" rel="next" title="lodash源码解析：compact">
+      lodash源码解析：compact <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#chunk"><span class="nav-number">1.</span> <span class="nav-text">chunk</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#slice"><span class="nav-number">1.1.</span> <span class="nav-text">slice</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#toInteger"><span class="nav-number">1.2.</span> <span class="nav-text">toInteger</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#toFinite"><span class="nav-number">1.2.1.</span> <span class="nav-text">toFinite</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#toNumber"><span class="nav-number">1.2.2.</span> <span class="nav-text">toNumber</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#isObject"><span class="nav-number">1.2.3.</span> <span class="nav-text">isObject</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#isSymbol"><span class="nav-number">1.2.4.</span> <span class="nav-text">isSymbol</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#getTag"><span class="nav-number">1.2.5.</span> <span class="nav-text">getTag</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#纯JS实现"><span class="nav-number">2.</span> <span class="nav-text">纯JS实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#chunk-1"><span class="nav-number">2.1.</span> <span class="nav-text">chunk</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#slice-1"><span class="nav-number">2.2.</span> <span class="nav-text">slice</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#"><span class="nav-number">2.3.</span> <span class="nav-text"></span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/bangchui-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">73</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: 'c50a78c21f374834d97903d7c45c5c53',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

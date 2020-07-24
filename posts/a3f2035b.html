@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/bangchui-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/bangchui-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/bangchui-16x16-next.png">
+  <link rel="mask-icon" href="/images/bangchui-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="分析lodash——compact，compact 的源码非常简单，并没有引用其他的函数。但是看源码之前，首先想一个问题，lodash 源码里大量出现了 a &#x3D;&#x3D; null 或 a !&#x3D; null 的判断，所以值 a 什么情况下 满足 a &#x3D;&#x3D; null 为真？什么情况下 a &#x3D;&#x3D; undefined 为真？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lodash源码解析：compact">
+<meta property="og:url" content="https://linjingyi.cn/posts/a3f2035b.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="分析lodash——compact，compact 的源码非常简单，并没有引用其他的函数。但是看源码之前，首先想一个问题，lodash 源码里大量出现了 a &#x3D;&#x3D; null 或 a !&#x3D; null 的判断，所以值 a 什么情况下 满足 a &#x3D;&#x3D; null 为真？什么情况下 a &#x3D;&#x3D; undefined 为真？">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-07-22T05:50:38.000Z">
+<meta property="article:modified_time" content="2020-07-22T05:50:38.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="lodash">
+<meta property="article:tag" content="源码">
+<meta property="article:tag" content="compact">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/a3f2035b.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>lodash源码解析：compact | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/a3f2035b.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/bangchui-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          lodash源码解析：compact
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-22 13:50:38" itemprop="dateCreated datePublished" datetime="2020-07-22T13:50:38+08:00">2020-07-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/" itemprop="url" rel="index">
+                    <span itemprop="name">JS</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" itemprop="url" rel="index">
+                    <span itemprop="name">源码解析</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/lodash/" itemprop="url" rel="index">
+                    <span itemprop="name">lodash</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>分析<a href="https://lodash.com/docs/4.17.15#compact" target="_blank" rel="external nofollow noopener noreferrer">lodash——compact</a>，compact 的源码非常简单，并没有引用其他的函数。但是看源码之前，首先想一个问题，lodash 源码里大量出现了 a == null 或 a != null 的判断，所以值 a 什么情况下 满足 a == null 为真？什么情况下 a == undefined 为真？</p>
+<a id="more"></a>
+
+<h2 id="宽松相等"><a href="#宽松相等" class="headerlink" title="宽松相等"></a>宽松相等</h2><p>谁与 null 宽松相等这个问题，我问了公司的资深前端们，给出了解答，答案就在 ECMAScript262 标准里：<a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-abstract-equality-comparison" target="_blank" rel="external nofollow noopener noreferrer">抽象相等比较算法</a>，如下所示：</p>
+<blockquote>
+<p>The comparison x == y, where x and y are values, produces true or false. Such a comparison is performed as follows:</p>
+<ol>
+<li>If <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(x) is the same as <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(y), then<ol>
+<li>Return the result of performing <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-strict-equality-comparison" target="_blank" rel="external nofollow noopener noreferrer">Strict Equality Comparison</a> x === y.</li>
+</ol>
+</li>
+<li>If x is null and y is undefined, return true.</li>
+<li>If x is undefined and y is null, return true.</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(x) is Number and <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(y) is String, return the result of the comparison x == ! <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-tonumber" target="_blank" rel="external nofollow noopener noreferrer">ToNumber</a>(y).</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(x) is String and <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(y) is Number, return the result of the comparison ! <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-tonumber" target="_blank" rel="external nofollow noopener noreferrer">ToNumber</a>(x) == y.</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(x) is BigInt and <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(y) is String, then<ol>
+<li>Let n be ! <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-stringtobigint" target="_blank" rel="external nofollow noopener noreferrer">StringToBigInt</a>(y).</li>
+<li>If n is NaN, return false.</li>
+<li>Return the result of the comparison x == n.</li>
+</ol>
+</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(x) is String and <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(y) is BigInt, return the result of the comparison y == x.</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(x) is Boolean, return the result of the comparison ! <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-tonumber" target="_blank" rel="external nofollow noopener noreferrer">ToNumber</a>(x) == y.</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(y) is Boolean, return the result of the comparison x == ! <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-tonumber" target="_blank" rel="external nofollow noopener noreferrer">ToNumber</a>(y).</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(x) is either String, Number, BigInt, or Symbol and <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(y) is Object, return the result of the comparison x == <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-toprimitive" target="_blank" rel="external nofollow noopener noreferrer">ToPrimitive</a>(y).</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(x) is Object and <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(y) is either String, Number, BigInt, or Symbol, return the result of the comparison <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-toprimitive" target="_blank" rel="external nofollow noopener noreferrer">ToPrimitive</a>(x) == y.</li>
+<li>If <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(x) is BigInt and <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(y) is Number, or if <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(x) is Number and <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-ecmascript-data-types-and-values" target="_blank" rel="external nofollow noopener noreferrer">Type</a>(y) is BigInt, then<ol>
+<li>If x or y are any of NaN, +∞, or -∞, return false.</li>
+<li>If the <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#mathematical-value" target="_blank" rel="external nofollow noopener noreferrer">mathematical value</a> of x is equal to the <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#mathematical-value" target="_blank" rel="external nofollow noopener noreferrer">mathematical value</a> of y, return true; otherwise return false.</li>
+</ol>
+</li>
+<li>Return false.</li>
+</ol>
+</blockquote>
+<p>翻译一下：</p>
+<blockquote>
+<p>在 x == y 这种比较中，x 和 y 都是值，返回 true 或者 false。这种比较执行的步骤如下所示：</p>
+<ol>
+<li>如果 x 的类型与 y 的类型相同：<ol>
+<li>返回<a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-strict-equality-comparison" target="_blank" rel="external nofollow noopener noreferrer">严格相等比较</a> x === y 的结果。</li>
+</ol>
+</li>
+<li>如果 x 为 null 且 y 为 undefined，返回 true。</li>
+<li>如果 x 为 undefined 且 y 为 null，返回 true。</li>
+<li>如果 x 为 Number 类型且 y 为 String 类型，返回比较 x == ! <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-tonumber" target="_blank" rel="external nofollow noopener noreferrer">ToNumber</a>(y)的结果。</li>
+<li>如果 x 为 String 类型且 y 为 Number 类型，返回比较 ! <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-tonumber" target="_blank" rel="external nofollow noopener noreferrer">ToNumber</a>(x) == y 的结果。</li>
+<li>如果 x 为 BigInt 类型且 y 为 String 类型：<ol>
+<li>let n = ! <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-stringtobigint" target="_blank" rel="external nofollow noopener noreferrer">StringToBigInt</a>(y)。</li>
+<li>如果 n 为 NaN，返回 false。</li>
+<li>返回比较 x == n 的结果。</li>
+</ol>
+</li>
+<li>如果 x 为 String 类型且 y 为 BigInt 类型，返回比较 y == x 的结果。</li>
+<li>如果 x 为 Boolean 类型，返回比较! <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-tonumber" target="_blank" rel="external nofollow noopener noreferrer">ToNumber</a>(x) == y 的结果。</li>
+<li>如果 y 为 Boolean 类型，返回比较 x == ! <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-tonumber" target="_blank" rel="external nofollow noopener noreferrer">ToNumber</a>(y)的结果。</li>
+<li>如果 x 为 String, Number, BigInt 或 Symbol 类型之一，且 y 为 Object 类型，返回比较 x == <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-toprimitive" target="_blank" rel="external nofollow noopener noreferrer">ToPrimitive</a>(y)的结果。</li>
+<li>如果 x 为 Object 类型，且 y 为 String, Number, BigInt 或 Symbol 类型之一，返回比较 <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-toprimitive" target="_blank" rel="external nofollow noopener noreferrer">ToPrimitive</a>(x) == y 的结果。</li>
+<li>如果 x 为 BigInt 类型且 y 为 Number 类型，或 x 为 Number 类型且 y 为 BigInt 类型：<ol>
+<li>如果 x 或者 y 为 NaN, +∞, or -∞ 之一，返回 false。</li>
+<li>如果 x 与 y 的数学计算结果相等，返回 true；否则返回 false。</li>
+</ol>
+</li>
+<li>返回 false。</li>
+</ol>
+</blockquote>
+<p>比较条件特别细致和繁琐，概括下：</p>
+<blockquote>
+<ol>
+<li>类型相同，返回严格相等比较 x === y 的结果。</li>
+<li>null == undefined，返回 true。</li>
+<li>数字（Number 和 BigInt）类型和 String 类型比较，转换为数字再比较。</li>
+<li>Boolean 类型转换为 Number 类型再比较</li>
+<li>Object 类型与其他原始类型比较前，先转为原始类型再比较。</li>
+</ol>
+</blockquote>
+<p>所以回到最初的问题：</p>
+<ol>
+<li>null 为 Null 类型的唯一值，undefined 为 Undefined 类型的唯一值，所以同类型比较时执行严格相等比较，null == null 和 undefined = undefined 为真。</li>
+<li>第二步和第三步说明了 undefined == null 和 null == undefined 为真；</li>
+<li>其余的牵扯到 null 和 undefined 的宽松相等比较都为假。</li>
+</ol>
+<h2 id="Truthy（真值）和-Falsy-（假值）"><a href="#Truthy（真值）和-Falsy-（假值）" class="headerlink" title="Truthy（真值）和 Falsy （假值）"></a>Truthy（真值）和 Falsy （假值）</h2><p>在 compact 代码中，还用到了关于真假值（Truthy、Falsy）的判断，compact 会剔除数组中的所有假值，那么什么样的值算假值？换句话说，什么样的值类型转换为 Boolean 后为假值？还是见<a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-toboolean" target="_blank" rel="external nofollow noopener noreferrer">ECMA262</a>：</p>
+<p>直接翻译表 10: <a href="http://www.ecma-international.org/ecma-262/11.0/index.html#sec-toboolean" target="_blank" rel="external nofollow noopener noreferrer">ToBoolean</a> 转换</p>
+<table>
+<thead>
+<tr>
+<th>参数类型</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Undefined</td>
+<td>返回 false。</td>
+</tr>
+<tr>
+<td>Null</td>
+<td>返回 false。</td>
+</tr>
+<tr>
+<td>Boolean</td>
+<td>返回参数。</td>
+</tr>
+<tr>
+<td>Number</td>
+<td>如果参数为+0, -0 或 NaN，返回 false；其余情况返回 true。</td>
+</tr>
+<tr>
+<td>String</td>
+<td>如果参数是空字符串（length 属性为 0），返回 false；其余情况返回 true。</td>
+</tr>
+<tr>
+<td>Symbol</td>
+<td>返回 true。</td>
+</tr>
+<tr>
+<td>BigInt</td>
+<td>如果参数为 0n，返回 false；其余情况返回 true。</td>
+</tr>
+<tr>
+<td>Object</td>
+<td>返回 true。</td>
+</tr>
+</tbody></table>
+<h2 id="compact"><a href="#compact" class="headerlink" title="compact"></a>compact</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 创建一个新数组，包含原数组中所有的非假值元素。</span></span><br><span class="line"><span class="comment"> * 例如false, null, 0, "", undefined, 和 NaN 都是被认为是“假值”。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>0.1.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Array</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Array&#125;</span> </span>array 待处理的数组</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;Array&#125;</span> </span>返回过滤掉假值的新数组。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * compact([0, 1, false, 2, '', 3])</span></span><br><span class="line"><span class="comment"> * // =&gt; [1, 2, 3]</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">compact</span>(<span class="params">array</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">let</span> resIndex = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">const</span> result = [];</span><br><span class="line">  <span class="comment">// 当array为undefined和null时，返回[]</span></span><br><span class="line">  <span class="keyword">if</span> (array == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> value <span class="keyword">of</span> array) &#123;</span><br><span class="line">    <span class="comment">// false, null, 0, "", undefined, 和 NaN在if判断里都为假</span></span><br><span class="line">    <span class="keyword">if</span> (value) &#123;</span><br><span class="line">      <span class="comment">// 新数组递增赋值</span></span><br><span class="line">      result[resIndex++] = value;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> compact;</span><br></pre></td></tr></table></figure>
+
+<h2 id="原生实现"><a href="#原生实现" class="headerlink" title="原生实现"></a>原生实现</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Lodash</span></span><br><span class="line">_.compact([<span class="number">0</span>, <span class="number">1</span>, <span class="literal">false</span>, <span class="number">2</span>, <span class="string">''</span>, <span class="number">3</span>]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 原生实现</span></span><br><span class="line">[<span class="number">0</span>, <span class="number">1</span>, <span class="literal">false</span>, <span class="number">2</span>, <span class="string">''</span>, <span class="number">3</span>].filter(<span class="built_in">Boolean</span>);</span><br></pre></td></tr></table></figure>
+
+<p>原生实现的代码中直接用了<code>Array.prototype.filter()</code>，在后面却直接把 Boolean 当参数传进去，冷不丁看起来难理解，但只要明白下面两点就很容易想通：</p>
+<ol>
+<li><p>首先，<code>Boolean</code>本身就是一个函数：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Boolean</span>(<span class="number">0</span>); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">Boolean</span>(<span class="number">1</span>); <span class="comment">// true</span></span><br><span class="line"><span class="built_in">Boolean</span>(<span class="literal">false</span>); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">Boolean</span>(<span class="number">2</span>); <span class="comment">// true</span></span><br><span class="line"><span class="built_in">Boolean</span>(<span class="string">''</span>); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">Boolean</span>(<span class="number">3</span>); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>Array.prototype.filter(callback)</code>中，入参 callback 其实一个回调函数，只要函数能满足入参为<code>element[, index[, array]]</code>就可以，所以如下两种写法是等价的：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 简写，Boolean本身就是一个函数</span></span><br><span class="line"><span class="comment">// 所以只要参数能对应上，也就能直接作为回调函数callback用</span></span><br><span class="line">b = a.filter(<span class="built_in">Boolean</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用function语法构造了一个回调函数，再把item传给Boolean</span></span><br><span class="line">b = a.filter(<span class="function"><span class="keyword">function</span> (<span class="params">item</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="built_in">Boolean</span>(item);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/lodash/" rel="tag"># lodash</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+              <a href="/tags/compact/" rel="tag"># compact</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/d9393c5e.html" rel="prev" title="lodash源码解析：chunk、slice、toInteger、toFinite、toNumber、isObject、isSymbol">
+      <i class="fa fa-chevron-left"></i> lodash源码解析：chunk、slice、toInteger、toFinite、toNumber、isObject、isSymbol
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#宽松相等"><span class="nav-number">1.</span> <span class="nav-text">宽松相等</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Truthy（真值）和-Falsy-（假值）"><span class="nav-number">2.</span> <span class="nav-text">Truthy（真值）和 Falsy （假值）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#compact"><span class="nav-number">3.</span> <span class="nav-text">compact</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原生实现"><span class="nav-number">4.</span> <span class="nav-text">原生实现</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/bangchui-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">37</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">73</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '348e975c3498a8b556c23a4a79c7007a',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>

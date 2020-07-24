@@ -225,6 +225,815 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/ef0a6799.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/bangchui-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/posts/ef0a6799.html" class="post-title-link" itemprop="url">CSS数学表达式calc()的规范草案翻译</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-27 21:19:42" itemprop="dateCreated datePublished" datetime="2020-02-27T21:19:42+08:00">2020-02-27</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/CSS/" itemprop="url" rel="index">
+                    <span itemprop="name">CSS</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>上一篇文章<a href="https://linjingyi.cn/posts/3680799e.html">关于各种像素概念和前端长度单位的理解</a>分析了 <code>px</code> 的定义和各种相对长度单位，这次翻译学习一下 CSS 的 <code>calc()</code>规范，为下一篇做铺垫。<br>首先纠正 W3C 的 CSS 工作组<a href="https://drafts.csswg.org/css-values-3/#funcdef-calc" target="_blank" rel="external nofollow noopener noreferrer">规范草案</a>中关于 <code>calc()</code>的一个错误：</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/posts/ef0a6799.html#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/3680799e.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/bangchui-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/posts/3680799e.html" class="post-title-link" itemprop="url">关于各种像素概念和前端长度单位的理解</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-26 06:59:00" itemprop="dateCreated datePublished" datetime="2020-02-26T06:59:00+08:00">2020-02-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/CSS/" itemprop="url" rel="index">
+                    <span itemprop="name">CSS</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>在 CSS 中，<code>1px</code>到底是多长，为什么是这个长度。百度谷歌搜索很久说法很不一致，最后才发现最标准的还是去看<a href="https://www.w3.org/" target="_blank" rel="external nofollow noopener noreferrer">万维网联盟</a>（World Wide Web Consortium，W3C）的<a href="https://www.w3.org/Style/CSS/" target="_blank" rel="external nofollow noopener noreferrer">CSS 标准和草案</a>，总结以下一些概念。</p>
+<h2 id="像素"><a href="#像素" class="headerlink" title="像素"></a>像素</h2><p>像素是在印刷业和屏幕设备最基础的概念，一切的显示都从像素开始，循序渐进的理解 CSS 像素到底是什么。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/posts/3680799e.html#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/4a90030.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/bangchui-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/posts/4a90030.html" class="post-title-link" itemprop="url">ECharts旭日图及轮播效果实现</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-02-24 07:25:15" itemprop="dateCreated datePublished" datetime="2020-02-24T07:25:15+08:00">2020-02-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
+                    <span itemprop="name">可视化</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/ECharts/" itemprop="url" rel="index">
+                    <span itemprop="name">ECharts</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>最近使用了 <code>sunburst 旭日图</code>，但 ECharts 的配置项实在是太多，边学习便记录。以<a href="https://gallery.echartsjs.com/explore.html#sort=rank~timeframe=all~author=all" target="_blank" rel="external nofollow noopener noreferrer">官网 gallery</a> 中的推荐 demo——<a href="https://gallery.echartsjs.com/editor.html?c=xeAESd00vq" target="_blank" rel="external nofollow noopener noreferrer">2018 豆瓣中国大陆影视剧评分排行</a>——为例，分析 <code>sunburst 旭日图</code>类型的实现，修改了原 demo 的一些错误和冗余，并给图表添加自定义的动态<code>轮播</code>效果，效果如下所示：</p>
+<style>
+    div#container {
+    width: 100%;
+    height: 800px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    background: #2e2733;
+    }
+    div#detail-container {
+    width: 100%;
+    height: 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    }
+    div#detail-container .kind {
+    color: #ffae57;
+    }
+    div#detail-container .title {
+    color: #ff7853;
+    font-size: 120%;
+    font-weight: bold;
+    }
+    div#echarts-container {
+    width: 100%;
+    height: 100%;
+    }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/echarts@4.6.0/dist/echarts.min.js"></script>
+<div id="container">
+    <div id="detail-container"></div>
+    <div id="echarts-container"></div>
+</div>
+<script type="text/javascript">
+     // 基于准备好的dom，初始化echarts实例
+      let chartSunburst = echarts.init(
+        document.getElementById("echarts-container")
+      );
+      // 指定图表的配置项和数据
+      // 颜色序列
+      const colors = ["#FFAE57", "#FF7853", "#EA5151", "#CC3F57", "#9A2555"];
+      // 背景颜色
+      const bgColor = "#2E2733";
+      // 给不同星级分配不同颜色
+      let itemStyle = {
+        star5: {
+          color: colors[0]
+        },
+        star4: {
+          color: colors[1]
+        },
+        star3: {
+          color: colors[2]
+        },
+        star2: {
+          color: colors[3]
+        },
+        star1: {
+          color: colors[4]
+        }
+      };
+      // sunburst 旭日图树状数据
+      // https://www.echartsjs.com/zh/option.html#series-sunburst.data
+      let data = [
+        {
+          name: "电视剧",
+          itemStyle: {
+            // normal: {
+            color: colors[1]
+            // }
+          },
+          children: [
+            {
+              name: "现代",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "大江大河"
+                    },
+                    {
+                      name: "疯人院"
+                    },
+                    {
+                      name: "天坑鹰猎"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "SCI谜案集"
+                    },
+                    {
+                      name: "古董局中局"
+                    },
+                    {
+                      name: "乡村爱情协奏曲"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "上海女子图鉴"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "古装",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "天盛长歌"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "小戏骨：水浒传"
+                    },
+                    {
+                      name: "香蜜沉沉烬如霜"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "知否知否应是绿肥红瘦"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          name: "电影",
+          itemStyle: {
+            color: colors[2]
+          },
+          children: [
+            {
+              name: "喜剧",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "我不是药神"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "无名之辈"
+                    },
+                    {
+                      name: "阿浪的远方"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "一出好戏"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "剧情",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "无双"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "大象席地而坐"
+                    },
+                    {
+                      name: "风中有朵雨做的云"
+                    },
+                    {
+                      name: "过春天"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "无问西东"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "爱情",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "江湖儿女"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "地球最后的夜晚"
+                    },
+                    {
+                      name: "你好之华"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆"
+                },
+                {
+                  name: "2☆",
+                  children: [
+                    {
+                      name: "后来的我们"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "动作",
+              children: [
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "红海行动"
+                    },
+                    {
+                      name: "影"
+                    },
+                    {
+                      name: "动物世界"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "动画",
+              children: [
+                {
+                  name: "5☆",
+                  children: [
+                    {
+                      name: "夜思"
+                    }
+                  ]
+                },
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "切尔诺贝利之春"
+                    },
+                    {
+                      name: "女他"
+                    }
+                  ]
+                },
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "风雨咒"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "惊悚",
+              children: [
+                {
+                  name: "4☆",
+                  children: [
+                    {
+                      name: "灵魂摆渡·黄泉"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: "武侠",
+              children: [
+                {
+                  name: "3☆",
+                  children: [
+                    {
+                      name: "夺命剑之风云再起"
+                    }
+                  ]
+                },
+                {
+                  name: "2☆",
+                  children: [
+                    {
+                      name: "狄仁杰之四大天王"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ];
+      // 循环处理数据，为了给不同的星级做区分
+      for (let j = 0; j < data.length; ++j) {
+        let level1 = data[j].children;
+        // level1中继续循环
+        for (let i = 0; i < level1.length; ++i) {
+          let block = level1[i].children;
+          for (let star = 0; star < block.length; ++star) {
+            // 定义了一个立即执行匿名函数，修改bookScoreId并从itemStyle数组返回对应的style
+            // 对demo进行了优化，直接拼凑字符串从itemStyle中取对应颜色
+            style = itemStyle["star" + parseInt(block[star].name)];
+            // 给不同星级文字label设置不同的颜色，并添加一个downplay不相关文本透明度0.5
+            block[star].label = {
+              color: style.color,
+              // 似乎不生效，没有这个api
+              downplay: {
+                opacity: 0.5
+              }
+            };
+            // 如果该星级下有书，就继续对下级循环
+            if (block[star].children) {
+              // 继续给星级下级分配相同颜色
+              style = {
+                opacity: 1,
+                color: style.color
+              };
+              // 循环
+              block[star].children.forEach(book => {
+                // 同一星级下的每本书value都设为1，用于平分扇形
+                book.value = 1;
+                book.itemStyle = style;
+                book.label = {
+                  color: style.color
+                };
+              });
+            }
+          }
+          level1[i].itemStyle = {
+            color: data[j].itemStyle.color
+          };
+        }
+      }
+      let option = {
+        backgroundColor: bgColor,
+        // 设置调色盘颜色
+        // https://www.echartsjs.com/zh/option.html#color
+        color: colors,
+        // https://www.echartsjs.com/zh/option.html#series-sunburst
+        series: [
+          {
+            // 旭日图
+            type: "sunburst",
+            // 中心位置
+            center: ["50%", "50%"],
+            // 数据来源
+            data: data,
+            // 排序时，如果是第一层深度，靠value排序，其余情况dataIndex排序
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.sort
+            sort: (a, b) => {
+              if (a.depth === 1) {
+                return b.getValue() - a.getValue();
+              } else {
+                return a.dataIndex - b.dataIndex;
+              }
+            },
+            // 每一个标签样式
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.label
+            label: {
+              // 径向旋转
+              rotate: "radial",
+              color: bgColor,
+              opacity: 0.9
+            },
+            // 每一项的样式
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.itemStyle
+            itemStyle: {
+              borderColor: bgColor,
+              borderWidth: 2,
+              opacity: 0.9
+            },
+            // 未选中的样式
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.downplay
+            downplay: {
+              itemStyle: {
+                opacity: 0.7
+              },
+              label: {
+                opacity: 0.7
+              }
+            },
+            // 选中的样式
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.highlight
+            highlight: {
+              itemStyle: {
+                opacity: 1,
+              },
+              label: {
+                opacity: 1,
+              }
+            },
+            // 给每个级别单独设置
+            // https://www.echartsjs.com/zh/option.html#series-sunburst.levels
+            levels: [
+              // 这个空对象其实是第0级
+              {},
+              // 第1级
+              {
+                // r0时内半径，r是外半径
+                r0: 0,
+                r: 40,
+                label: {
+                  rotate: 0
+                }
+              },
+              // 第2级
+              {
+                r0: 40,
+                r: 105,
+              },
+              // 第3级
+              {
+                r0: 115,
+                r: 140,
+                // 单独给第三圈设置了边框样式和背景样式
+                itemStyle: {
+                  shadowBlur: 2,
+                  shadowColor: colors[2],
+                  color: "transparent"
+                },
+                // 给该层设置切向旋转
+                label: {
+                  rotate: "tangential",
+                  fontSize: 10,
+                  color: colors[0]
+                }
+              },
+              // 第4级
+              {
+                r0: 140,
+                r: 145,
+                itemStyle: {
+                  // 烟雾状的blur
+                  shadowBlur: 80,
+                  shadowColor: colors[0]
+                },
+                label: {
+                  // 最外圈把标签设置到了最外层
+                  position: "outside",
+                  textShadowBlur: 5,
+                  textShadowColor: "#333"
+                }
+              }
+            ]
+          }
+        ]
+      };
+      // 使用刚指定的配置项和数据显示图表。
+      chartSunburst.setOption(option);
+      // 下面是轮播效果
+      // 首先把整个树状结构的数据扁平化，形成一个由level1、2、3、4组成的数组
+      let dataArrSorted = [];
+      data.forEach(level1 => {
+        if (level1.children) {
+          level1.children.forEach(level2 => {
+            if (level2.children) {
+              level2.children.forEach(level3 => {
+                if (level3.children) {
+                  level3.children.forEach(level4 => {
+                    dataArrSorted.push({
+                      level1: level1.name,
+                      level2: level2.name,
+                      level3: level3.name,
+                      level4: level4.name
+                    });
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+      // https://www.echartsjs.com/zh/api.html#echartsInstance.on
+      // 监听chartSunburst的highlight事件，在回调函数中拿到params组成一个dom片段插入
+      chartSunburst.on("highlight", params => {
+        document.querySelector(
+          "#detail-container"
+        ).innerHTML = `<p class="kind">${params.level1} > ${params.level2} > ${params.level3}</p><p class="title">${params.level4}</p>`;
+      });
+      // 设置一个定时器，每2秒派发一个highlight事件，name是level4，再把整个dataArrSorted[i]对象解构进去发送
+      // https://www.echartsjs.com/zh/api.html#action.highlight
+      i = 0;
+      const key = setInterval(() => {
+        if (i < dataArrSorted.length) {
+          chartSunburst.dispatchAction({
+            type: "highlight",
+            name: dataArrSorted[i].level4,
+            ...dataArrSorted[i]
+          });
+        } else {
+          // 当循环完成，清除定时器
+          clearInterval(key);
+        }
+        i++;
+      }, 2000);
+</script>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/posts/4a90030.html#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/8bd9ee4.html">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -880,299 +1689,6 @@
   
   
 
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/560a199f.html">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/bangchui-logo.svg">
-      <meta itemprop="name" content="林景宜">
-      <meta itemprop="description" content="一个已婚的前端er">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林景宜的记事本">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/posts/560a199f.html" class="post-title-link" itemprop="url">OpenLayers6实例分析：Magnify（放大镜）</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-02-07 19:55:21" itemprop="dateCreated datePublished" datetime="2020-02-07T19:55:21+08:00">2020-02-07</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
-                    <span itemprop="name">前端</span>
-                  </a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
-                    <span itemprop="name">可视化</span>
-                  </a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9C%B0%E5%9B%BE/" itemprop="url" rel="index">
-                    <span itemprop="name">地图</span>
-                  </a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>分析 Magnify 这个 demo，官网介绍是：</p>
-<blockquote>
-<p>This example makes use of the <code>postrender</code> event listener to oversample imagery in a circle around the pointer location. Listeners for this event have access to the Canvas context and can manipulate image data.<br>Move around the map to see the effect. Use the ↑ up and ↓ down arrow keys to the magnified circle size.</p>
-</blockquote>
-<blockquote>
-<p>本示例使用的是 <code>postrender</code> 事件监听器，在图层中对鼠标位置处的圆圈进行过采样实现的，这个事件的监听器可以访问 <code>Canvas 上下文</code>并且可以处理图像数据。</p>
-<p>在地图上移动鼠标来查看效果。使用 ↑ 上键 和 ↓ 下键来调整放大镜圆圈的大小。</p>
-</blockquote>
-<ul>
-<li><p><a href="https://openlayers.org/en/latest/examples/magnify.html" target="_blank" rel="external nofollow noopener noreferrer">官网实例</a>： Magnify</p>
-</li>
-<li><p><a href="https://ke.qq.com/course/449937" target="_blank" rel="external nofollow noopener noreferrer">跟我学 OpenLayers——基础实例讲解</a>：12 渲染器机制的使用 &gt; 实例 86.放大镜效果</p></li></ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/560a199f.html#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/a6c6a36c.html">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/bangchui-logo.svg">
-      <meta itemprop="name" content="林景宜">
-      <meta itemprop="description" content="一个已婚的前端er">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林景宜的记事本">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/posts/a6c6a36c.html" class="post-title-link" itemprop="url">OpenLayers6实例分析：Marker Animation（标记动画）</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-01-30 07:45:29" itemprop="dateCreated datePublished" datetime="2020-01-30T07:45:29+08:00">2020-01-30</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
-                    <span itemprop="name">前端</span>
-                  </a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
-                    <span itemprop="name">可视化</span>
-                  </a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9C%B0%E5%9B%BE/" itemprop="url" rel="index">
-                    <span itemprop="name">地图</span>
-                  </a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>分析 Marker Animation 这个 demo，官网介绍是：</p>
-<blockquote>
-<p>This example shows how to use postrender events and a vector context to animate a marker feature along a line. In this example an encoded polyline is being used.<br>此示例展示了如何使用 postrender 事件和矢量上下文使一个标记要素沿着线移动。在这个实例中使用了一个经过编码的折线。</p>
-</blockquote>
-<ul>
-<li><p><a href="https://openlayers.org/en/latest/examples/feature-move-animation.html" target="_blank" rel="external nofollow noopener noreferrer">官网实例</a>：Marker Animation</p>
-</li>
-<li><p><a href="https://ke.qq.com/course/449937" target="_blank" rel="external nofollow noopener noreferrer">跟我学 OpenLayers——基础实例讲解</a>：12 渲染器机制的使用 &gt; 实例 85.路径回放</p></li></ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/a6c6a36c.html#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-        
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/345abd9.html">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/bangchui-logo.svg">
-      <meta itemprop="name" content="林景宜">
-      <meta itemprop="description" content="一个已婚的前端er">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="林景宜的记事本">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/posts/345abd9.html" class="post-title-link" itemprop="url">OpenLayers6实例分析：Layer Spy（图层探查）</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2020-01-28 21:48:09" itemprop="dateCreated datePublished" datetime="2020-01-28T21:48:09+08:00">2020-01-28</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
-                    <span itemprop="name">前端</span>
-                  </a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/" itemprop="url" rel="index">
-                    <span itemprop="name">可视化</span>
-                  </a>
-                </span>
-                  ，
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E5%89%8D%E7%AB%AF/%E5%8F%AF%E8%A7%86%E5%8C%96/%E5%9C%B0%E5%9B%BE/" itemprop="url" rel="index">
-                    <span itemprop="name">地图</span>
-                  </a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>分析 Layer Spy 这个 demo，官网介绍是：</p>
-<blockquote>
-<p>Layer rendering can be manipulated in <code>prerender</code> and <code>postrender</code> event listeners. These listeners get an event with a reference to the Canvas rendering context. In this example, the prerender listener sets a clipping mask around the most recent mouse position, giving you a spyglass effect for viewing one layer over another.<br>Move around the map to see the effect. Use the ↑ up and ↓ down arrow keys to adjust the spyglass size.</p>
-</blockquote>
-<blockquote>
-<p>图层渲染是被<code>prerender</code>和<code>postrender</code>事件监听器控制的。这些监听器获得一个带有 Canvas 渲染上下文引用的事件。在这个例子中，<code>prerender</code>事件监听器在最近的鼠标位置处设置一个剪贴蒙版，这个剪贴蒙版能让你用看望远镜的感觉来观察普通地图图层上面的航拍图层。</p>
-<p>在地图上移动鼠标来查看效果。使用 ↑ 上键 和 ↓ 下键来调整望远镜的大小。</p>
-</blockquote>
-<ul>
-<li><p><a href="https://openlayers.org/en/latest/examples/layer-spy.html" target="_blank" rel="external nofollow noopener noreferrer">官网实例</a>：Layer Spy</p>
-</li>
-<li><p><a href="https://ke.qq.com/course/449937" target="_blank" rel="external nofollow noopener noreferrer">跟我学 OpenLayers——基础实例讲解</a>：12 渲染器机制的使用 &gt; 实例 84.图层遮罩</p></li></ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/posts/345abd9.html#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
   </div>
 
   
@@ -1244,20 +1760,20 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-count">37</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-count">16</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">59</span>
+        <span class="site-state-item-count">73</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
