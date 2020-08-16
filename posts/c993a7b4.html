@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/bangchui-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/bangchui-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/bangchui-16x16-next.png">
+  <link rel="mask-icon" href="/images/bangchui-logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://linjingyi.cn').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.7.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":true,"show_result":true,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="本篇分析下find家族的方法，包括findLastIndex、findLast、findKey、findLastKey，以及这些方法引用到的一些 lodash 方法，包括keys、isTypedArray、isBuffer、keys、keys。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lodash源码解析：find家族">
+<meta property="og:url" content="https://linjingyi.cn/posts/c993a7b4.html">
+<meta property="og:site_name" content="林景宜的记事本">
+<meta property="og:description" content="本篇分析下find家族的方法，包括findLastIndex、findLast、findKey、findLastKey，以及这些方法引用到的一些 lodash 方法，包括keys、isTypedArray、isBuffer、keys、keys。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-08-14T10:46:23.000Z">
+<meta property="article:modified_time" content="2020-08-14T10:46:23.000Z">
+<meta property="article:author" content="林景宜">
+<meta property="article:tag" content="lodash">
+<meta property="article:tag" content="源码">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://linjingyi.cn/posts/c993a7b4.html">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>lodash源码解析：find家族 | 林景宜的记事本</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?e7bf681a68fc68b663d40333164a4df9";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">林景宜的记事本</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">爱囡囡，最无双</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none" placeholder="搜索..." spellcheck="false" type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://linjingyi.cn/posts/c993a7b4.html">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/bangchui-logo.svg">
+      <meta itemprop="name" content="林景宜">
+      <meta itemprop="description" content="一个已婚的前端er">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="林景宜的记事本">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          lodash源码解析：find家族
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08-14 18:46:23" itemprop="dateCreated datePublished" datetime="2020-08-14T18:46:23+08:00">2020-08-14</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index">
+                    <span itemprop="name">前端</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/" itemprop="url" rel="index">
+                    <span itemprop="name">JS</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" itemprop="url" rel="index">
+                    <span itemprop="name">源码解析</span>
+                  </a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/JS/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/lodash/" itemprop="url" rel="index">
+                    <span itemprop="name">lodash</span>
+                  </a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本篇分析下<code>find</code>家族的方法，包括<code>findLastIndex</code>、<code>findLast</code>、<code>findKey</code>、<code>findLastKey</code>，以及这些方法引用到的一些 lodash 方法，包括<code>keys</code>、<code>isTypedArray</code>、<code>isBuffer</code>、<code>keys</code>、<code>keys</code>。</p>
+<a id="more"></a>
+
+<h2 id="其他的-find-方法"><a href="#其他的-find-方法" class="headerlink" title="其他的 find 方法"></a>其他的 find 方法</h2><p>正常按官网的文档，<code>lodash</code>的<code>find</code>家族应该包括数组<code>array</code>的<code>findIndex</code>、<code>findLastIndex</code>，集合<code>collection</code>的<code>find</code>、<code>findLast</code>和对象<code>object</code>的<code>findKey</code>、<code>findLastKey</code>。</p>
+<p>对比现在 fork 的<a href="https://github.com/MagnetLin/lodash" target="_blank" rel="external nofollow noopener noreferrer">4.17.19 版本的代码</a>，固定的打包出来的版本分支中可以看到完整的方法，但是<code>master</code>分支中却不存在<code>findIndex.js</code>和<code>find.js</code>两个文件以及相关的任何代码，这就很令人费解。我专门在 lodash github 的<a href="https://github.com/lodash/lodash/issues/4896" target="_blank" rel="external nofollow noopener noreferrer">issue</a>中提问了此问题。开发组给出的解释是，master 分支存放的是 V5 版本的 wip 代码。在打包时使用的是 lodash-cli 库，用来打包成完全体的代码。</p>
+<h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><h3 id="collection、array-和-object-的区别"><a href="#collection、array-和-object-的区别" class="headerlink" title="collection、array 和 object 的区别"></a>collection、array 和 object 的区别</h3><h4 id="ECMA262-规范"><a href="#ECMA262-规范" class="headerlink" title="ECMA262 规范"></a>ECMA262 规范</h4><p>可以发现，<code>find</code>分别为了三类，数组、集合和对象各有自己的正向和反向两个方法。那么在<code>lodash</code>中，<code>collection</code>、<code>array</code>和<code>object</code>有什么区别？专门翻了 ECMA262 规范，翻译下与<code>collection</code>相关的定义部分。</p>
+<blockquote>
+<p>ECMAScript 是基于对象的：基本语言和工具由对象提供，ECMAScript 程序是一个通信对象簇。在 ECMAScript 中，对象（object）是由零个或多个属性（property）组成的集合（<strong>collection</strong>），每个属性都具有决定如何使用自身的属性（attribute）ーー例如，当 property 的 Writable attribute 设置为 false 时，任何已执行 ECMAScript 代码为 property 分配其他值的尝试都将失败。属性（property）是容纳其他对象（object）、原始值（primitive values）或函数（function）的容器。原始值是下列内置类型之一的成员：<strong>Undefined</strong>, <strong>Null</strong>, <strong>Boolean</strong>, <strong>Number</strong>, <strong>BigInt</strong>, <strong>String</strong>和 <strong>Symbol</strong>； 对象是内置类型 <strong>Object</strong> 的成员; 函数是可调用对象。通过属性（property）与对象（object）关联的函数称为方法（method）。</p>
+<p>ECMAScript 定义了一组内置对象（_built-in objects_），这些对象完善了 ECMAScript <strong>实体</strong>的定义。这些内置对象包括<code>global</code>对象; 还包括对<a href="https://www.ecma-international.org/ecma-262/11.0/index.html#sec-runtime-semantics" target="_blank" rel="external nofollow noopener noreferrer">运行时语义</a>有重要意义的对象，包括 <code>Object</code>, <code>Function</code>, <code>Boolean</code>, <code>Symbol</code>和各种 <code>Error</code> 对象； 表示和操作数值(包括 <code>Math</code>, <code>Number</code>和 <code>Date</code>)的对象; 文本处理对象 <code>String</code> 和 <code>RegExp</code>； 包括 <code>Array</code> 和 9 种不同种类的类型化数组（Typed Array）(其元素都由具有特定的数值数据表示)的索引集合对象； 包括 <code>Map</code> 和 <code>set</code> 对象的键集合；支持结构化数据(包括 <code>JSON</code> 对象、 <code>ArrayBuffer</code>、 <code>sharedarbuffer</code> 和 <code>DataView</code>)的对象；支持控制抽象——包括生成器函数（<code>generator</code>）和期约（<code>promise</code>） 对象——的对象; 以及包括 <code>Proxy</code> 和 <code>Reflect</code> 对象在内的反射（<code>reflection</code>）对象。</p>
+</blockquote>
+<p>根据 ECMA262 的解释，简单来说所有的非原始类型的值都是 collection，同时指出了对象是符合<code>任意多个属性组成</code>的集合，数组是是<code>由连续数字索引做键</code>的对象<code>，也就是collection ⊇ object ⊇ array</code></p>
+<h4 id="underscore"><a href="#underscore" class="headerlink" title="underscore"></a>underscore</h4><p>接下来再看看，lodash 的爸爸<a href="http://underscorejs.org/#collections" target="_blank" rel="external nofollow noopener noreferrer">underscore</a>是怎么区分<code>collection</code>的：</p>
+<blockquote>
+<p><em>Note: Collection functions work on arrays, objects, and array-like objects such as</em> <code>arguments</code>, <code>NodeList</code> <em>and similar. But it works by duck-typing, so avoid passing objects with a numeric <code>length</code> property. It’s also good to note that an <code>each</code> loop cannot be broken out of — to break, use **\</em>.find** instead._</p>
+<p>注意： 集合（collection）的函数可以应用到数组、对象、类数组对象（比如<code>arguments</code>, <code>NodeList</code> *和其他类似）。但是函数执行的原理是 duck-typing 的，所以应该避免传递一个具有数字格式 length 属性的对象。值得注意的是，<code>each</code>循环不能被打断——想要打断，应使用<code>_.find</code>方法代替。</p>
+</blockquote>
+<p>总体来说还是符合规范的。</p>
+<h3 id="Object-方法"><a href="#Object-方法" class="headerlink" title="Object()方法"></a>Object()方法</h3><p>在本篇的代码中，使用了很多次<code>Object(collection)</code>方法强制转换为对象，不加<code>new</code>而单独使用<code>Object()</code>方法的<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/Object" target="_blank" rel="external nofollow noopener noreferrer">原理</a>如下：</p>
+<blockquote>
+<p><strong><code>Object</code> 构造函数将给定的值包装为一个新对象。</strong></p>
+<ul>
+<li>如果给定的值是 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/null" target="_blank" rel="external nofollow noopener noreferrer"><code>null</code></a> 或 <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/undefined" target="_blank" rel="external nofollow noopener noreferrer"><code>undefined</code></a>, 它会创建并返回一个空对象。</li>
+<li>否则，它将返回一个和给定的值相对应的类型的对象。</li>
+<li>如果给定值是一个已经存在的对象，则会返回这个已经存在的值（相同地址）。</li>
+</ul>
+<p>在非构造函数上下文中调用时， <code>Object</code> 和 <code>new Object()</code>表现一致。</p>
+</blockquote>
+<p>所以在非构造函数的上下文中执行<code>Object(collection)</code>时，其实是返回<code>collection</code>强制转化后对应类型的对象。</p>
+<h3 id="global"><a href="#global" class="headerlink" title="global"></a>global</h3><p>在之前的浏览器和 node.js 环境中，对于全局<code>global</code>的定义是不同的。最近的版本中，在 web 端全局环境下<code>globalThis</code>、<code>self</code>和<code>this</code>是相同的，都指向<code>window</code>；在<code>node</code>全局环境下，<code>globalThis</code>和<code>this</code>是相同的，都指向<code>global</code>；</p>
+<p>所以说在之后的规范中，是可以用<code>globalThis</code>在两个环境中通用的指向全局。</p>
+<h3 id="lodash-中类对象、类数组、类数组对象的定义"><a href="#lodash-中类对象、类数组、类数组对象的定义" class="headerlink" title="lodash 中类对象、类数组、类数组对象的定义"></a>lodash 中类对象、类数组、类数组对象的定义</h3><h4 id="类对象"><a href="#类对象" class="headerlink" title="类对象"></a>类对象</h4><p>类对象（<code>objectLike</code>）的判断：</p>
+<ol>
+<li><code>value</code>不为<code>null</code>或<code>undefined</code>。</li>
+<li><code>typeof value</code> 返回值为 <code>object</code>。</li>
+</ol>
+<p>也就是说<code>function</code>、<code>array</code>和<code>object</code>都算类对象</p>
+<h4 id="类数组"><a href="#类数组" class="headerlink" title="类数组"></a>类数组</h4><p>类数组（<code>arrayLike</code>）主要是满足两个条件：</p>
+<ol>
+<li><code>value</code>不为<code>null</code>或<code>undefined</code>。</li>
+<li><code>typeOf value !== &#39;function&#39;</code>，也就是说可以为<code>object</code>、<code>boolean</code>、<code>number</code>、<code>bigint</code>、<code>string</code>、<code>symbol</code>。</li>
+<li>带有一个正确的数字类型的<code>length</code>属性。</li>
+</ol>
+<h4 id="类数组对象"><a href="#类数组对象" class="headerlink" title="类数组对象"></a>类数组对象</h4><p>类数组对象(<code>arrayLikeObject</code>)相当于在类数组的基础上添加一个条件：<code>value</code>必须为类对象。</p>
+<p>换句话说，类数组对象就是<code>typeof value</code> 返回值必须为 <code>object</code>且带有一个正确的数字类型的<code>length</code>属性。</p>
+<h2 id="引用的内置方法"><a href="#引用的内置方法" class="headerlink" title="引用的内置方法"></a>引用的内置方法</h2><h3 id="baseFindKey"><a href="#baseFindKey" class="headerlink" title="baseFindKey"></a>baseFindKey</h3><p><code>eachFunc</code>方法其实是自己选的迭代方法，用来决定使用什么样的方式来迭代collection</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * `findKey`和`findLastKey`方法的基础实现，使用`eachFunc`来迭代`collection`</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@private</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Array|Object&#125;</span> </span>collection 要检查的的collection</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Function&#125;</span> </span>predicate 每次迭代时调用的函数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Function&#125;</span> </span>eachFunc 遍历`collection`的函数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;*&#125;</span> </span>返回查到的元素或它的key，查不到则返回`undefined` ？</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">baseFindKey</span>(<span class="params">collection, predicate, eachFunc</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 初始化result</span></span><br><span class="line">  <span class="keyword">let</span> result;</span><br><span class="line">  <span class="comment">// eachFunc是用于迭代的方法</span></span><br><span class="line">  eachFunc(collection, (value, key, collection) =&gt; &#123;</span><br><span class="line">    <span class="comment">// predicate是每次迭代时的断言，判断真假</span></span><br><span class="line">    <span class="keyword">if</span> (predicate(value, key, collection)) &#123;</span><br><span class="line">      result = key;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="comment">// 最后返回查到的key</span></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> baseFindKey;</span><br></pre></td></tr></table></figure>
+
+<h3 id="root"><a href="#root" class="headerlink" title="root"></a>root</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* global globalThis, self */</span></span><br><span class="line"><span class="keyword">import</span> freeGlobal <span class="keyword">from</span> <span class="string">'./freeGlobal.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 检测自由变量 `globalThis` */</span></span><br><span class="line"><span class="keyword">const</span> freeGlobalThis =</span><br><span class="line">  <span class="keyword">typeof</span> globalThis === <span class="string">'object'</span> &amp;&amp;</span><br><span class="line">  globalThis !== <span class="literal">null</span> &amp;&amp;</span><br><span class="line">  globalThis.Object == <span class="built_in">Object</span> &amp;&amp;</span><br><span class="line">  globalThis;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 检测自由变量 `self`. */</span></span><br><span class="line"><span class="keyword">const</span> freeSelf =</span><br><span class="line">  <span class="keyword">typeof</span> self === <span class="string">'object'</span> &amp;&amp; self !== <span class="literal">null</span> &amp;&amp; self.Object === <span class="built_in">Object</span> &amp;&amp; self;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 用于global对象的引用 */</span></span><br><span class="line"><span class="comment">// 经过测试，在Chrome84环境下 globalThis、self和this是生效的，都指向window</span></span><br><span class="line"><span class="comment">// 在node12环境下，globalThis、global和this是生效的，都指向global</span></span><br><span class="line"><span class="keyword">const</span> root =</span><br><span class="line">  freeGlobalThis || freeGlobal || freeSelf || <span class="built_in">Function</span>(<span class="string">'return this'</span>)();</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> root;</span><br></pre></td></tr></table></figure>
+
+<h3 id="isIndex"><a href="#isIndex" class="headerlink" title="isIndex"></a>isIndex</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** 用作各种`Number`常量的引用 */</span></span><br><span class="line"><span class="keyword">const</span> MAX_SAFE_INTEGER = <span class="number">9007199254740991</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 用于检测无符号整数值 */</span></span><br><span class="line"><span class="keyword">const</span> reIsUint = <span class="regexp">/^(?:0|[1-9]\d*)$/</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 检查`value`是否是一个有效的类数组对象的索引index</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@private</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;*&#125;</span> </span>value 要检查的值</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>[length=MAX_SAFE_INTEGER] 有效index的上界</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;boolean&#125;</span> </span>如果是一个有效的index，返回`true`；否则返回`false`</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">isIndex</span>(<span class="params">value, length</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 拿到value的typeof</span></span><br><span class="line">  <span class="keyword">const</span> type = <span class="keyword">typeof</span> value;</span><br><span class="line">  <span class="comment">// length限制如果没给，就默认MAX_SAFE_INTEGER</span></span><br><span class="line">  length = length == <span class="literal">null</span> ? MAX_SAFE_INTEGER : length;</span><br><span class="line">  <span class="comment">// length必须为真</span></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    !!length &amp;&amp;</span><br><span class="line">    <span class="comment">// type为数字或（type为symbol且为无符号整数）</span></span><br><span class="line">    (type === <span class="string">'number'</span> || (type !== <span class="string">'symbol'</span> &amp;&amp; reIsUint.test(value))) &amp;&amp;</span><br><span class="line">    <span class="comment">// 并且value是0到length之间的整数</span></span><br><span class="line">    value &gt; <span class="number">-1</span> &amp;&amp;</span><br><span class="line">    value % <span class="number">1</span> == <span class="number">0</span> &amp;&amp;</span><br><span class="line">    value &lt; length</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> isIndex;</span><br></pre></td></tr></table></figure>
+
+<h3 id="freeGlobal"><a href="#freeGlobal" class="headerlink" title="freeGlobal"></a>freeGlobal</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** 检测Node.js中的自由变量`global`*/</span></span><br><span class="line"><span class="comment">// global必须是个对象，然后global不能为null，然后global.Object为Object，然后才把global返回</span></span><br><span class="line"><span class="keyword">const</span> freeGlobal =</span><br><span class="line">  <span class="keyword">typeof</span> global === <span class="string">'object'</span> &amp;&amp;</span><br><span class="line">  global !== <span class="literal">null</span> &amp;&amp;</span><br><span class="line">  global.Object === <span class="built_in">Object</span> &amp;&amp;</span><br><span class="line">  global;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> freeGlobal;</span><br></pre></td></tr></table></figure>
+
+<h3 id="nodeTypes"><a href="#nodeTypes" class="headerlink" title="nodeTypes"></a>nodeTypes</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> freeGlobal <span class="keyword">from</span> <span class="string">'./freeGlobal.js'</span>;</span><br><span class="line"><span class="comment">// 什么是free variable（自由变量）</span></span><br><span class="line"><span class="comment">// https://blog.csdn.net/weixin_39408343/article/details/101532803</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/** 检测自由变量`exports` */</span></span><br><span class="line"><span class="keyword">const</span> freeExports =</span><br><span class="line">  <span class="keyword">typeof</span> exports === <span class="string">'object'</span> &amp;&amp;</span><br><span class="line">  exports !== <span class="literal">null</span> &amp;&amp;</span><br><span class="line">  !exports.nodeType &amp;&amp;</span><br><span class="line">  exports;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 检测自由变量`module`. */</span></span><br><span class="line"><span class="keyword">const</span> freeModule =</span><br><span class="line">  freeExports &amp;&amp;</span><br><span class="line">  <span class="keyword">typeof</span> <span class="built_in">module</span> === <span class="string">'object'</span> &amp;&amp;</span><br><span class="line">  <span class="built_in">module</span> !== <span class="literal">null</span> &amp;&amp;</span><br><span class="line">  !<span class="built_in">module</span>.nodeType &amp;&amp;</span><br><span class="line">  <span class="built_in">module</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 检测流行的CommonJS扩展`module.exports`. */</span></span><br><span class="line"><span class="keyword">const</span> moduleExports = freeModule &amp;&amp; freeModule.exports === freeExports;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 检测来Node.js的自由变量`process` */</span></span><br><span class="line"><span class="keyword">const</span> freeProcess = moduleExports &amp;&amp; freeGlobal.process;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 被用来使用更快的Node.js帮助方法 */</span></span><br><span class="line"><span class="keyword">const</span> nodeTypes = <span class="function">(<span class="params">(</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">/* 检测Node.js v10+版本以上的公开`util.types`方法. */</span></span><br><span class="line">    <span class="comment">/* Node.js 启用代码: DEP0103. */</span></span><br><span class="line">    <span class="keyword">const</span> typesHelper =</span><br><span class="line">      freeModule &amp;&amp; freeModule.require &amp;&amp; freeModule.require(<span class="string">'util'</span>).types;</span><br><span class="line">    <span class="comment">// 有util.types方法就用，没有就用freeProcess</span></span><br><span class="line">    <span class="keyword">return</span> typesHelper</span><br><span class="line">      ? typesHelper</span><br><span class="line">      : <span class="comment">/* Legacy process.binding('util') for Node.js earlier than v10. */</span></span><br><span class="line">        freeProcess &amp;&amp; freeProcess.binding &amp;&amp; freeProcess.binding(<span class="string">'util'</span>);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (e) &#123;&#125;</span><br><span class="line">&#125;)();</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> nodeTypes;</span><br></pre></td></tr></table></figure>
+
+<h3 id="getTag"><a href="#getTag" class="headerlink" title="getTag"></a>getTag</h3><p>获取目标的标签，之前分析过</p>
+<h3 id="arrayLikeKeys"><a href="#arrayLikeKeys" class="headerlink" title="arrayLikeKeys"></a>arrayLikeKeys</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> isArguments <span class="keyword">from</span> <span class="string">'../isArguments.js'</span>;</span><br><span class="line"><span class="keyword">import</span> isBuffer <span class="keyword">from</span> <span class="string">'../isBuffer.js'</span>;</span><br><span class="line"><span class="keyword">import</span> isIndex <span class="keyword">from</span> <span class="string">'./isIndex.js'</span>;</span><br><span class="line"><span class="keyword">import</span> isTypedArray <span class="keyword">from</span> <span class="string">'../isTypedArray.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 用于检查是否为对象自身属性 */</span></span><br><span class="line"><span class="keyword">const</span> hasOwnProperty = <span class="built_in">Object</span>.prototype.hasOwnProperty;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 创建一个array，存放类数组对象的可枚举属性键</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@private</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;*&#125;</span> </span>value 要查询的类数组对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;boolean&#125;</span> </span>inherited 指定是否返回原型链上的属性键</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;Array&#125;</span> </span>返回属性名组成的数组</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">arrayLikeKeys</span>(<span class="params">value, inherited</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 通过以下的几种判断，可以发现类数组对象包括数组、arguments、buffer、typedArray3</span></span><br><span class="line">  <span class="keyword">const</span> isArr = <span class="built_in">Array</span>.isArray(value);</span><br><span class="line">  <span class="keyword">const</span> isArg = !isArr &amp;&amp; isArguments(value);</span><br><span class="line">  <span class="keyword">const</span> isBuff = !isArr &amp;&amp; !isArg &amp;&amp; isBuffer(value);</span><br><span class="line">  <span class="keyword">const</span> isType = !isArr &amp;&amp; !isArg &amp;&amp; !isBuff &amp;&amp; isTypedArray(value);</span><br><span class="line">  <span class="comment">// 以上四项任一项为真则skipIndexes为真</span></span><br><span class="line">  <span class="keyword">const</span> skipIndexes = isArr || isArg || isBuff || isType;</span><br><span class="line">  <span class="comment">// 初始化length和result，如果是上述几种，就会有自身的length值</span></span><br><span class="line">  <span class="keyword">const</span> length = value.length;</span><br><span class="line">  <span class="keyword">const</span> result = <span class="keyword">new</span> <span class="built_in">Array</span>(skipIndexes ? length : <span class="number">0</span>);</span><br><span class="line">  <span class="comment">// 如果不是类数组对象就忽略了</span></span><br><span class="line">  <span class="keyword">let</span> index = skipIndexes ? <span class="number">-1</span> : length;</span><br><span class="line">  <span class="keyword">while</span> (++index &lt; length) &#123;</span><br><span class="line">    <span class="comment">// 把indexKey插入到数组中</span></span><br><span class="line">    result[index] = <span class="string">`<span class="subst">$&#123;index&#125;</span>`</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 下面是处理非index类型的key</span></span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">const</span> key <span class="keyword">in</span> value) &#123;</span><br><span class="line">    <span class="comment">// 当需要查询原型属性或者key属于自身属性时</span></span><br><span class="line">    <span class="keyword">if</span> (</span><br><span class="line">      (inherited || hasOwnProperty.call(value, key)) &amp;&amp;</span><br><span class="line">      <span class="comment">//</span></span><br><span class="line">      !(</span><br><span class="line">        skipIndexes &amp;&amp;</span><br><span class="line">        <span class="comment">// 排除该情况：是类数组对象且key为length的情况</span></span><br><span class="line">        <span class="comment">// Safari 9 has enumerable `arguments.length` in strict mode.</span></span><br><span class="line">        (key === <span class="string">'length'</span> ||</span><br><span class="line">          <span class="comment">// Skip index properties.</span></span><br><span class="line">          isIndex(key, length))</span><br><span class="line">      )</span><br><span class="line">    ) &#123;</span><br><span class="line">      <span class="comment">// 总体来说，就是自身的其他属性都可以push，是否添加原型属性看skipIndexes（当然都是再非length情况下）</span></span><br><span class="line">      result.push(key);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> arrayLikeKeys;</span><br></pre></td></tr></table></figure>
+
+<h3 id="baseForOwnRight"><a href="#baseForOwnRight" class="headerlink" title="baseForOwnRight"></a>baseForOwnRight</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> baseForRight <span class="keyword">from</span> <span class="string">'./baseForRight.js'</span>;</span><br><span class="line"><span class="keyword">import</span> keys <span class="keyword">from</span> <span class="string">'../keys.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * `forOwnRight`的基础实现</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@private</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Object&#125;</span> </span>object 要迭代的`object`</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Function&#125;</span> </span>iteratee 每次迭代时调用的函数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;Object&#125;</span> </span>返回`object`</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">baseForOwnRight</span>(<span class="params">object, iteratee</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 当object为真时返回baseForRight的返回结果</span></span><br><span class="line">  <span class="keyword">return</span> object &amp;&amp; baseForRight(object, iteratee, keys);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> baseForOwnRight;</span><br></pre></td></tr></table></figure>
+
+<h2 id="引用的-lodash-方法"><a href="#引用的-lodash-方法" class="headerlink" title="引用的 lodash 方法"></a>引用的 lodash 方法</h2><h3 id="isObject、isObjectLike、isArrayLike"><a href="#isObject、isObjectLike、isArrayLike" class="headerlink" title="isObject、isObjectLike、isArrayLike"></a>isObject、isObjectLike、isArrayLike</h3><p>之前文章分析过</p>
+<h3 id="isTypedArray"><a href="#isTypedArray" class="headerlink" title="isTypedArray"></a>isTypedArray</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> getTag <span class="keyword">from</span> <span class="string">'./.internal/getTag.js'</span>;</span><br><span class="line"><span class="keyword">import</span> nodeTypes <span class="keyword">from</span> <span class="string">'./.internal/nodeTypes.js'</span>;</span><br><span class="line"><span class="keyword">import</span> isObjectLike <span class="keyword">from</span> <span class="string">'./isObjectLike.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** 用于匹配类型化数组的`toStringTag`属性值 */</span></span><br><span class="line"><span class="keyword">const</span> reTypedTag = <span class="regexp">/^\[object (?:Float(?:32|64)|(?:Int|Uint)(?:8|16|32)|Uint8Clamped)Array\]$/</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Node.js帮助方法引用 */</span></span><br><span class="line"><span class="keyword">const</span> nodeIsTypedArray = nodeTypes &amp;&amp; nodeTypes.isTypedArray;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 检查`value`是否为类型化数组</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>3.0.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Lang</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;*&#125;</span> </span>value 要检查的值</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;boolean&#125;</span> </span>如果`value`是类型化数组则返回true，否则返回`false`</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * isTypedArray(new Uint8Array)</span></span><br><span class="line"><span class="comment"> * // =&gt; true</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * isTypedArray([])</span></span><br><span class="line"><span class="comment"> * // =&gt; false</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> isTypedArray = nodeIsTypedArray</span><br><span class="line">  ? <span class="comment">// 在node.js环境，直接用nodeTypes.isTypedArray方法</span></span><br><span class="line">    (value) =&gt; nodeIsTypedArray(value)</span><br><span class="line">  : <span class="comment">// web环境中，先判断是不是类对象，是的话然后再用reTypedTag正则判断value的tag</span></span><br><span class="line">    <span class="comment">// 符合正则才是类型化数组</span></span><br><span class="line">    (value) =&gt; isObjectLike(value) &amp;&amp; reTypedTag.test(getTag(value));</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> isTypedArray;</span><br></pre></td></tr></table></figure>
+
+<h3 id="keys"><a href="#keys" class="headerlink" title="keys"></a>keys</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> arrayLikeKeys <span class="keyword">from</span> <span class="string">'./.internal/arrayLikeKeys.js'</span>;</span><br><span class="line"><span class="keyword">import</span> isArrayLike <span class="keyword">from</span> <span class="string">'./isArrayLike.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 创建一个数组，存放`object`的自身可枚举属性名</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * **注意:** 非object值将被强制转化为object，详见</span></span><br><span class="line"><span class="comment"> * [ES 规范](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)</span></span><br><span class="line"><span class="comment"> * 查看更多细节</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>0.1.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Object</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Object&#125;</span> </span>object 要查询的对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;Array&#125;</span> </span>返回存放属性名的数组</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see </span>values, valuesIn</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * function Foo() &#123;</span></span><br><span class="line"><span class="comment"> *   this.a = 1</span></span><br><span class="line"><span class="comment"> *   this.b = 2</span></span><br><span class="line"><span class="comment"> * &#125;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Foo.prototype.c = 3</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * keys(new Foo)</span></span><br><span class="line"><span class="comment"> * // =&gt; ['a', 'b'] (iteration order is not guaranteed)</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * keys('hi')</span></span><br><span class="line"><span class="comment"> * // =&gt; ['0', '1']</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">keys</span>(<span class="params">object</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 如果是类数组对象，就返回arrayLikeKeys(object)</span></span><br><span class="line">  <span class="keyword">return</span> isArrayLike(object)</span><br><span class="line">    ? arrayLikeKeys(object)</span><br><span class="line">    : <span class="comment">// 如果是不是类数组对象，就直接用Object.keys</span></span><br><span class="line">      <span class="comment">// （其实先用Object(object)进行了强制类型转换）</span></span><br><span class="line">      <span class="built_in">Object</span>.keys(<span class="built_in">Object</span>(object));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> keys;</span><br></pre></td></tr></table></figure>
+
+<h2 id="find-家族"><a href="#find-家族" class="headerlink" title="find 家族"></a>find 家族</h2><h3 id="findLastIndex"><a href="#findLastIndex" class="headerlink" title="findLastIndex"></a>findLastIndex</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> baseFindIndex <span class="keyword">from</span> <span class="string">'./.internal/baseFindIndex.js'</span>;</span><br><span class="line"><span class="keyword">import</span> toInteger <span class="keyword">from</span> <span class="string">'./toInteger.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 此方法类似`findIndex`， 区别是它是从右到左的迭代集合array中的元素。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>2.0.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Array</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Array&#125;</span> </span>array 要搜索的数组</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Function&#125;</span> </span>predicate 每次迭代时调用的函数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>[fromIndex=array.length-1] 开始搜索位置的索引值</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;number&#125;</span> </span>返回找到元素的 索引值（index），否则返回 -1。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see </span>find, findIndex, findKey, findLast, findLastKey</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * const users = [</span></span><br><span class="line"><span class="comment"> *   &#123; 'user': 'barney',  'active': true &#125;,</span></span><br><span class="line"><span class="comment"> *   &#123; 'user': 'fred',    'active': false &#125;,</span></span><br><span class="line"><span class="comment"> *   &#123; 'user': 'pebbles', 'active': false &#125;</span></span><br><span class="line"><span class="comment"> * ]</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * findLastIndex(users, (&#123; user &#125;) =&gt; user == 'pebbles')</span></span><br><span class="line"><span class="comment"> * // =&gt; 2</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">findLastIndex</span>(<span class="params">array, predicate, fromIndex</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 初始化length</span></span><br><span class="line">  <span class="keyword">const</span> length = array == <span class="literal">null</span> ? <span class="number">0</span> : array.length;</span><br><span class="line">  <span class="comment">// 空数组返回-1</span></span><br><span class="line">  <span class="keyword">if</span> (!length) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 默认从最右侧开始</span></span><br><span class="line">  <span class="keyword">let</span> index = length - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 如果设置了起始搜索位置</span></span><br><span class="line">  <span class="keyword">if</span> (fromIndex !== <span class="literal">undefined</span>) &#123;</span><br><span class="line">    <span class="comment">// 先处理index为整数</span></span><br><span class="line">    index = toInteger(fromIndex);</span><br><span class="line">    <span class="comment">// 把index处理为合适的值</span></span><br><span class="line">    index =</span><br><span class="line">      fromIndex &lt; <span class="number">0</span></span><br><span class="line">        ? <span class="comment">// 当起始搜索位置为负数时，返回`length + index`和`0`的最大值</span></span><br><span class="line">          <span class="built_in">Math</span>.max(length + index, <span class="number">0</span>)</span><br><span class="line">        : <span class="comment">// 当起始搜索位置为正数时，返回`index`和`length - 1`的最小值</span></span><br><span class="line">          <span class="built_in">Math</span>.min(index, length - <span class="number">1</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 调用内置核心baseFindIndex方法</span></span><br><span class="line">  <span class="keyword">return</span> baseFindIndex(array, predicate, index, <span class="literal">true</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> findLastIndex;</span><br></pre></td></tr></table></figure>
+
+<h3 id="findLast"><a href="#findLast" class="headerlink" title="findLast"></a>findLast</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> findLastIndex <span class="keyword">from</span> <span class="string">'./findLastIndex.js'</span>;</span><br><span class="line"><span class="keyword">import</span> isArrayLike <span class="keyword">from</span> <span class="string">'./isArrayLike.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 此方法类似`find`，但是在collection中从右向左迭代</span></span><br><span class="line"><span class="comment"> * collection、array和object的区别</span></span><br><span class="line"><span class="comment"> * https://blog.csdn.net/Soaring_Tiger/article/details/48180511</span></span><br><span class="line"><span class="comment"> * http://underscorejs.org/#collections</span></span><br><span class="line"><span class="comment"> * https://stackoverflow.com/questions/23921647/lo-dash-difference-between-array-and-collection</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>2.0.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Collection</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Array|Object&#125;</span> </span>collection 要检查的集合</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Function&#125;</span> </span>predicate 每次迭代调用的函数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;number&#125;</span> </span>[fromIndex=collection.length-1] 开始搜索位置处的索引</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;*&#125;</span> </span>返回匹配的元素，或者`undefined`</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see </span>find, findIndex, findKey, findLastIndex, findLastKey</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * findLast([1, 2, 3, 4], n =&gt; n % 2 == 1)</span></span><br><span class="line"><span class="comment"> * // =&gt; 3</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">findLast</span>(<span class="params">collection, predicate, fromIndex</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 初始化一个迭代器和可迭代对象</span></span><br><span class="line">  <span class="comment">// Object(collection)</span></span><br><span class="line">  <span class="comment">// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/Object</span></span><br><span class="line">  <span class="keyword">let</span> iteratee;</span><br><span class="line">  <span class="keyword">const</span> iterable = <span class="built_in">Object</span>(collection);</span><br><span class="line">  <span class="comment">// 如果collection是类数组对象</span></span><br><span class="line">  <span class="keyword">if</span> (!isArrayLike(collection)) &#123;</span><br><span class="line">    <span class="comment">// collection为key组成的数组</span></span><br><span class="line">    collection = <span class="built_in">Object</span>.keys(collection);</span><br><span class="line">    <span class="comment">// 改造predicate来适应类数组</span></span><br><span class="line">    iteratee = predicate;</span><br><span class="line">    predicate = <span class="function">(<span class="params">key</span>) =&gt;</span> iteratee(iterable[key], key, iterable);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 处理到这一步，就可以按照标准的数组来看待了，先查到需要返回元素的索引值</span></span><br><span class="line">  <span class="keyword">const</span> index = findLastIndex(collection, predicate, fromIndex);</span><br><span class="line">  <span class="comment">// 是数组就直接拿index，类数组对象就拿key，然后从可迭代对象iterable中返回结果</span></span><br><span class="line">  <span class="keyword">return</span> index &gt; <span class="number">-1</span></span><br><span class="line">    ? iterable[iteratee ? collection[index] : index]</span><br><span class="line">    : <span class="literal">undefined</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> findLast;</span><br></pre></td></tr></table></figure>
+
+<h3 id="findKey"><a href="#findKey" class="headerlink" title="findKey"></a>findKey</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 该方法类似`find`。但是它返回最先被 predicate（断言函数） 判断为真值元素的 key，而不是元素本身。</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>1.1.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Object</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Object&#125;</span> </span>object 要检查的对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Function&#125;</span> </span>predicate 每次迭代调用的函数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;string|undefined&#125;</span> </span>返回匹配元素的key，或者`undefined`</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see </span>find, findIndex, findLast, findLastIndex, findLastKey</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * const users = &#123;</span></span><br><span class="line"><span class="comment"> *   'barney':  &#123; 'age': 36, 'active': true &#125;,</span></span><br><span class="line"><span class="comment"> *   'fred':    &#123; 'age': 40, 'active': false &#125;,</span></span><br><span class="line"><span class="comment"> *   'pebbles': &#123; 'age': 1,  'active': true &#125;</span></span><br><span class="line"><span class="comment"> * &#125;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * findKey(users, (&#123; age &#125;) =&gt; age &lt; 40)</span></span><br><span class="line"><span class="comment"> * // =&gt; 'barney' (iteration order is not guaranteed)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">findKey</span>(<span class="params">object, predicate</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 初始化result为undefined</span></span><br><span class="line">  <span class="keyword">let</span> result;</span><br><span class="line">  <span class="comment">// 当object为null或者undefined时，返回undefined</span></span><br><span class="line">  <span class="keyword">if</span> (object == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 用some方法来迭代，其实用find也可以，方便随时停止</span></span><br><span class="line">  <span class="built_in">Object</span>.keys(object).some(<span class="function">(<span class="params">key</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// 拿到键对应的值</span></span><br><span class="line">    <span class="keyword">const</span> value = object[key];</span><br><span class="line">    <span class="comment">// 如果断言函数返回真</span></span><br><span class="line">    <span class="keyword">if</span> (predicate(value, key, object)) &#123;</span><br><span class="line">      <span class="comment">// 则把key赋值给result</span></span><br><span class="line">      result = key;</span><br><span class="line">      <span class="comment">// 返回true，停止迭代</span></span><br><span class="line">      <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="comment">// 最后返回key</span></span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> findKey;</span><br></pre></td></tr></table></figure>
+
+<h3 id="findLastKey"><a href="#findLastKey" class="headerlink" title="findLastKey"></a>findLastKey</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> baseFindKey <span class="keyword">from</span> <span class="string">'./.internal/baseFindKey.js'</span>;</span><br><span class="line"><span class="keyword">import</span> baseForOwnRight <span class="keyword">from</span> <span class="string">'./.internal/baseForOwnRight.js'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 该方法类似`findKey`，但是按照相反的顺序从collection中迭代元素</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since </span>2.0.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@category <span class="variable">Object</span></span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Object&#125;</span> </span>object 要检查的对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param <span class="type">&#123;Function&#125;</span> </span>predicate 每次迭代调用的函数</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@returns <span class="type">&#123;string|undefined&#125;</span> </span>返回匹配元素的key，或者undefined</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see </span>find, findIndex, findKey, findLast, findLastIndex</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@example</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * const users = &#123;</span></span><br><span class="line"><span class="comment"> *   'barney':  &#123; 'age': 36, 'active': true &#125;,</span></span><br><span class="line"><span class="comment"> *   'fred':    &#123; 'age': 40, 'active': false &#125;,</span></span><br><span class="line"><span class="comment"> *   'pebbles': &#123; 'age': 1,  'active': true &#125;</span></span><br><span class="line"><span class="comment"> * &#125;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * findLastKey(users, (&#123; age &#125;) =&gt; age &lt; 40)</span></span><br><span class="line"><span class="comment"> * // =&gt; returns 'pebbles' assuming `findKey` returns 'barney'</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">findLastKey</span>(<span class="params">object, predicate</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// 直接调用baseFindKey</span></span><br><span class="line">  <span class="keyword">return</span> baseFindKey(object, predicate, baseForOwnRight);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> findLastKey;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+        <div class="reward-container">
+  <div></div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.png" alt="林景宜 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.png" alt="林景宜 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/lodash/" rel="tag"># lodash</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81/" rel="tag"># 源码</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/posts/68487041.html" rel="prev" title="lodash源码解析：drop、dropWhile、dropRight、dropRightWhile、baseWhile">
+      <i class="fa fa-chevron-left"></i> lodash源码解析：drop、dropWhile、dropRight、dropRightWhile、baseWhile
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#其他的-find-方法"><span class="nav-number">1.</span> <span class="nav-text">其他的 find 方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前置知识"><span class="nav-number">2.</span> <span class="nav-text">前置知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#collection、array-和-object-的区别"><span class="nav-number">2.1.</span> <span class="nav-text">collection、array 和 object 的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ECMA262-规范"><span class="nav-number">2.1.1.</span> <span class="nav-text">ECMA262 规范</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#underscore"><span class="nav-number">2.1.2.</span> <span class="nav-text">underscore</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Object-方法"><span class="nav-number">2.2.</span> <span class="nav-text">Object()方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#global"><span class="nav-number">2.3.</span> <span class="nav-text">global</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lodash-中类对象、类数组、类数组对象的定义"><span class="nav-number">2.4.</span> <span class="nav-text">lodash 中类对象、类数组、类数组对象的定义</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#类对象"><span class="nav-number">2.4.1.</span> <span class="nav-text">类对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#类数组"><span class="nav-number">2.4.2.</span> <span class="nav-text">类数组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#类数组对象"><span class="nav-number">2.4.3.</span> <span class="nav-text">类数组对象</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引用的内置方法"><span class="nav-number">3.</span> <span class="nav-text">引用的内置方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#baseFindKey"><span class="nav-number">3.1.</span> <span class="nav-text">baseFindKey</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#root"><span class="nav-number">3.2.</span> <span class="nav-text">root</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#isIndex"><span class="nav-number">3.3.</span> <span class="nav-text">isIndex</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#freeGlobal"><span class="nav-number">3.4.</span> <span class="nav-text">freeGlobal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nodeTypes"><span class="nav-number">3.5.</span> <span class="nav-text">nodeTypes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#getTag"><span class="nav-number">3.6.</span> <span class="nav-text">getTag</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#arrayLikeKeys"><span class="nav-number">3.7.</span> <span class="nav-text">arrayLikeKeys</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#baseForOwnRight"><span class="nav-number">3.8.</span> <span class="nav-text">baseForOwnRight</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引用的-lodash-方法"><span class="nav-number">4.</span> <span class="nav-text">引用的 lodash 方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#isObject、isObjectLike、isArrayLike"><span class="nav-number">4.1.</span> <span class="nav-text">isObject、isObjectLike、isArrayLike</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#isTypedArray"><span class="nav-number">4.2.</span> <span class="nav-text">isTypedArray</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#keys"><span class="nav-number">4.3.</span> <span class="nav-text">keys</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#find-家族"><span class="nav-number">5.</span> <span class="nav-text">find 家族</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#findLastIndex"><span class="nav-number">5.1.</span> <span class="nav-text">findLastIndex</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findLast"><span class="nav-number">5.2.</span> <span class="nav-text">findLast</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findKey"><span class="nav-number">5.3.</span> <span class="nav-text">findKey</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#findLastKey"><span class="nav-number">5.4.</span> <span class="nav-text">findLastKey</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="林景宜" src="/images/bangchui-logo.svg">
+  <p class="site-author-name" itemprop="name">林景宜</p>
+  <div class="site-description" itemprop="description">一个已婚的前端er</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">41</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">65</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/MagnetLin" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;MagnetLin" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:linjingyi321@qq.com" title="E-Mail → mailto:linjingyi321@qq.com" rel="external nofollow noopener noreferrer" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+  <div class="beian"><a href="http://www.beian.miit.gov.cn/" rel="external nofollow noopener noreferrer" target="_blank">吉ICP备17007191号-2 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 2019 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">林景宜</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+  <script>
+    (function(){
+      var bp = document.createElement('script');
+      var curProtocol = window.location.protocol.split(':')[0];
+      bp.src = (curProtocol === 'https') ? 'https://zz.bdstatic.com/linksubmit/push.js' : 'http://push.zhanzhang.baidu.com/push.js';
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(bp, s);
+    })();
+  </script>
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.initialize({
+      theme: 'forest',
+      logLevel: 3,
+      flowchart: { curve: 'linear' },
+      gantt: { axisFormat: '%m/%d/%Y' },
+      sequence: { actorMargin: 50 }
+    });
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+
+  
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID: 'b82a041b865a317f34ae',
+      clientSecret: 'c392fb3d75a89b073e3dfe301a85b6f981c8ea86',
+      repo: 'MagnetLinComments',
+      owner: 'MagnetLin',
+      admin: ['MagnetLin'],
+      id: '249c3c55822bee48bda8dea81dcd4b91',
+        language: 'zh-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
